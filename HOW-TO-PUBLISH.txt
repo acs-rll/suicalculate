@@ -1,0 +1,54 @@
+SuiCalculate: how to put the game online and install it as an app
+=================================================================
+
+What is in this folder
+- index.html            the whole game
+- manifest.webmanifest  the app's name, colours and icons
+- sw.js                 lets the game work offline after the first visit
+- icons/                app icons
+
+The app needs to be on a website (https) before phones will offer to install it.
+Double-clicking index.html on a computer still works for playing, but not for installing.
+
+
+STEP 1: PUT IT ONLINE WITH GITHUB PAGES (free)
+1. Make a free account at github.com.
+2. Click "+" (top right) > New repository. Name it: suicalculate. Choose Public. Click Create repository.
+3. On the new page, click "uploading an existing file".
+4. Unzip suicalculate-app.zip, open the folder, select EVERYTHING inside it (index.html, manifest.webmanifest,
+   sw.js, HOW-TO-PUBLISH.txt and the icons folder) and drag it all into the upload box.
+   Upload the files themselves, not the outer folder.
+5. Click Commit changes.
+6. Go to Settings > Pages. Under "Build and deployment", set Source to "Deploy from a branch",
+   Branch to "main" and folder to "/ (root)". Click Save.
+7. Wait 1 to 2 minutes and refresh. GitHub shows your link, which looks like:
+   https://YOUR-USERNAME.github.io/suicalculate/
+   Note: your GitHub username is part of the link, and anyone with the link can play.
+
+
+STEP 2: INSTALL IT
+- Android (Chrome): open the link > menu (three dots) > "Install app" or "Add to Home screen".
+- iPhone / iPad (Safari): open the link > Share button > "Add to Home Screen".
+- Computer (Chrome or Edge): open the link > click the install icon at the right end of the address bar.
+Open it once while online. After that it also works offline.
+
+
+UPDATING THE GAME LATER
+- Upload the new index.html to the same repository (Add file > Upload files) and commit.
+- If you also change icons or other files, open sw.js, change VERSION (for example suicalculate-v2),
+  and upload sw.js too.
+- Phones get the new version the next time they open the app while online.
+
+
+OPTIONAL: A REAL ANDROID APP FILE
+1. Go to pwabuilder.com and paste your GitHub Pages link.
+2. Choose Package for stores > Android, and download the package.
+3. Install the app file on Android phones (you may need to allow installing from unknown sources),
+   or publish it on Google Play (one-time USD 25 developer fee).
+
+
+GOOD TO KNOW
+- High scores and teacher photos are saved on each device only. Photos are never uploaded anywhere.
+- Only add teacher photos with the teacher's permission, especially if the link is public.
+- The Physics lab (Test mode and data log) works the same as before. Inside the installed app,
+  "Download CSV" saves the data log as a file.

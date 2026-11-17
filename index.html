@@ -1,0 +1,1660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="SuiCalculate: launch faces, crash matching ones together and transfer momentum.">
+<meta name="theme-color" content="#6CCBFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SuiCalculate">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>html { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); } img { max-width: 100%; }</style>
+<title>SuiCalculate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one-screen arcade. Sky and hills behind; HUD on top, the glass tank in the middle, a chunky toolbar on the grass.
+   Single bright cartoon theme on purpose: every colour is set explicitly, so it looks the same on any host background. */
+:root {
+  --sky-top: #6CCBFF;
+  --sky-bottom: #CDEFFF;
+  --grass: #7ED957;
+  --grass-dark: #4FB33A;
+  --ink: #2E2445;
+  --cream: #FFF8EC;
+  --card: #FFFFFF;
+  --sun: #FFC93C;
+  --pink: #FF5C9A;
+  --pink-dark: #D93D7A;
+  --mint: #2FCFA6;
+  --mint-dark: #1FA383;
+  --danger: #FF4D5E;
+  --muted: #6E668A;
+  --glass: #EAF8FF;
+  --font-display: "Fredoka", "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden; color: var(--ink); font-family: var(--font-body); font-weight: 700; font-size: 15px; line-height: 1.4;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 70%, var(--sky-bottom) 100%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- scenery ---------- */
+.scenery { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.sun { position: absolute; top: 6%; right: 8%; width: 90px; height: 90px; border-radius: 50%; background: var(--sun);
+  box-shadow: 0 0 0 14px rgba(255, 201, 60, 0.25), 0 0 0 30px rgba(255, 201, 60, 0.12); }
+.cloud { position: absolute; width: 120px; height: 38px; border-radius: 30px; background: #fff; opacity: 0.9; animation: drift linear infinite; }
+.cloud::before, .cloud::after { content: ""; position: absolute; background: #fff; border-radius: 50%; }
+.cloud::before { width: 56px; height: 56px; left: 18px; top: -28px; }
+.cloud::after { width: 42px; height: 42px; left: 58px; top: -18px; }
+.cloud.c1 { top: 12%; animation-duration: 70s; animation-delay: -20s; }
+.cloud.c2 { top: 30%; transform: scale(0.7); animation-duration: 95s; animation-delay: -60s; }
+.cloud.c3 { top: 52%; transform: scale(0.85); animation-duration: 80s; animation-delay: -5s; opacity: 0.7; }
+@keyframes drift { from { left: -180px; } to { left: 110%; } }
+.hills { position: absolute; left: -10%; right: -10%; bottom: 0; height: 22vh; min-height: 120px;
+  background:
+    radial-gradient(60% 90% at 20% 100%, var(--grass) 60%, transparent 61%),
+    radial-gradient(55% 80% at 80% 100%, var(--grass-dark) 60%, transparent 61%),
+    radial-gradient(70% 70% at 50% 110%, var(--grass) 60%, transparent 61%); }
+
+/* ---------- app frame ---------- */
+.app { position: relative; z-index: 1; height: 100%; max-width: 560px; margin: 0 auto; display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 8px;
+  padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px));
+  padding-block: 8px 10px; }
+.card { background: var(--card); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 4px 0 var(--ink); }
+
+/* HUD */
+.hud { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: stretch; }
+.scorecard { padding: 6px 14px; display: grid; align-content: center; min-width: 0; }
+.label { font-family: var(--font-display); font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.score { font-family: var(--font-display); font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+.score.bump { animation: bump 0.25s ease-out; }
+@keyframes bump { 40% { transform: scale(1.15); color: var(--pink); } }
+.best { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.best b { color: var(--ink); }
+.best.newbest b { color: var(--pink); }
+.nextcard { padding: 4px 10px 6px; display: grid; justify-items: center; align-content: center; }
+.nextcard canvas { width: 46px; height: 46px; }
+.iconbtn { width: 52px; display: grid; place-items: center; gap: 2px; padding: 4px; cursor: pointer; color: var(--ink);
+  font: 600 10.5px var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+.iconbtn svg { width: 24px; height: 24px; }
+
+/* mission + test strips */
+.strip { padding: 7px 8px 7px 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.strip .ico { width: 30px; height: 30px; }
+.mission-text { font-family: var(--font-display); font-weight: 600; font-size: 15px; line-height: 1.2; text-wrap: balance; }
+.mission-hint { font-size: 12px; color: var(--muted); font-weight: 600; }
+.mission-side { display: grid; justify-items: end; gap: 3px; }
+.chip { font: 600 12px var(--font-display); background: var(--sun); border: 2px solid var(--ink); border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
+.mini { font: 600 12px var(--font-display); padding: 2px 10px; border-radius: 99px; border: 2px solid var(--ink); background: var(--cream); color: var(--ink); cursor: pointer; }
+.strip.done { animation: flash 0.6s ease-out; }
+@keyframes flash { 30% { background: #FFF3B8; transform: scale(1.02); } }
+
+.teststrip { padding: 8px 10px; display: grid; gap: 6px; }
+.test-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.test-row .seg { flex: 1 1 200px; }
+.test-grid { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 0.8fr) auto minmax(0, 1fr) minmax(0, 0.8fr); gap: 4px 6px; align-items: center; font-size: 12.5px; }
+.test-grid b { font-family: var(--font-display); font-weight: 700; }
+.test-note { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+
+/* stage */
+.stage-wrap { min-height: 0; display: grid; place-items: center; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.stage-wrap:has(#board.aiming) { cursor: grabbing; }
+.stage { position: relative; border: 5px solid var(--ink); border-top-width: 0; border-radius: 0 0 18px 18px; background: var(--glass);
+  box-shadow: 0 6px 0 rgba(46, 36, 69, 0.28); }
+.stage::before, .stage::after { content: ""; position: absolute; top: -6px; width: 16px; height: 12px; background: var(--ink); border-radius: 6px; }
+.stage::before { left: -10px; } .stage::after { right: -10px; }
+#board { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#board.aiming { cursor: grabbing; }
+.banner-layer { position: absolute; inset: 0; pointer-events: none; display: grid; place-items: start center; padding-top: 34%; overflow: hidden; }
+.banner { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 8vw, 40px); color: #fff; text-align: center; line-height: 1.05;
+  text-shadow: 0 3px 0 var(--ink), 3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 -3px 0 var(--ink), 2px 2px 0 var(--ink), -2px 2px 0 var(--ink), 2px -2px 0 var(--ink), -2px -2px 0 var(--ink), 0 7px 0 rgba(46,36,69,0.35);
+  animation: pop 1.25s ease-out forwards; }
+.banner small { display: block; font-size: 0.5em; margin-top: 4px; }
+.banner.b-pink { color: var(--pink); } .banner.b-sun { color: var(--sun); } .banner.b-mint { color: var(--mint); }
+@keyframes pop { 0% { transform: scale(0.2) rotate(-8deg); opacity: 0; } 18% { transform: scale(1.18) rotate(3deg); opacity: 1; }
+  30% { transform: scale(0.95) rotate(-1deg); } 40% { transform: scale(1) rotate(0); } 80% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-30px); } }
+
+/* toolbar */
+.toolbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.tb { display: grid; justify-items: center; gap: 1px; padding: 6px 4px 5px; cursor: pointer; color: var(--ink); font: 600 13px var(--font-display); min-width: 0; }
+.tb svg { width: 22px; height: 22px; }
+.tb small { font: 700 10.5px var(--font-body); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.tb[disabled] { opacity: 0.45; cursor: default; }
+
+/* buttons */
+button { font: inherit; color: inherit; }
+.btn { font: 600 16px var(--font-display); padding: 10px 18px; border-radius: 14px; border: 3px solid var(--ink); background: var(--cream); color: var(--ink);
+  box-shadow: 0 4px 0 var(--ink); cursor: pointer; transition: transform 0.06s, box-shadow 0.06s; }
+.btn.primary { background: var(--pink); color: #fff; }
+.btn.go { background: var(--mint); color: #fff; }
+.btn.big { font-size: 22px; padding: 12px 22px; border-radius: 18px; }
+.btn:active, .card.press:active, .tb:active, .iconbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+button:focus-visible, select:focus-visible, input:focus-visible, label.btn:focus-within { outline: 3px solid var(--pink); outline-offset: 3px; }
+.seg { display: flex; border: 3px solid var(--ink); border-radius: 12px; overflow: hidden; background: var(--cream); }
+.seg button { flex: 1; border: 0; background: transparent; padding: 6px 8px; font: 600 13px var(--font-display); cursor: pointer; color: var(--ink); min-width: 0; }
+.seg button + button { border-left: 3px solid var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+select, input[type="number"], input[type="text"] { font: 600 14px var(--font-body); padding: 5px 6px; border: 2.5px solid var(--ink); border-radius: 10px; background: #fff; color: var(--ink); width: 100%; min-width: 0; }
+
+/* overlays */
+.screen { position: fixed; inset: 0; z-index: 30; overflow-y: auto; display: grid; place-items: center;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.title-screen { background: linear-gradient(180deg, rgba(108, 203, 255, 0.96), rgba(205, 239, 255, 0.97)); }
+.title-inner { width: min(100%, 460px); display: grid; gap: 14px; justify-items: center; text-align: center; }
+.hero { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 92px; }
+.hero canvas { animation: bob 2.4s ease-in-out infinite; }
+.hero canvas:nth-child(2) { animation-delay: -0.4s; } .hero canvas:nth-child(3) { animation-delay: -0.8s; }
+.hero canvas:nth-child(4) { animation-delay: -1.2s; } .hero canvas:nth-child(5) { animation-delay: -1.6s; }
+@keyframes bob { 50% { transform: translateY(-8px) rotate(4deg); } }
+.logo { margin: 0; font-family: var(--font-display); font-weight: 700; line-height: 0.92; color: #fff; letter-spacing: 0.01em;
+  text-shadow: 0 4px 0 var(--ink), 4px 0 0 var(--ink), -4px 0 0 var(--ink), 0 -4px 0 var(--ink), 3px 3px 0 var(--ink), -3px 3px 0 var(--ink), 3px -3px 0 var(--ink), -3px -3px 0 var(--ink), 0 10px 0 rgba(46,36,69,0.3); }
+.logo .l1 { display: block; font-size: clamp(50px, 15vw, 74px); }
+.logo .l2 { display: block; font-size: clamp(46px, 13.5vw, 70px); color: var(--sun); }
+.logo span span { display: inline-block; animation: wave 2.2s ease-in-out infinite; }
+@keyframes wave { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-7px); } }
+.tagline { margin: 0; max-width: 34ch; font-size: 15px; color: var(--ink); }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.step { padding: 8px 6px; display: grid; gap: 2px; justify-items: center; font-size: 12.5px; line-height: 1.25; }
+.step b { font-family: var(--font-display); font-weight: 700; font-size: 18px; width: 28px; height: 28px; border-radius: 50%; background: var(--sun); border: 2.5px solid var(--ink); display: grid; place-items: center; }
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.lvl { padding: 9px 6px 8px; display: grid; gap: 2px; justify-items: center; cursor: pointer; color: var(--ink); background: var(--card); }
+.lvl .n { font-family: var(--font-display); font-weight: 700; font-size: 19px; }
+.lvl .d { font-size: 11.5px; color: var(--muted); line-height: 1.2; }
+.lvl .b { font: 600 12px var(--font-display); }
+.lvl[aria-pressed="true"] { background: var(--sun); }
+.lvl[aria-pressed="true"] .d { color: var(--ink); }
+.title-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.credit { font-size: 11.5px; color: var(--ink); opacity: 0.75; font-weight: 600; }
+
+.modal-screen { background: rgba(46, 36, 69, 0.45); z-index: 35; }
+.modal { width: min(100%, 380px); padding: 20px 18px 18px; display: grid; gap: 12px; text-align: center; justify-items: center; background: var(--cream); animation: modalIn 0.28s ease-out; }
+@keyframes modalIn { from { transform: scale(0.85) translateY(20px); opacity: 0; } }
+.modal h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.05; text-wrap: balance; }
+.modal p { margin: 0; color: var(--muted); }
+.modal .big-score { font-family: var(--font-display); font-weight: 700; font-size: 52px; line-height: 1; font-variant-numeric: tabular-nums; }
+.newbest-chip { font: 700 14px var(--font-display); background: var(--pink); color: #fff; border: 2.5px solid var(--ink); border-radius: 99px; padding: 2px 12px; transform: rotate(-4deg); animation: wobble 1s ease-in-out infinite; }
+@keyframes wobble { 50% { transform: rotate(4deg) scale(1.06); } }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.stat { background: #fff; border: 2.5px solid var(--ink); border-radius: 12px; padding: 6px; display: grid; }
+.stat b { font-family: var(--font-display); font-size: 20px; }
+.modal-btns { display: grid; gap: 10px; width: 100%; }
+.modal .lvl-list { display: grid; gap: 8px; width: 100%; }
+.modal .lvl { grid-template-columns: minmax(0, 1fr) auto; text-align: left; justify-items: start; padding: 10px 14px; }
+.modal .lvl .b { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+/* physics lab sheet */
+.lab { position: fixed; inset: 0; z-index: 40; background: var(--cream); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(14px, env(safe-area-inset-left, 0px)); }
+@media (min-width: 760px) { .lab { inset: 24px; max-width: 980px; margin: 0 auto; border: 4px solid var(--ink); border-radius: 22px; box-shadow: 0 8px 0 var(--ink); padding: 16px 20px 0; } }
+.lab-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lab-head h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; }
+.lab-head p { margin: 0; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.closebtn { width: 44px; height: 44px; border-radius: 50%; padding: 0; display: grid; place-items: center; font-size: 20px; }
+.tabs .seg button { padding-inline: 2px; }
+.lab-body { overflow-y: auto; padding-bottom: 28px; min-width: 0; }
+.pane { display: grid; gap: 12px; min-width: 0; font-weight: 600; }
+.pane h3 { margin: 0; font-family: var(--font-display); font-size: 18px; }
+.pane p { margin: 0; color: var(--muted); max-width: 70ch; }
+.panel { background: #fff; border: 2.5px solid var(--ink); border-radius: 14px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.formula { font-family: var(--font-data); font-size: 13px; color: var(--ink); background: var(--cream); border-radius: 8px; padding: 6px 8px; overflow-x: auto; }
+table.kv { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 13px; font-variant-numeric: tabular-nums; }
+table.kv th { text-align: left; font-weight: 500; color: var(--muted); padding: 4px 0; font-family: var(--font-body); }
+table.kv td { text-align: right; padding: 4px 0 4px 8px; }
+.pill { font: 600 12px var(--font-display); border: 2px solid var(--ink); border-radius: 99px; padding: 1px 10px; background: var(--cream); }
+.pill.c1 { background: var(--sun); } .pill.c2 { background: #D7F3FF; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btns .btn { font-size: 14px; padding: 6px 12px; box-shadow: 0 3px 0 var(--ink); border-radius: 12px; }
+.tablewrap { overflow: auto; max-height: 55vh; border: 2.5px solid var(--ink); border-radius: 12px; background: #fff; }
+table.data { border-collapse: collapse; font-family: var(--font-data); font-size: 12.5px; font-variant-numeric: tabular-nums; min-width: 1060px; width: 100%; }
+table.data th { position: sticky; top: 0; background: var(--cream); text-align: right; font-weight: 500; padding: 6px 8px; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+table.data td { text-align: right; padding: 4px 8px; border-bottom: 1px solid #E6E1F0; white-space: nowrap; }
+table.data th:nth-child(-n+3), table.data td:nth-child(-n+3) { text-align: left; }
+table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); font-weight: 500; }
+.empty { padding: 14px; color: var(--muted); font-family: var(--font-body); white-space: normal !important; }
+textarea#csvOut { width: 100%; min-height: 120px; font: 12px var(--font-data); border: 2px solid var(--ink); border-radius: 10px; }
+.face-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.face-slot { background: #fff; border: 2.5px solid var(--ink); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: start; }
+.face-slot canvas { width: 60px; height: 60px; }
+.face-slot .t { font: 600 12.5px var(--font-display); color: var(--muted); }
+.face-slot .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.face-slot .btn { font-size: 12.5px; padding: 4px 9px; box-shadow: 0 2px 0 var(--ink); border-radius: 10px; }
+.face-slot input[type="file"] { display: none; }
+label.chk { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
+.msg { color: var(--danger); font-size: 13px; }
+
+.tips { display: grid; gap: 8px; width: 100%; text-align: left; }
+.tip { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px; align-items: center; background: #fff; border: 2.5px solid var(--ink); border-radius: 12px; padding: 8px 10px; font-size: 13px; color: var(--ink); }
+.tip-n { font: 700 15px var(--font-display); background: var(--sun); border: 2px solid var(--ink); border-radius: 10px; text-align: center; padding: 3px 4px; }
+.tip.rock .tip-n { background: #C9C4D6; } .tip.hard .tip-n { background: var(--pink); color: #fff; }
+.speeds { display: grid; gap: 4px; background: #fff; border: 2.5px solid var(--ink); border-radius: 12px; padding: 8px 10px; }
+.speeds > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.sp { display: grid; justify-items: center; font: 600 13px var(--font-display); color: var(--ink); background: var(--cream); border-radius: 8px; padding: 3px 0; font-variant-numeric: tabular-nums; }
+.sp b { font-size: 11px; color: var(--muted); }
+.modal { max-height: calc(100vh - 28px); overflow-y: auto; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  background: var(--ink); color: #fff; padding: 8px 16px; border-radius: 99px; font: 600 14px var(--font-display); max-width: calc(100% - 32px); text-align: center; }
+
+@media (max-height: 700px) {
+  .mission-hint { display: none; }
+  .score { font-size: 28px; }
+  .nextcard canvas { width: 40px; height: 40px; }
+  .tb { padding-block: 4px 3px; }
+  .tb small { display: none; }
+}
+@media (max-height: 620px) { .hero { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cloud, .hero canvas, .logo span span, .newbest-chip { animation: none; }
+  .banner { animation-duration: 1.4s; animation-name: fadeonly; }
+  @keyframes fadeonly { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
+}
+</style>
+</head>
+<body>
+
+<div class="scenery" aria-hidden="true">
+  <div class="sun"></div>
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <div class="hills"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16" rx="1.5" fill="currentColor"/><rect x="14" y="4" width="5" height="16" rx="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 1-7.4 5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M3 3.5v6h6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-level" viewBox="0 0 24 24"><rect x="3" y="14" width="4.5" height="7" rx="1.2" fill="currentColor"/><rect x="9.75" y="9" width="4.5" height="12" rx="1.2" fill="currentColor"/><rect x="16.5" y="4" width="4.5" height="17" rx="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-lab" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5.5 9.5A2 2 0 0 0 6.2 21.5h11.6a2 2 0 0 0 1.7-3L14 9V3" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 15.5h9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-sfx" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-target" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#FF5C9A" stroke="#2E2445" stroke-width="2.5"/><circle cx="16" cy="16" r="8.5" fill="#fff" stroke="#2E2445" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="#FF5C9A" stroke="#2E2445" stroke-width="2"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 32 32"><path d="M12 4h8M13 4v8L6.5 24.5A2.5 2.5 0 0 0 8.7 28h14.6a2.5 2.5 0 0 0 2.2-3.5L19 12V4" fill="#2FCFA6" stroke="#2E2445" stroke-width="2.5" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<main class="app" id="app">
+  <div class="hud">
+    <div class="card scorecard">
+      <span class="label">Score</span>
+      <span class="score" id="hudScore">0</span>
+      <span class="best" id="hudBestWrap">Best <b id="hudBest">0</b> · <span id="hudLevel">Easy</span></span>
+    </div>
+    <div class="card nextcard" aria-label="Next face">
+      <span class="label">Next</span>
+      <canvas id="hudNext" width="96" height="96"></canvas>
+    </div>
+    <button class="card iconbtn" id="soundBtn" aria-label="Sound: music and effects on"><svg><use href="#i-sound"/></svg><span id="soundLabel">Sound</span></button>
+  </div>
+
+  <div class="card strip" id="missionBar">
+    <svg class="ico" aria-hidden="true"><use href="#i-target"/></svg>
+    <div style="min-width:0">
+      <div class="mission-text" id="missionText">Loading mission</div>
+      <div class="mission-hint" id="missionHint"></div>
+    </div>
+    <div class="mission-side">
+      <span class="chip" id="missionReward">+100</span>
+      <button class="mini" id="skipMission">Skip</button>
+    </div>
+  </div>
+
+  <div class="card teststrip" id="testBar" hidden>
+    <div class="test-row">
+      <div class="seg" role="group" aria-label="Collision type">
+        <button id="typeE" aria-pressed="true">Bounce (elastic)</button>
+        <button id="typeI" aria-pressed="false">Stick (perfectly inelastic)</button>
+      </div>
+      <button class="btn go" id="runTrial" style="font-size:14px;padding:5px 12px;box-shadow:0 3px 0 var(--ink)">Run</button>
+      <button class="mini" id="exitTest">Exit</button>
+    </div>
+    <div class="test-grid">
+      <b>A</b>
+      <select id="tA" aria-label="Face A tier"></select>
+      <input type="number" id="vA" value="4" step="0.5" min="-12" max="12" aria-label="Face A velocity in m/s">
+      <b>B</b>
+      <select id="tB" aria-label="Face B tier"></select>
+      <input type="number" id="vB" value="0" step="0.5" min="-12" max="12" aria-label="Face B velocity in m/s">
+    </div>
+    <div class="test-note" id="trialCount">No gravity · right is + · velocities in m/s · Bounce trials 0 · Stick trials 0 (need 3 each)</div>
+  </div>
+
+  <div class="stage-wrap" id="stageWrap">
+    <div class="stage" id="stage">
+      <canvas id="board" aria-label="Game tank. Drag back anywhere and let go to launch the face."></canvas>
+      <div class="banner-layer" id="bannerLayer" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <nav class="toolbar" aria-label="Game controls">
+    <button class="card tb" id="tbPause"><svg><use href="#i-pause" id="tbPauseIcon"/></svg><span id="tbPauseText">Pause</span><small>P key</small></button>
+    <button class="card tb" id="tbRestart"><svg><use href="#i-restart"/></svg><span>Restart</span><small>New game</small></button>
+    <button class="card tb" id="tbLevel"><svg><use href="#i-level"/></svg><span>Level</span><small id="tbLevelName">Easy</small></button>
+    <button class="card tb" id="tbLab"><svg><use href="#i-lab"/></svg><span>Lab</span><small>Test · Data</small></button>
+  </nav>
+</main>
+
+<!-- title screen -->
+<section class="screen title-screen" id="titleScreen" aria-labelledby="logo">
+  <div class="title-inner">
+    <div class="hero" id="hero" aria-hidden="true"></div>
+    <h1 class="logo" id="logo" aria-label="SuiCalculate"></h1>
+    <p class="tagline">Launch faces into the tank. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
+    <div class="steps">
+      <div class="card step"><b>1</b>Drag back, then let go</div>
+      <div class="card step"><b>2</b>Smash matching faces to merge</div>
+      <div class="card step"><b>3</b>Don't overflow the tank</div>
+    </div>
+    <div class="levels" role="group" aria-label="Level">
+      <button class="card press lvl" data-level="easy"><span class="n">Easy</span><span class="d">Aim guide, few rocks</span><span class="b">Best <span data-best="easy">0</span></span></button>
+      <button class="card press lvl" data-level="normal"><span class="n">Normal</span><span class="d">Aim guide, more rocks</span><span class="b">Best <span data-best="normal">0</span></span></button>
+      <button class="card press lvl" data-level="hard"><span class="n">Hard</span><span class="d">Lots of rocks, no preview</span><span class="b">Best <span data-best="hard">0</span></span></button>
+    </div>
+    <button class="btn primary big" id="playBtn"><svg width="20" height="20" style="vertical-align:-3px;margin-right:6px"><use href="#i-play"/></svg>Play</button>
+    <div class="title-row">
+      <button class="btn" id="titleHow">How to play</button>
+      <button class="btn" id="titleSound">Sound: on</button>
+      <button class="btn" id="titleLab">Physics lab</button>
+    </div>
+    <div class="credit">Collision Arcade · General Physics 1 · zesty players</div>
+  </div>
+</section>
+
+<!-- modal (pause, game over, level picker, win) -->
+<section class="screen modal-screen" id="modalScreen" hidden>
+  <div class="card modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">Paused</h2>
+    <div id="modalBody" style="display:grid;gap:10px;justify-items:center;width:100%"></div>
+    <div class="modal-btns" id="modalBtns"></div>
+  </div>
+</section>
+
+<!-- physics lab -->
+<section class="lab" id="lab" hidden role="dialog" aria-modal="true" aria-labelledby="labTitle">
+  <div class="lab-head">
+    <div style="display:flex;gap:10px;align-items:center;min-width:0">
+      <svg width="36" height="36" aria-hidden="true"><use href="#i-flask"/></svg>
+      <div style="min-width:0"><h2 id="labTitle">Physics lab</h2><p>Test collisions, read the data and see how the game works.</p></div>
+    </div>
+    <button class="btn closebtn" id="labClose" aria-label="Close the physics lab">✕</button>
+  </div>
+  <div class="tabs">
+    <div class="seg" role="group" aria-label="Lab pages">
+      <button data-tab="test" aria-pressed="true">Test</button>
+      <button data-tab="log" aria-pressed="false">Data</button>
+      <button data-tab="hit" aria-pressed="false">Last hit</button>
+      <button data-tab="faces" aria-pressed="false">Faces</button>
+      <button data-tab="how" aria-pressed="false">Physics</button>
+    </div>
+  </div>
+  <div class="lab-body">
+    <div class="pane" data-pane="test">
+      <div class="panel">
+        <h3>Test mode</h3>
+        <p>Gravity turns off and two faces collide head-on along a straight line. Pick their tiers (masses) and velocities, choose Bounce or Stick, then press Run. Every trial goes into the data log for your validation table.</p>
+        <p>The PT needs at least 3 trials of each collision type.</p>
+        <div class="btns"><button class="btn go" id="startTest">Start Test mode</button></div>
+      </div>
+      <div class="panel">
+        <h3>Example trials from the proposal</h3>
+        <div class="formula">Stick: A = Tier 2 (2 kg) at 6 m/s, B = Tier 2 (2 kg) at 0 m/s → both move at 3.0 m/s</div>
+        <div class="formula">Bounce: A = Tier 1 (1 kg) at 4 m/s, B = Tier 3 (4 kg) at 0 m/s → A −2.4 m/s, B 1.6 m/s</div>
+        <div class="formula">Head-on stick: A = Tier 2 at 5 m/s, B = Tier 2 at −3 m/s → both move at 1.0 m/s</div>
+      </div>
+    </div>
+
+    <div class="pane" data-pane="log" hidden>
+      <div class="btns">
+        <div class="seg" role="group" aria-label="Show rows">
+          <button id="fAll" aria-pressed="true">All</button>
+          <button id="fTest" aria-pressed="false">Test</button>
+          <button id="fC1" aria-pressed="false">C1 stick</button>
+          <button id="fC2" aria-pressed="false">C2 bounce</button>
+        </div>
+        <button class="btn" id="copyCsv">Copy as CSV</button>
+        <button class="btn" id="dlCsv" hidden>Download CSV</button>
+        <button class="btn" id="clearLog">Clear log</button>
+      </div>
+      <p>Every logged collision, newest first. Paste the CSV into Google Sheets or Excel for your data table. Test-mode trials are the clean ones for validation.</p>
+      <div class="tablewrap"><table class="data" id="logTable"></table></div>
+      <div id="csvFallback" hidden><p>Copying is blocked here. Select all the text below and copy it.</p><textarea id="csvOut" readonly></textarea></div>
+    </div>
+
+    <div class="pane" data-pane="hit" hidden>
+      <div class="panel">
+        <div class="btns" style="justify-content:space-between"><h3>Last collision</h3><span id="lastType" class="pill">none yet</span></div>
+        <table class="kv">
+          <tr><th>m₁ / m₂</th><td id="k_m">–</td></tr>
+          <tr><th>v₁ / v₂ before</th><td id="k_vb">–</td></tr>
+          <tr><th>v₁′ / v₂′ after</th><td id="k_va">–</td></tr>
+          <tr><th>p before → after</th><td id="k_p">–</td></tr>
+          <tr><th>% difference</th><td id="k_pd">–</td></tr>
+          <tr><th>KE before → after</th><td id="k_ke">–</td></tr>
+          <tr><th>KE ratio</th><td id="k_kr">–</td></tr>
+          <tr><th>Δp to target · points</th><td id="k_pts">–</td></tr>
+        </table>
+        <p style="font-size:12.5px">Values along the line of impact, face 1 → face 2 is +. Units: kg, m/s, kg·m/s, J.</p>
+      </div>
+    </div>
+
+    <div class="pane" data-pane="faces" hidden>
+      <p>Add a photo for each tier. Photos are cropped to a circle and saved in this browser only. Only use a teacher's photo after they have agreed.</p>
+      <div class="face-grid" id="faceGrid"></div>
+      <p class="msg" id="facesMsg"></p>
+    </div>
+
+    <div class="pane" data-pane="how" hidden>
+      <div class="panel">
+        <h3>The two collisions</h3>
+        <p><b style="color:var(--ink)">C1 Stick (perfectly inelastic):</b> two matching faces merge into one face of the next tier, but only if the crash releases enough kinetic energy (Easy 4 J, Normal 9 J, Hard 16 J). Slower hits bounce or stack. Momentum is kept, kinetic energy is lost.</p>
+        <div class="formula">KE lost = ½ · μ · v²,  μ = m₁m₂ ÷ (m₁ + m₂),  v = closing speed</div>
+        <p>So a Tier 1 pair (μ = 0.5 kg) needs a fast hit, while a Tier 6 pair (μ = 16 kg) merges with a gentle bump.</p>
+        <div class="formula">v′ = (m₁v₁ + m₂v₂) ÷ (m₁ + m₂)</div>
+        <p><b style="color:var(--ink)">C2 Bounce (elastic):</b> different faces bounce apart. Momentum and kinetic energy are both kept.</p>
+        <div class="formula">v₁′ = [(m₁−m₂)v₁ + 2m₂v₂] ÷ (m₁+m₂) &nbsp; v₂′ = [(m₂−m₁)v₂ + 2m₁v₁] ÷ (m₁+m₂)</div>
+      </div>
+      <div class="panel">
+        <h3>Scoring</h3>
+        <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
+        <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
+        <p>Rocks (12 kg) never merge. A rock breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
+        <p>Not logged: hits on walls and the floor (outside forces), and faces resting in the pile slower than 0.6 m/s.</p>
+      </div>
+      <div class="panel">
+        <h3>Display</h3>
+        <label class="chk"><input type="checkbox" id="arrows"> Show velocity arrows on every face</label>
+        <label class="chk"><input type="checkbox" id="showNums"> Show m/s and momentum while aiming</label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden role="status"></div>
+<script>window.SUICALC_APP = true;</script>
+<script>
+// ===================== MOMENTUM MERGE: PHYSICS CORE =====================
+// Everything here uses real units: metres (m), seconds (s), kilograms (kg).
+// The game draws these values on screen; the physics never works in pixels.
+//
+// Two collision types:
+//   C1  Perfectly inelastic: two matching faces stick together (merge).
+//       New mass  M = m1 + m2
+//       New velocity v' = (m1*v1 + m2*v2) / (m1 + m2)   <- conservation of momentum
+//   C2  Elastic: two different faces bounce. Momentum AND kinetic energy are kept.
+//       Along the line joining their centres:
+//       v1' = ((m1 - m2)*v1 + 2*m2*v2) / (m1 + m2)
+//       v2' = ((m2 - m1)*v2 + 2*m1*v1) / (m1 + m2)
+//       (the impulse formula below gives exactly these values)
+const Phys = (() => {
+  const W = 4.0;          // container width (m)
+  const H = 6.8;          // play area height, floor to ceiling (m); 1 m of headroom above the slingshot for pulling back
+  const LINE = 5.0;       // overflow line height (m)
+  const LAUNCH = { x: 2.0, y: 5.75 }; // slingshot position (m)
+  const G = 10;           // gravity (m/s^2), as chosen by the group
+  const VMAX = 12;        // fastest launch the slingshot allows (m/s)
+  const MAX_TIER = 10;
+  const RADII = [0.16, 0.21, 0.27, 0.34, 0.42, 0.51, 0.61, 0.72, 0.84, 0.98]; // m, Tier 1..10
+
+  const E_WALL = 0.5;     // walls and floor are not part of the momentum test; they absorb energy so faces settle
+  const E_THRESH = 0.6;   // m/s: impacts slower than this are "resting contact", not a logged bounce
+  const MERGE_GAP = 0.01; // m: matching faces this close count as touching
+  const SLOP = 0.004, PUSH = 0.4; // overlap correction (moves positions only, never velocities)
+
+  const massOf = t => Math.pow(2, t - 1);   // 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg
+  const radiusOf = t => RADII[t - 1];
+
+  function createWorld(opts = {}) {
+    return {
+      bodies: [], time: 0, nextId: 1, events: [],
+      gravity: opts.gravity !== undefined ? opts.gravity : true,
+      forced: opts.forced || null,      // test mode: 'elastic' or 'inelastic' forces the collision type
+      logLimit: opts.logLimit || Infinity,
+      mergeEnergy: opts.mergeEnergy || 0, // J: a merge must release at least this much kinetic energy (0 = any touch)
+      onEvent: null,
+      onSoft: null,                      // called when matching faces touch too slowly to merge
+    };
+  }
+
+  function addBody(w, o) {
+    const b = {
+      id: w.nextId++, tier: o.tier,
+      m: o.m !== undefined ? o.m : massOf(o.tier),
+      r: o.r !== undefined ? o.r : radiusOf(o.tier),
+      x: o.x, y: o.y, vx: o.vx || 0, vy: o.vy || 0,
+      born: w.time, dead: false, label: o.label || null,
+    };
+    w.bodies.push(b);
+    return b;
+  }
+
+  // ---- Data for the log: values along the line of impact (face 1 -> face 2 is +) ----
+  function record(w, type, A, B, nx, ny, after) {
+    // Face 1 is the faster face (the "hitter"); face 2 is the target.
+    const sA = Math.hypot(A.vx, A.vy), sB = Math.hypot(B.vx, B.vy);
+    let one = A, two = B, ux = nx, uy = ny;
+    if (sB > sA) { one = B; two = A; ux = -nx; uy = -ny; }
+    const m1 = one.m, m2 = two.m;
+    const v1 = one.vx * ux + one.vy * uy;
+    const v2 = two.vx * ux + two.vy * uy;
+    const a1 = (one === A ? after.a : after.b), a2 = (two === A ? after.a : after.b);
+    const v1a = a1.vx * ux + a1.vy * uy;
+    const v2a = a2.vx * ux + a2.vy * uy;
+    const pB = m1 * v1 + m2 * v2;
+    const pA = m1 * v1a + m2 * v2a;
+    const keB = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+    const keA = 0.5 * m1 * v1a * v1a + 0.5 * m2 * v2a * v2a;
+    const dpTarget = m2 * (v2a - v2);          // momentum transferred to the target face
+    const ev = {
+      n: w.events.length + 1, t: w.time, type,
+      tier1: one.tier, tier2: two.tier, m1, m2, v1, v2, v1a, v2a,
+      pBefore: pB, pAfter: pA,
+      pctDiff: Math.abs(pB) > 1e-9 ? Math.abs(pA - pB) / Math.abs(pB) * 100 : null,
+      keBefore: keB, keAfter: keA,
+      keRatio: keB > 1e-12 ? keA / keB : null,
+      dpTarget,
+      points: type === 'C1' ? Math.ceil(Math.abs(dpTarget) * 10 - 1e-9) : 0,
+      x: (one.x + two.x) / 2, y: (one.y + two.y) / 2,
+      id1: one.id, id2: two.id, ux, uy,   // for visual effects only
+    };
+    if (w.events.length < w.logLimit) {
+      w.events.push(ev);
+      if (w.onEvent) w.onEvent(ev);
+    }
+    return ev;
+  }
+
+  // ---- C1: perfectly inelastic merge ----
+  function merge(w, a, b, nx, ny) {
+    const M = a.m + b.m;
+    const vx = (a.m * a.vx + b.m * b.vx) / M;   // conservation of momentum (x)
+    const vy = (a.m * a.vy + b.m * b.vy) / M;   // conservation of momentum (y)
+    const x = (a.m * a.x + b.m * b.x) / M;      // new face appears at the centre of mass
+    const y = (a.m * a.y + b.m * b.y) / M;
+    let tier, r;
+    if (a.tier === b.tier && a.tier > 0 && a.tier < MAX_TIER) { tier = a.tier + 1; r = radiusOf(tier); }
+    else { tier = 0; r = Math.sqrt(a.r * a.r + b.r * b.r); } // test mode: unequal masses stuck together
+    const ghostA = { ...a }, ghostB = { ...b };
+    a.dead = b.dead = true;
+    const nb = addBody(w, { tier, m: M, r, x: clamp(x, r, W - r), y: Math.max(y, r), vx, vy });
+    const ev = record(w, 'C1', ghostA, ghostB, nx, ny, { a: nb, b: nb });
+    ev.newTier = tier; ev.newMass = M; ev.newId = nb.id;
+    return nb;
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function collidePair(w, a, b) {
+    if (a.dead || b.dead) return;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.hypot(dx, dy), rs = a.r + b.r;
+    if (d >= rs + MERGE_GAP) return;
+    const nx = d > 1e-9 ? dx / d : 1, ny = d > 1e-9 ? dy / d : 0;
+    const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny; // closing speed (negative = approaching)
+
+    // Matching faces merge (C1). With mergeEnergy set, the crash must release at least that much KE.
+    // KE lost in a perfectly inelastic collision = ½ · μ · v², with μ = m₁m₂ ÷ (m₁ + m₂) and v = closing speed.
+    // So light faces need a fast hit, and heavy faces merge with a gentle bump.
+    const sameTier = a.tier === b.tier && a.tier > 0 && a.tier < MAX_TIER;
+    const mu = a.m * b.m / (a.m + b.m), keLost = rv < 0 ? 0.5 * mu * rv * rv : 0;
+    const hardEnough = !w.mergeEnergy || keLost >= w.mergeEnergy;
+    const mergeable = w.forced ? w.forced === 'inelastic' : (sameTier && hardEnough);
+    if (mergeable) { merge(w, a, b, nx, ny); return; }
+    if (d >= rs) return;
+    if (sameTier && !w.forced && -rv > 0.25 && w.onSoft) w.onSoft(a, b, -rv, Math.sqrt(2 * w.mergeEnergy / mu), keLost);
+
+    a.touchNow = b.touchNow = true;
+    if (rv < 0) {
+      // Elastic (C2) only for a real impact: a face that was flying freely hits another face
+      // faster than E_THRESH. Faces already resting against each other in the pile do not bounce.
+      const impact = -rv > E_THRESH && (!a.touching || !b.touching);
+      const elastic = w.forced === 'elastic' || impact;
+      const e = elastic ? 1 : 0;
+      const before = elastic ? { a: { ...a }, b: { ...b } } : null;
+      const j = -(1 + e) * rv / (1 / a.m + 1 / b.m);  // impulse J = change in momentum
+      a.vx -= j * nx / a.m; a.vy -= j * ny / a.m;
+      b.vx += j * nx / b.m; b.vy += j * ny / b.m;
+      if (elastic) record(w, 'C2', before.a, before.b, nx, ny, { a, b });
+    }
+  }
+
+  // Pushes overlapping faces apart. Changes positions only, never velocities,
+  // so it does not affect momentum or the logged collision values.
+  function separatePair(a, b) {
+    if (a.dead || b.dead) return;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.hypot(dx, dy), pen = a.r + b.r - d - SLOP;
+    if (pen <= 0) return;
+    const nx = d > 1e-9 ? dx / d : 1, ny = d > 1e-9 ? dy / d : 0;
+    const inv = 1 / a.m + 1 / b.m, c = pen * PUSH / inv;
+    a.x -= nx * c / a.m; a.y -= ny * c / a.m;
+    b.x += nx * c / b.m; b.y += ny * c / b.m;
+  }
+
+  // Walls, floor and ceiling. A fast hit bounces back at half speed (energy lost);
+  // a slow push into a wall just stops, so a resting pile stays still.
+  function wallBounce(v) { return v < -0.3 ? -v * E_WALL : 0; }
+  function wallVelocity(b) {
+    if (b.x - b.r <= 0.001 && b.vx < 0) b.vx = wallBounce(b.vx);
+    if (b.x + b.r >= W - 0.001 && b.vx > 0) b.vx = -wallBounce(-b.vx);
+    if (b.y - b.r <= 0.001) { b.touchNow = true; if (b.vy < 0) b.vy = wallBounce(b.vy); }
+    if (b.y + b.r >= H - 0.001 && b.vy > 0) b.vy = -wallBounce(-b.vy);
+  }
+  function wallPosition(b) {
+    b.x = clamp(b.x, b.r, W - b.r);
+    b.y = clamp(b.y, b.r, H - b.r);
+  }
+
+  // One time step:
+  // 1. gravity changes velocity   (v = v + g*dt)
+  // 2. collisions change velocity (impulses: elastic bounce or perfectly inelastic merge)
+  // 3. velocity changes position  (x = x + v*dt)
+  // 4. overlapping faces are nudged apart (positions only)
+  function step(w, dt) {
+    let bs = w.bodies;
+    for (const b of bs) { b.touching = !!b.touchNow; b.touchNow = false; }
+    if (w.gravity) for (const b of bs) b.vy -= G * dt;
+    for (let it = 0; it < 8; it++) {
+      const n = bs.length;
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) collidePair(w, bs[i], bs[j]);
+      for (const b of bs) if (!b.dead) wallVelocity(b);
+      if (bs.some(b => b.dead)) { w.bodies = bs = w.bodies.filter(b => !b.dead); }
+    }
+    for (const b of bs) { b.x += b.vx * dt; b.y += b.vy * dt; }
+    for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) separatePair(bs[i], bs[j]);
+    for (const b of bs) wallPosition(b);
+    w.time += dt;
+  }
+
+  return { W, H, LINE, LAUNCH, G, VMAX, MAX_TIER, RADII, E_THRESH, massOf, radiusOf, createWorld, addBody, step };
+})();
+if (typeof module !== 'undefined') module.exports = Phys;
+
+</script>
+<script>
+(() => {
+const { W, H, LAUNCH, VMAX, massOf } = Phys;
+const DT = 1 / 240;                 // physics time step (s)
+const PULL_FULL = 1.2;              // metres of pull for full power
+const TIERS = Phys.MAX_TIER;
+const TIER_COLORS = ['#FF5A5F', '#FF9F1C', '#FFD23F', '#A3E048', '#3DD68C', '#2EC4E6', '#4D8DFF', '#8A6CFF', '#D667FF', '#FF6FB5'];
+const INK = '#2E2445', PINK = '#FF5C9A', SUN = '#FFC93C', MINT = '#2FCFA6', DANGER = '#FF4D5E', MUTED = '#6E668A';
+const $ = id => document.getElementById(id);
+const canvas = $('board'), ctx = canvas.getContext('2d');
+let reduceMotion = false;
+try { reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('mm-arcade-' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('mm-arcade-' + k, JSON.stringify(v)); } catch (e) {} },
+};
+
+// =====================================================================
+// SOUND: every sound is synthesised with the Web Audio API (no files).
+// =====================================================================
+const Sound = (() => {
+  let ac = null, master, sfx, music, noiseBuf, mode = store.get('sound', 'all');
+  let musicOn = false, timer = null, nextT = 0, step = 0, lastBounce = 0;
+  const midi = n => 440 * Math.pow(2, (n - 69) / 12);
+  function unlock() {
+    if (!ac) {
+      try {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+        sfx = ac.createGain(); sfx.gain.value = 0.55; sfx.connect(master);
+        music = ac.createGain(); music.gain.value = 0; music.connect(master);
+        noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+        const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { ac = null; return; }
+    }
+    if (ac.state === 'suspended') ac.resume().catch(() => {});
+  }
+  const ok = () => ac && mode !== 'off';
+  function toneAt(t, f, d, type, v, f2, dest, lp) {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    let node = o;
+    if (lp) { const fl = ac.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; o.connect(fl); node = fl; }
+    node.connect(g); g.connect(dest); o.start(t); o.stop(t + d + 0.05);
+  }
+  function noiseAt(t, d, v, f1, f2, dest, type = 'bandpass') {
+    const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf; fl.type = type; fl.Q.value = 1.2; fl.frequency.setValueAtTime(f1, t);
+    if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    s.connect(fl); fl.connect(g); g.connect(dest); s.start(t); s.stop(t + d + 0.02);
+  }
+  const now = () => ac.currentTime;
+  const PENTA = [72, 74, 76, 79, 81, 84, 86, 88, 91, 93]; // C major pentatonic, one note per tier
+  const api = {
+    unlock,
+    get mode() { return mode; },
+    setMode(m) { mode = m; store.set('sound', m); if (m !== 'all') api.musicStop(); },
+    click() { if (ok()) toneAt(now(), 660, 0.06, 'square', 0.08, 990, sfx, 3000); },
+    launch(power) { if (!ok()) return; const t = now(); noiseAt(t, 0.22, 0.25 + power * 0.35, 600, 3200, sfx); toneAt(t, 300, 0.18, 'triangle', 0.15, 600 + power * 500, sfx); },
+    bounce(speed, mass) {
+      if (!ok()) return; const t = now(); if (t - lastBounce < 0.04) return; lastBounce = t;
+      const f = 620 / Math.pow(mass, 0.22), v = Math.min(0.35, 0.06 + speed * 0.04);
+      toneAt(t, f * 1.6, 0.16, 'sine', v, f * 0.7, sfx); toneAt(t, f * 3.1, 0.05, 'triangle', v * 0.4, null, sfx);
+    },
+    merge(tier) {
+      if (!ok()) return; const t = now(), n = PENTA[Math.min(tier, TIERS) - 1];
+      toneAt(t, 240, 0.09, 'sine', 0.35, 900, sfx);
+      toneAt(t + 0.05, midi(n), 0.22, 'triangle', 0.22, null, sfx);
+      toneAt(t + 0.05, midi(n + 12), 0.18, 'sine', 0.1, null, sfx);
+      if (tier >= 6) noiseAt(t, 0.35, 0.18, 200, 80, sfx, 'lowpass');
+    },
+    combo(k) { if (!ok()) return; const t = now(); for (let i = 0; i <= Math.min(k, 5); i++) toneAt(t + i * 0.06, midi(76 + [0, 3, 5, 7, 10, 12][i]), 0.14, 'square', 0.07, null, sfx, 3500); },
+    fanfare() { if (!ok()) return; const t = now(); [72, 76, 79, 84].forEach((n, i) => toneAt(t + i * 0.09, midi(n), i === 3 ? 0.4 : 0.14, 'square', 0.08, null, sfx, 3200)); },
+    newTier() { if (!ok()) return; const t = now(); [84, 88, 91, 96].forEach((n, i) => toneAt(t + i * 0.05, midi(n), 0.12, 'sine', 0.12, null, sfx)); },
+    tick() { if (ok()) toneAt(now(), 1046, 0.07, 'square', 0.06, null, sfx, 2500); },
+    thunk() { if (!ok()) return; const t = now(); toneAt(t, 180, 0.12, 'sine', 0.22, 90, sfx); noiseAt(t, 0.06, 0.08, 400, null, sfx, 'lowpass'); },
+    rock() { if (!ok()) return; const t = now(); noiseAt(t, 0.5, 0.25, 300, 60, sfx, 'lowpass'); toneAt(t, 90, 0.4, 'sawtooth', 0.06, 50, sfx, 400); },
+    crack() { if (!ok()) return; const t = now(); noiseAt(t, 0.09, 0.3, 2400, 900, sfx); toneAt(t, 220, 0.08, 'square', 0.05, 120, sfx, 1200); },
+    smash() { if (!ok()) return; const t = now(); noiseAt(t, 0.45, 0.5, 1800, 120, sfx, 'lowpass'); noiseAt(t, 0.15, 0.3, 4000, 1500, sfx); toneAt(t, 140, 0.3, 'sine', 0.35, 40, sfx); },
+    gameOver() { if (!ok()) return; const t = now(); [67, 64, 60, 55].forEach((n, i) => toneAt(t + i * 0.16, midi(n), 0.3, 'triangle', 0.2, null, sfx)); },
+    win() { if (!ok()) return; const t = now(); [72, 76, 79, 84, 79, 84, 88].forEach((n, i) => toneAt(t + i * 0.11, midi(n), 0.25, 'square', 0.08, null, sfx, 3500)); },
+    // ---- background music: a small looping chiptune, scheduled ahead of time ----
+    musicStart() {
+      if (!ac || mode !== 'all' || musicOn) return;
+      musicOn = true; nextT = ac.currentTime + 0.08;
+      music.gain.cancelScheduledValues(ac.currentTime); music.gain.setTargetAtTime(0.55, ac.currentTime, 0.3);
+      timer = setInterval(schedule, 25);
+    },
+    musicStop() {
+      if (!ac || !musicOn) return; musicOn = false; clearInterval(timer);
+      music.gain.cancelScheduledValues(ac.currentTime); music.gain.setTargetAtTime(0, ac.currentTime, 0.08);
+    },
+  };
+  const BEAT = 60 / 112 / 4;           // one 16th note at 112 bpm
+  const CHORDS = [[48, 0], [45, 1], [41, 0], [43, 0]]; // C, Am, F, G (root, minor?)
+  const MEL = [72, null, 76, 79, 76, null, 72, 74,  76, null, 72, 69, 72, null, null, 74,
+               77, null, 76, 72, 69, null, 72, 74,  74, 76, 79, null, 77, 76, 74, null];
+  function schedule() {
+    while (nextT < ac.currentTime + 0.12) { playStep(step, nextT); nextT += BEAT; step = (step + 1) % 64; }
+  }
+  function playStep(s, t) {
+    const bar = Math.floor(s / 16), [root, minor] = CHORDS[bar], b = s % 16;
+    if (b % 4 === 0) toneAt(t, midi(root + (b % 8 === 4 ? 7 : 0)), 0.2, 'triangle', 0.3, null, music);
+    if (b % 4 === 2) [12, minor ? 15 : 16, 19].forEach(iv => toneAt(t, midi(root + iv), 0.09, 'square', 0.025, null, music, 1800));
+    if (s % 2 === 0) { const n = MEL[(s / 2) % 32]; if (n) toneAt(t, midi(n), 0.2, 'square', 0.045, null, music, 2400); }
+    if (b % 8 === 0) toneAt(t, 130, 0.12, 'sine', 0.4, 45, music);
+    if (b % 4 === 2) noiseAt(t, 0.04, 0.05, 8000, null, music, 'highpass');
+  }
+  return api;
+})();
+['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => Sound.unlock(), { capture: true, passive: true }));
+
+// =====================================================================
+// GAME STATE
+// =====================================================================
+let world, state = 'title', score = 0, best = 0, merges = 0, current = 1, next = 1;
+let cooldown = 0, drag = null, dangerT = 0, tickT = 0, popups = [], pending = [], wonShown = false;
+let logRows = [], logDirty = true, filter = 'all', trial = null, testType = 'elastic';
+let particles = [], shake = { t: 0, dur: 0, amp: 0 }, squash = new Map(), pops = new Map();
+let combo = 0, lastMergeT = -9, bestCombo = 0, mission = null, missionsDone = 0, newBest = false;
+const trialCounts = { elastic: 0, inelastic: 0 };
+// mergeEnergy: a merge must release at least this much kinetic energy (J). Shown to players as the speed a Tier 1 pair needs (v1).
+// rockEvery: a rock drops in after this many shots. rockBreak: Δp (kg·m/s) needed to smash a rock.
+const DIFF = {
+  easy:   { name: 'Easy',   preview: true,  maxTier: 3, line: 5.0, reward: 100, dp: 15, launchP: 25, mergeEnergy: 4, v1: 4, rockEvery: 25, rockBreak: 20, dangerTime: 2.5, showNext: true,
+            info: 'Aim guide on. Crash energy 4 J to merge. A rock every 25 shots.' },
+  normal: { name: 'Normal', preview: true,  maxTier: 3, line: 5.0, reward: 150, dp: 25, launchP: 30, mergeEnergy: 9, v1: 6, rockEvery: 15, rockBreak: 30, dangerTime: 2.5, showNext: true,
+            info: 'Aim guide on. Crash energy 9 J to merge. A rock every 15 shots.' },
+  hard:   { name: 'Hard',   preview: true,  maxTier: 4, line: 4.5, reward: 200, dp: 40, launchP: 50, mergeEnergy: 16, v1: 8, rockEvery: 7, rockBreak: 45, dangerTime: 1.5, showNext: false,
+            info: 'Aim guide on, no Next preview. Crash energy 16 J to merge. A rock every 7 shots. Only 1.5 s on the danger line.' },
+};
+const ROCK_M = 12, ROCK_R = 0.32;   // rocks: 12 kg, never merge
+let shots = 0, rockDue = -1, rocksSmashed = 0, lastSoftT = -9, softHinted = false;
+let difficulty = store.get('difficulty', 'easy'); if (!DIFF[difficulty]) difficulty = 'easy';
+let bests = Object.assign({ easy: 0, normal: 0, hard: 0 }, store.get('bests', {}));
+let lineY = DIFF[difficulty].line;
+const randTier = () => 1 + Math.floor(Math.random() * DIFF[difficulty].maxTier);
+$('arrows').checked = store.get('arrows', false);
+$('showNums').checked = store.get('nums', true);
+$('arrows').onchange = () => store.set('arrows', $('arrows').checked);
+$('showNums').onchange = () => store.set('nums', $('showNums').checked);
+
+// ---------- missions ----------
+function makeMission(prevId) {
+  const d = DIFF[difficulty], R = d.reward;
+  const list = [
+    () => ({ id: 'dp', text: `Smash a merge with Δp of ${d.dp}+`, hint: 'Launch faster or use heavier faces to push more momentum into the target.', reward: R,
+      test: (k, e) => k === 'event' && e.type === 'C1' && Math.abs(e.dpTarget) >= d.dp }),
+    () => ({ id: 'rebound', text: 'Bounce a small face off one 4× heavier', hint: 'A light face that hits a much heavier one bounces backwards.', reward: R,
+      test: (k, e) => k === 'event' && e.type === 'C2' && e.m2 >= 4 * e.m1 && e.v1 * e.v1a < 0 }),
+    () => ({ id: 'ke', text: 'Head-on merge (KE ratio under 0.4)', hint: 'Hit a matching face that is moving toward you.', reward: R,
+      test: (k, e) => k === 'event' && e.type === 'C1' && e.keBefore >= 2 && e.keRatio !== null && e.keRatio < 0.4 }),
+    () => ({ id: 'launch', text: `Power shot: launch with p of ${d.launchP}+`, hint: 'p = m·v. Wait for a heavier face, then pull all the way back.', reward: R,
+      test: (k, e) => k === 'launch' && e.p >= d.launchP }),
+    () => { const tt = Math.min(TIERS, Math.max(4, best + 1));
+      return { id: 'tier', text: `Grow a Tier ${tt} face`, hint: `Two matching faces make the next tier, with double the mass (${massOf(tt)} kg).`, reward: R + 50 * (tt - 4),
+        test: (k, e) => k === 'event' && e.type === 'C1' && e.newTier >= tt }; },
+    () => ({ id: 'combo', text: 'Chain a ×3 combo', hint: 'Three merges, each within 1 second of the last.', reward: R,
+      test: (k, e) => k === 'combo' && e >= 3 }),
+  ];
+  let m; do { m = list[Math.floor(Math.random() * list.length)](); } while (m.id === prevId);
+  return m;
+}
+function newMission() {
+  mission = makeMission(mission ? mission.id : null);
+  $('missionText').textContent = mission.text;
+  $('missionHint').textContent = mission.hint;
+  $('missionReward').textContent = `+${mission.reward}`;
+}
+function checkMission(kind, data) {
+  if (!mission || state !== 'playing') return;
+  if (!mission.test(kind, data)) return;
+  score += mission.reward; missionsDone++;
+  banner(`Mission complete!<small>+${mission.reward} bonus</small>`, 'mint');
+  Sound.fanfare();
+  $('missionBar').classList.remove('done'); void $('missionBar').offsetWidth; $('missionBar').classList.add('done');
+  newMission(); updateHud(true);
+}
+
+// ---------- teacher faces (saved in this browser) ----------
+const FACE_KEY = 'momentum-merge-faces-v1';
+let faces = Array.from({ length: TIERS }, () => ({ name: '', img: '' }));
+try { const s = JSON.parse(localStorage.getItem(FACE_KEY)); if (Array.isArray(s)) s.slice(0, TIERS).forEach((f, i) => { if (f) faces[i] = f; }); } catch (e) {}
+const faceImgs = [];
+function rebuildImgs() { faces.forEach((f, i) => { if (f.img) { const im = new Image(); im.onload = () => { drawFaceSlots(); drawHero(); updateHud(); }; im.src = f.img; faceImgs[i] = im; } else faceImgs[i] = null; }); }
+function saveFaces() {
+  try { localStorage.setItem(FACE_KEY, JSON.stringify(faces)); $('facesMsg').textContent = ''; }
+  catch (e) { $('facesMsg').textContent = 'This browser would not save the photos, so they last until you close the page.'; }
+}
+
+// =====================================================================
+// DRAWING
+// =====================================================================
+let ppm = 100, dpr = 1, cw = 0;
+function fitStage() {
+  const r = $('stageWrap').getBoundingClientRect();
+  if (r.width <= 0 || r.height <= 0) return;
+  cw = Math.floor(Math.max(120, Math.min(r.width - 10, (r.height - 8) * W / H)));
+  const ch = Math.round(cw * H / W);
+  $('stage').style.width = (cw + 10) + 'px'; $('stage').style.height = (ch + 5) + 'px';
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+  ppm = cw / W;
+}
+new ResizeObserver(fitStage).observe($('stageWrap'));
+const sx = x => x * ppm, sy = y => (H - y) * ppm;
+
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const f = v => Math.round(amt > 0 ? v + (255 - v) * amt : v * (1 + amt));
+  return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+
+// A cartoon face: round body, thick outline, shine, eyes, smile and blush. Each tier has its own look.
+function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true) {
+  c.save(); c.globalAlpha = alpha;
+  const col = tier >= 1 ? TIER_COLORS[tier - 1] : '#B9B2CC';
+  const img = tier >= 1 ? faceImgs[tier - 1] : null;
+  const lw = Math.max(2, r * 0.085);
+  c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
+  if (img && img.complete && img.naturalWidth) {
+    c.save(); c.clip(); c.drawImage(img, x - r, y - r, 2 * r, 2 * r); c.restore();
+    c.beginPath(); c.arc(x, y, r - lw * 0.9, 0, Math.PI * 2); c.lineWidth = lw * 1.4; c.strokeStyle = col; c.stroke();
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.lineWidth = lw; c.strokeStyle = INK; c.stroke();
+  } else {
+    const g = c.createRadialGradient(x - r * 0.35, y - r * 0.45, r * 0.1, x, y, r * 1.05);
+    g.addColorStop(0, shade(col, 0.4)); g.addColorStop(0.55, col); g.addColorStop(1, shade(col, -0.18));
+    c.fillStyle = g; c.fill(); c.lineWidth = lw; c.strokeStyle = INK; c.stroke();
+    // shine
+    c.save(); c.translate(x - r * 0.42, y - r * 0.45); c.rotate(-0.65);
+    c.beginPath(); c.ellipse(0, 0, r * 0.26, r * 0.13, 0, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,0.6)'; c.fill(); c.restore();
+    // face
+    const style = (Math.max(1, tier) - 1) % 3, ey = y - r * 0.06, ex = r * 0.3, es = Math.max(1.5, r * 0.12);
+    c.fillStyle = INK; c.strokeStyle = INK; c.lineCap = 'round';
+    if (style === 1) { // happy closed eyes
+      c.lineWidth = Math.max(1.5, r * 0.08);
+      for (const s of [-1, 1]) { c.beginPath(); c.arc(x + s * ex, ey + es * 0.5, es * 0.9, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
+    } else {
+      const big = style === 2 ? 1.25 : 1;
+      for (const s of [-1, 1]) {
+        if (style === 2) { c.beginPath(); c.ellipse(x + s * ex, ey, es * 1.1, es * 1.3, 0, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); c.lineWidth = Math.max(1, r * 0.04); c.stroke(); c.fillStyle = INK; }
+        c.beginPath(); c.ellipse(x + s * ex, ey + (style === 2 ? es * 0.15 : 0), es * 0.72 * big, es * 0.9 * big, 0, 0, Math.PI * 2); c.fill();
+        if (r > 9) { c.beginPath(); c.arc(x + s * ex - es * 0.25, ey - es * 0.3, es * 0.28, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); c.fillStyle = INK; }
+      }
+    }
+    if (r > 8) {
+      // blush
+      c.fillStyle = 'rgba(255, 92, 154, 0.45)';
+      for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * r * 0.55, y + r * 0.14, r * 0.14, r * 0.08, 0, 0, Math.PI * 2); c.fill(); }
+      // mouth
+      c.lineWidth = Math.max(1.5, r * 0.07); c.strokeStyle = INK;
+      if (style === 2) { c.beginPath(); c.ellipse(x, y + r * 0.24, r * 0.1, r * 0.12, 0, 0, Math.PI * 2); c.fillStyle = INK; c.fill(); }
+      else { c.beginPath(); c.arc(x, y + r * 0.1, r * 0.16, Math.PI * 0.15, Math.PI * 0.85); c.stroke(); }
+    }
+  }
+  if (badge && r > 13) {
+    const tag = `${+m.toFixed(2)} kg`, fs = Math.max(8, Math.min(13, r * 0.24));
+    c.font = `600 ${fs}px Fredoka, sans-serif`;
+    const tw = c.measureText(tag).width + fs * 0.8, by = y + r * 0.56;
+    c.fillStyle = 'rgba(46, 36, 69, 0.82)'; c.beginPath(); c.roundRect(x - tw / 2, by, tw, fs * 1.35, fs * 0.7); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, x, by + fs * 0.7);
+  }
+  c.restore();
+}
+
+function draw() {
+  const c = ctx; c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const wpx = W * ppm, hpx = H * ppm;
+  c.clearRect(0, 0, wpx, hpx);
+  // screen shake
+  if (shake.t < shake.dur && !reduceMotion) {
+    const k = shake.amp * (1 - shake.t / shake.dur);
+    c.translate((Math.random() - 0.5) * 2 * k, (Math.random() - 0.5) * 2 * k);
+  }
+  // glass tank
+  const g = c.createLinearGradient(0, 0, 0, hpx); g.addColorStop(0, '#F4FBFF'); g.addColorStop(1, '#D6EEFF');
+  c.fillStyle = g; c.fillRect(-20, -20, wpx + 40, hpx + 40);
+  c.save(); c.globalAlpha = 0.5; c.fillStyle = '#fff';
+  c.beginPath(); c.moveTo(wpx * 0.08, hpx); c.lineTo(wpx * 0.16, hpx); c.lineTo(wpx * 0.34, 0); c.lineTo(wpx * 0.26, 0); c.fill();
+  c.beginPath(); c.moveTo(wpx * 0.2, hpx); c.lineTo(wpx * 0.23, hpx); c.lineTo(wpx * 0.41, 0); c.lineTo(wpx * 0.38, 0); c.fill();
+  c.restore();
+  // danger zone + line
+  if (state !== 'test') {
+    const danger = dangerT > 0 && state === 'playing', pulse = danger ? 0.5 + 0.5 * Math.sin(performance.now() / 80) : 0;
+    c.fillStyle = `rgba(255, 77, 94, ${0.06 + pulse * 0.12})`; c.fillRect(0, 0, wpx, sy(lineY));
+    c.save(); c.setLineDash([12, 9]); c.lineCap = 'round'; c.lineWidth = danger ? 4 : 3; c.strokeStyle = DANGER; c.globalAlpha = danger ? 0.7 + 0.3 * pulse : 0.55;
+    c.beginPath(); c.moveTo(6, sy(lineY)); c.lineTo(wpx - 6, sy(lineY)); c.stroke(); c.restore();
+    c.font = `600 ${Math.max(11, ppm * 0.13)}px Fredoka, sans-serif`; c.textAlign = 'right'; c.textBaseline = 'bottom';
+    c.fillStyle = DANGER; c.globalAlpha = danger ? 1 : 0.7;
+    c.fillText(danger ? `DANGER ${Math.max(0, DIFF[difficulty].dangerTime - dangerT).toFixed(1)}s` : 'DANGER LINE', wpx - 8, sy(lineY) - 4); c.globalAlpha = 1;
+  } else {
+    c.font = `600 ${Math.max(12, ppm * 0.15)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = MUTED;
+    c.fillText('TEST MODE · no gravity', wpx / 2, 10);
+    c.save(); c.setLineDash([6, 6]); c.strokeStyle = 'rgba(46,36,69,0.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, sy(2.5)); c.lineTo(wpx, sy(2.5)); c.stroke(); c.restore();
+  }
+  // trails
+  for (const b of world.bodies) {
+    const tr = b.trail; if (!tr || tr.length < 2) continue;
+    c.save(); c.lineCap = 'round'; c.strokeStyle = b.tier >= 1 ? TIER_COLORS[b.tier - 1] : '#B9B2CC';
+    for (let i = 1; i < tr.length; i++) {
+      c.globalAlpha = (i / tr.length) * 0.35; c.lineWidth = Math.max(2, b.r * ppm * 1.4 * (i / tr.length));
+      c.beginPath(); c.moveTo(sx(tr[i - 1].x), sy(tr[i - 1].y)); c.lineTo(sx(tr[i].x), sy(tr[i].y)); c.stroke();
+    }
+    c.restore();
+  }
+  // faces (merge pop-in and bounce squash)
+  for (const b of world.bodies) {
+    let k = 1; const pt = pops.get(b.id);
+    if (pt !== undefined && !reduceMotion) { const u = Math.min(1, pt / 0.28); k = 0.6 + 0.4 * u + 0.22 * Math.sin(u * Math.PI); }
+    const q = squash.get(b.id), X = sx(b.x), Y = sy(b.y);
+    if (b.tier === -1) { drawRock(c, X, Y, b.r * ppm, b); continue; }
+    if (q && !reduceMotion) {
+      const u = q.t / 0.35, a = q.amt * Math.exp(-u * 4) * Math.cos(u * 11);
+      c.save(); c.translate(X, Y); c.rotate(q.ang); c.scale(1 - a, 1 + a * 0.7); c.rotate(-q.ang);
+      drawFace(c, 0, 0, b.r * ppm * k, b.tier, b.m); c.restore();
+    } else drawFace(c, X, Y, b.r * ppm * k, b.tier, b.m);
+  }
+  if ($('arrows').checked) for (const b of world.bodies) {
+    const sp = Math.hypot(b.vx, b.vy); if (sp < 0.25) continue;
+    arrow(c, sx(b.x), sy(b.y), sx(b.x + b.vx * 0.12), sy(b.y + b.vy * 0.12));
+  }
+  if (state === 'playing' || state === 'paused' || state === 'title') drawSlingshot(c);
+  // particles
+  for (const p of particles) {
+    const a = 1 - p.t / p.life; c.globalAlpha = Math.max(0, a); c.fillStyle = p.col;
+    if (p.star) { star(c, p.x, p.y, p.size * (0.6 + a * 0.6), p.rot); }
+    else { c.beginPath(); c.arc(p.x, p.y, p.size * (0.5 + a * 0.5), 0, Math.PI * 2); c.fill(); c.lineWidth = 1.5; c.strokeStyle = INK; c.stroke(); }
+  }
+  c.globalAlpha = 1;
+  // score popups
+  for (const p of popups) {
+    const u = p.t / p.life, rise = (1 - Math.pow(1 - Math.min(1, u * 1.4), 3)) * 46, sc = u < 0.15 ? 0.6 + u / 0.15 * 0.5 : 1.1 - Math.min(0.1, (u - 0.15));
+    c.save(); c.globalAlpha = u > 0.7 ? (1 - u) / 0.3 : 1; c.translate(sx(p.x), sy(p.y) - rise); c.scale(sc, sc);
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+    c.font = `700 ${p.size}px Fredoka, sans-serif`; c.lineWidth = 5; c.strokeStyle = INK; c.strokeText(p.text, 0, 0); c.fillStyle = p.color; c.fillText(p.text, 0, 0);
+    if (p.sub) { c.font = `600 ${Math.round(p.size * 0.5)}px Fredoka, sans-serif`; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(p.sub, 0, p.size * 0.75); c.fillStyle = INK; c.fillText(p.sub, 0, p.size * 0.75); }
+    c.restore();
+  }
+}
+// A grumpy cartoon rock: lumpy outline, speckles, cracks after strong hits, and a mass tag.
+function drawRock(c, x, y, r, b) {
+  const seed = b.seed || 1, n = 10;
+  c.save(); c.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * Math.PI * 2, k = 0.86 + 0.14 * Math.abs(Math.sin(seed + i * 2.3));
+    const px = x + Math.cos(a) * r * k, py = y + Math.sin(a) * r * k;
+    i ? c.lineTo(px, py) : c.moveTo(px, py);
+  }
+  c.closePath();
+  const g = c.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r);
+  g.addColorStop(0, '#C9C4D6'); g.addColorStop(1, '#7C768C');
+  c.fillStyle = g; c.fill(); c.lineWidth = Math.max(2.5, r * 0.1); c.lineJoin = 'round'; c.strokeStyle = INK; c.stroke();
+  c.save(); c.clip();
+  c.fillStyle = 'rgba(46,36,69,0.25)';
+  for (let i = 0; i < 6; i++) { const a = seed + i * 1.7, d = r * (0.25 + 0.5 * Math.abs(Math.sin(seed * 3 + i))); c.beginPath(); c.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, r * 0.06, 0, Math.PI * 2); c.fill(); }
+  c.strokeStyle = INK; c.lineWidth = Math.max(1.5, r * 0.06); c.lineCap = 'round';
+  for (let i = 0; i < (b.cracks || 0); i++) {
+    const a = seed + i * 2.1; c.beginPath(); c.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+    c.lineTo(x + Math.cos(a + 0.3) * r * 0.5, y + Math.sin(a + 0.3) * r * 0.5); c.lineTo(x + Math.cos(a - 0.2) * r * 0.15, y + Math.sin(a - 0.2) * r * 0.15); c.stroke();
+  }
+  c.restore();
+  // grumpy face
+  c.strokeStyle = INK; c.fillStyle = INK; c.lineWidth = Math.max(1.5, r * 0.08); c.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    c.beginPath(); c.moveTo(x + s * r * 0.45, y - r * 0.32); c.lineTo(x + s * r * 0.12, y - r * 0.2); c.stroke();
+    c.beginPath(); c.arc(x + s * r * 0.27, y - r * 0.05, r * 0.08, 0, Math.PI * 2); c.fill();
+  }
+  c.beginPath(); c.arc(x, y + r * 0.32, r * 0.16, Math.PI * 1.15, Math.PI * 1.85); c.stroke();
+  if (r > 13) {
+    const fs = Math.max(8, Math.min(13, r * 0.26)), tag = `${b.m} kg`; c.font = `600 ${fs}px Fredoka, sans-serif`;
+    const tw = c.measureText(tag).width + fs * 0.8, by = y + r * 0.5;
+    c.fillStyle = 'rgba(46, 36, 69, 0.85)'; c.beginPath(); c.roundRect(x - tw / 2, by, tw, fs * 1.35, fs * 0.7); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, x, by + fs * 0.7);
+  }
+  c.restore();
+}
+function star(c, x, y, r, rot) {
+  c.save(); c.translate(x, y); c.rotate(rot); c.beginPath();
+  for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * 0.42 : r; const a = i * Math.PI / 4; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+  c.closePath(); c.fill(); c.restore();
+}
+function arrow(c, x1, y1, x2, y2) {
+  const a = Math.atan2(y2 - y1, x2 - x1), h = 7;
+  c.save(); c.strokeStyle = INK; c.fillStyle = INK; c.lineWidth = 2.5; c.globalAlpha = 0.7;
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - h * Math.cos(a - 0.45), y2 - h * Math.sin(a - 0.45)); c.lineTo(x2 - h * Math.cos(a + 0.45), y2 - h * Math.sin(a + 0.45)); c.closePath(); c.fill(); c.restore();
+}
+function launchVel() {
+  if (!drag) return { vx: 0, vy: 0, sp: 0 };
+  const len = Math.hypot(drag.px, drag.py);
+  if (len < 0.08) return { vx: 0, vy: 0, sp: 0 };
+  const sp = Math.min(VMAX, len / PULL_FULL * VMAX);
+  return { vx: drag.px / len * sp, vy: drag.py / len * sp, sp };
+}
+// Aim guide: follows the same gravity and wall bounces as the game (a wall keeps half the speed),
+// and stops where the face would first touch another face or the floor. It ignores what happens after that hit.
+function drawAimGuide(c, v) {
+  const rr = Phys.radiusOf(current), dt = 1 / 240, dots = [], bounces = [];  // same time step as the game
+  let x = LAUNCH.x, y = LAUNCH.y, vx = v.vx, vy = v.vy, t = 0, nextDot = 0.03, hit = null;
+  for (let i = 0; i < 800 && !hit; i++) {
+    vy -= Phys.G * dt; x += vx * dt; y += vy * dt; t += dt;
+    if (x - rr < 0) { x = rr; if (vx < 0) { bounces.push({ side: -1, y }); vx = vx < -0.3 ? -vx * 0.5 : 0; } }
+    if (x + rr > W) { x = W - rr; if (vx > 0) { bounces.push({ side: 1, y }); vx = vx > 0.3 ? -vx * 0.5 : 0; } }
+    if (y + rr > H) { y = H - rr; if (vy > 0) vy = vy > 0.3 ? -vy * 0.5 : 0; }
+    for (const b of world.bodies) if (Math.hypot(b.x - x, b.y - y) < b.r + rr) { hit = { x, y }; break; }
+    if (!hit && y - rr <= 0) hit = { x, y: rr };
+    if (!hit && t >= nextDot) { dots.push({ x, y, t }); nextDot += 0.045; }
+  }
+  const tEnd = Math.max(t, 0.1);
+  c.save();
+  // dots along the path
+  for (const d of dots) {
+    c.globalAlpha = 1 - 0.65 * (d.t / tEnd); c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 2;
+    c.beginPath(); c.arc(sx(d.x), sy(d.y), 4.2, 0, Math.PI * 2); c.fill(); c.stroke();
+  }
+  // wall bounce markers
+  c.globalAlpha = 1; c.strokeStyle = PINK; c.lineWidth = 3; c.lineCap = 'round';
+  for (const bo of bounces) {
+    const wx = bo.side < 0 ? 3 : W * ppm - 3, wy = sy(bo.y), dir = -bo.side;
+    for (const a of [-0.6, 0, 0.6]) { c.beginPath(); c.moveTo(wx + dir * 4 * Math.cos(a), wy + 4 * Math.sin(a)); c.lineTo(wx + dir * 13 * Math.cos(a), wy + 13 * Math.sin(a)); c.stroke(); }
+  }
+  // where the face lands: a dashed outline of the loaded face
+  if (hit) {
+    c.globalAlpha = 0.9; c.setLineDash([6, 5]); c.lineWidth = 2.5; c.strokeStyle = INK; c.fillStyle = 'rgba(255,255,255,0.45)';
+    c.beginPath(); c.arc(sx(hit.x), sy(hit.y), rr * ppm, 0, Math.PI * 2); c.fill(); c.stroke();
+  }
+  c.restore();
+}
+function drawSlingshot(c) {
+  const fx = sx(LAUNCH.x), fy = sy(LAUNCH.y), r = Phys.radiusOf(current) * ppm;
+  const spread = Math.max(r + 12, 0.32 * ppm), v = launchVel(), power = v.sp / VMAX;
+  let ox = 0, oy = 0;
+  if (drag && v.sp > 0) { const k = power * 0.5 * ppm; ox = -v.vx / v.sp * k; oy = v.vy / v.sp * k; }
+  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+  // wooden posts
+  for (const s of [-1, 1]) {
+    c.strokeStyle = INK; c.lineWidth = 11; c.beginPath(); c.moveTo(fx + s * spread, fy - 16); c.lineTo(fx + s * spread, fy + 14); c.stroke();
+    c.strokeStyle = '#B9733A'; c.lineWidth = 6; c.beginPath(); c.moveTo(fx + s * spread, fy - 16); c.lineTo(fx + s * spread, fy + 14); c.stroke();
+  }
+  const ready = cooldown <= 0 && state !== 'title';
+  if (ready || state === 'title') {
+    // band
+    c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(fx - spread, fy - 12); c.lineTo(fx + ox, fy + oy); c.lineTo(fx + spread, fy - 12); c.stroke();
+    c.strokeStyle = PINK; c.lineWidth = 3; c.beginPath(); c.moveTo(fx - spread, fy - 12); c.lineTo(fx + ox, fy + oy); c.lineTo(fx + spread, fy - 12); c.stroke();
+    if (drag && v.sp > 0 && DIFF[difficulty].preview) drawAimGuide(c, v);
+    // power ring
+    if (drag && v.sp > 0) {
+      c.lineWidth = 6; c.strokeStyle = 'rgba(46,36,69,0.18)'; c.beginPath(); c.arc(fx + ox, fy + oy, r + 9, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = power < 0.5 ? MINT : power < 0.85 ? SUN : DANGER;
+      c.beginPath(); c.arc(fx + ox, fy + oy, r + 9, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
+    }
+    drawFace(c, fx + ox, fy + oy, r, current, massOf(current));
+    if (drag && v.sp > 0 && $('showNums').checked) {
+      const txt = `${v.sp.toFixed(1)} m/s · p ${(massOf(current) * v.sp).toFixed(1)}`;
+      c.font = '600 13px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 16;
+      let bx = fx + ox - tw / 2; bx = Math.max(4, Math.min(W * ppm - tw - 4, bx)); const by = fy + oy + r + 18;
+      c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 2.5; c.beginPath(); c.roundRect(bx, by, tw, 22, 11); c.fill(); c.stroke();
+      c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 8, by + 11.5);
+    }
+  } else drawFace(c, fx, fy, r, current, massOf(current), 0.3);
+  c.restore();
+}
+
+// ---------- effects ----------
+function burst(x, y, col, n, speed, opts = {}) {
+  if (reduceMotion) n = Math.ceil(n / 3);
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = speed * (0.35 + Math.random() * 0.75);
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (opts.up || 0), t: 0, life: 0.5 + Math.random() * 0.5,
+      size: (opts.size || 5) * (0.6 + Math.random() * 0.8), col: Math.random() < 0.3 ? '#fff' : col, star: Math.random() < (opts.stars ?? 0.35), rot: Math.random() * 6 });
+  }
+  if (particles.length > 500) particles.splice(0, particles.length - 500);
+}
+function doShake(amp, dur) { if (amp > shake.amp * (1 - shake.t / Math.max(shake.dur, 0.001))) shake = { t: 0, dur, amp }; }
+const bannerQ = []; let bannerBusy = false;
+function banner(html, cls = '') { bannerQ.push([html, cls]); if (!bannerBusy) nextBanner(); }
+function nextBanner() {
+  const item = bannerQ.shift(); if (!item) { bannerBusy = false; return; }
+  bannerBusy = true; const el = document.createElement('div'); el.className = 'banner' + (item[1] ? ' b-' + item[1] : ''); el.innerHTML = item[0];
+  $('bannerLayer').appendChild(el);
+  setTimeout(() => { el.remove(); nextBanner(); }, bannerQ.length ? 800 : 1250);
+}
+
+// =====================================================================
+// GAME FLOW
+// =====================================================================
+function emptyWorld() {
+  world = Phys.createWorld({ mergeEnergy: DIFF[difficulty].mergeEnergy });
+  world.onEvent = ev => pending.push(ev);
+  world.onSoft = (a, b, speed, need) => {
+    if (state !== 'playing' || world.time - lastSoftT < 0.7) return;
+    lastSoftT = world.time;
+    popups.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + 0.15, text: 'Too soft!', sub: `${speed.toFixed(1)} of ${need.toFixed(1)} m/s`, color: '#fff', size: 18, t: 0, life: 1.1 });
+    Sound.thunk();
+    if (!softHinted) { softHinted = true; banner('Hit harder<small>to merge!</small>', 'pink'); }
+  };
+}
+function newGame() {
+  emptyWorld();
+  state = 'playing'; score = 0; best = 0; merges = 0; dangerT = 0; cooldown = 0; drag = null; wonShown = false; newBest = false;
+  popups = []; pending = []; particles = []; squash.clear(); pops.clear();
+  lineY = DIFF[difficulty].line; combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
+  shots = 0; rockDue = -1; rocksSmashed = 0; lastSoftT = -9; softHinted = false;
+  current = randTier(); next = randTier();
+  newMission();
+  $('missionBar').hidden = false; $('testBar').hidden = true;
+  closeModal(); $('titleScreen').hidden = true;
+  setPauseUI(false); updateHud(); Sound.musicStart();
+  const seen = store.get('tips', {});
+  if (!seen[difficulty]) { seen[difficulty] = true; store.set('tips', seen); state = 'paused'; Sound.musicStop(); setPauseUI(true); showTips(resumeGame, true); }
+}
+// ---------- instructions popup ----------
+function needSpeed(tier) { const m = massOf(tier); return Math.sqrt(2 * DIFF[difficulty].mergeEnergy / (m / 2)); }
+function showTips(then, firstTime) {
+  const d = DIFF[difficulty];
+  const row = [1, 2, 3, 4, 6, 8].map(t => `<span class="sp"><b>T${t}</b>${needSpeed(t).toFixed(needSpeed(t) < 1 ? 2 : 1)}</span>`).join('');
+  openModal('Hit hard to merge!', `
+    <p style="color:var(--ink)">Matching faces only merge when the crash releases enough <b>kinetic energy</b>: KE lost = ½·μ·v², where μ = m₁m₂ ÷ (m₁+m₂). A gentle drop just stacks small faces up.</p>
+    <div class="tips">
+      <div class="tip"><span class="tip-n">${d.mergeEnergy} J</span><span>Crash energy needed. Light faces need a fast hit; heavy faces merge with a gentle bump.</span></div>
+      <div class="speeds"><span class="label">Speed needed (m/s)</span><div>${row}</div></div>
+      <div class="tip"><span class="tip-n">Too soft!</span><span>This pops up when two matching faces touch too slowly. They bounce or stack instead.</span></div>
+      <div class="tip rock"><span class="tip-n">Rocks</span><span>Every ${d.rockEvery} shots a rock drops in. Rocks never merge. Smash one with a hit of Δp ${d.rockBreak} kg·m/s or more.</span></div>
+      ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and only 1.5&nbsp;s on the danger line before the tank overflows.</span></div>' : ''}
+    </div>
+    <p>Faster and heavier faces carry more momentum (p = mv) and energy, so they merge, smash and score better.</p>`,
+    [[firstTime ? "Got it, let's play!" : 'Got it', () => { closeModal(); if (then) then(); }, 'go']], () => { closeModal(); if (then) then(); });
+}
+function launch() {
+  const v = launchVel();
+  checkMission('launch', { m: massOf(current), v: v.sp, p: massOf(current) * v.sp });
+  // a tiny random nudge in start position (not velocity) so straight drops don't balance in a perfect tower
+  Phys.addBody(world, { tier: current, x: LAUNCH.x + (Math.random() - 0.5) * 0.03, y: LAUNCH.y, vx: v.vx, vy: v.vy });
+  Sound.launch(v.sp / VMAX);
+  if (v.sp > 1) burst(sx(LAUNCH.x), sy(LAUNCH.y), '#fff', 6, 140, { stars: 0, size: 4 });
+  current = next; next = randTier(); cooldown = 0.5; drag = null; canvas.classList.remove('aiming');
+  shots++; if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
+  updateHud();
+}
+function spawnRock() {
+  const x = ROCK_R + 0.2 + Math.random() * (W - 2 * ROCK_R - 0.4);
+  const r = Phys.addBody(world, { tier: -1, m: ROCK_M, r: ROCK_R, x, y: H - ROCK_R - 0.05, vx: 0, vy: -1 });
+  r.cracks = 0; r.seed = Math.random() * 1000;
+  banner('Rock incoming!', 'pink'); Sound.rock();
+}
+function rockHit(ev) {
+  const rockId = ev.tier1 === -1 ? ev.id1 : ev.id2, rock = world.bodies.find(b => b.id === rockId);
+  if (!rock) return;
+  const J = Math.abs(ev.m2 * (ev.v2a - ev.v2)), need = DIFF[difficulty].rockBreak; // impulse = momentum given to the rock
+  if (J >= need && state === 'playing') {
+    rock.dead = true; world.bodies = world.bodies.filter(b => !b.dead);
+    const pts = Math.ceil(J * 10 - 1e-9); score += pts; rocksSmashed++;
+    burst(sx(rock.x), sy(rock.y), '#8C879A', 34, 300, { size: 7, stars: 0.15, up: 80 });
+    popups.push({ x: rock.x, y: rock.y + 0.3, text: `Smashed! +${pts}`, sub: `Δp ${J.toFixed(1)}`, color: SUN, size: 24, t: 0, life: 1.3 });
+    Sound.smash(); doShake(8, 0.35); updateHud(true);
+  } else if (J > 1) {
+    rock.cracks = Math.min(3, (rock.cracks || 0) + (J > need * 0.6 ? 1 : 0));
+    popups.push({ x: rock.x, y: rock.y + 0.45, text: 'Crack!', sub: `Δp ${J.toFixed(1)} of ${need}`, color: '#D9D4E6', size: 17, t: 0, life: 1 });
+    Sound.crack();
+  }
+}
+function updateHud(bumpScore) {
+  $('hudScore').textContent = score.toLocaleString();
+  if (bumpScore) { const s = $('hudScore'); s.classList.remove('bump'); void s.offsetWidth; s.classList.add('bump'); }
+  const bb = Math.max(bests[difficulty], state === 'playing' ? score : 0);
+  if (!newBest && score > bests[difficulty] && bests[difficulty] > 0 && state === 'playing') { newBest = true; banner('New best!', 'pink'); Sound.fanfare(); }
+  $('hudBest').textContent = bb.toLocaleString();
+  $('hudBestWrap').classList.toggle('newbest', newBest);
+  $('hudLevel').textContent = DIFF[difficulty].name; $('tbLevelName').textContent = DIFF[difficulty].name;
+  const hc = $('hudNext').getContext('2d'); hc.setTransform(1, 0, 0, 1, 0, 0); hc.clearRect(0, 0, 96, 96);
+  if (DIFF[difficulty].showNext || state === 'title') drawFace(hc, 48, 48, 22 + next * 6, next, massOf(next), 1, false);
+  else {
+    hc.beginPath(); hc.arc(48, 48, 34, 0, Math.PI * 2); hc.fillStyle = '#E6E1F0'; hc.fill(); hc.lineWidth = 5; hc.strokeStyle = INK; hc.stroke();
+    hc.fillStyle = INK; hc.font = '700 44px Fredoka, sans-serif'; hc.textAlign = 'center'; hc.textBaseline = 'middle'; hc.fillText('?', 48, 51);
+  }
+}
+function setPauseUI(paused) {
+  $('tbPauseIcon').setAttribute('href', paused ? '#i-play' : '#i-pause');
+  $('tbPauseText').textContent = paused ? 'Resume' : 'Pause';
+  $('tbPause').disabled = state === 'test' || state === 'over';
+}
+function pauseGame(showMenu = true) {
+  if (state !== 'playing') return;
+  state = 'paused'; drag = null; canvas.classList.remove('aiming'); Sound.musicStop(); setPauseUI(true);
+  if (showMenu) openModal('Paused', `<p>Score ${score.toLocaleString()} · ${DIFF[difficulty].name}</p>`, [
+    ['Resume', resumeGame, 'go'], ['How to play', () => showTips(pauseMenuBack)], ['Restart', newGame], ['Change level', () => levelPicker(pauseMenuBack)], ['Physics lab', () => { closeModal(); openLab(null, pauseMenuBack); }]]);
+}
+function pauseMenuBack() { if (state === 'paused') { state = 'playing'; pauseGame(); } }
+function resumeGame() { if (state !== 'paused') return; closeModal(); state = 'playing'; setPauseUI(false); Sound.musicStart(); }
+function togglePause() { if (state === 'playing') pauseGame(); else if (state === 'paused') resumeGame(); }
+function checkDanger(dt) {
+  let danger = false;
+  for (const b of world.bodies) {
+    if (world.time - b.born < 1.0) continue;
+    if (b.y + b.r > lineY && Math.hypot(b.vx, b.vy) < 1.0) { danger = true; break; }
+  }
+  if (danger) { tickT -= dt; if (tickT <= 0) { Sound.tick(); tickT = 0.5; } } else tickT = 0;
+  dangerT = danger ? dangerT + dt : 0;
+  if (dangerT > DIFF[difficulty].dangerTime) gameOver();
+}
+function gameOver() {
+  state = 'over'; drag = null; Sound.musicStop(); Sound.gameOver(); setPauseUI(false);
+  const isBest = score > bests[difficulty];
+  if (isBest) { bests[difficulty] = score; store.set('bests', bests); }
+  doShake(10, 0.5);
+  setTimeout(() => state === 'over' && openModal('Tank full!', `
+    ${isBest && score > 0 ? '<span class="newbest-chip">New best!</span>' : ''}
+    <div class="big-score">${score.toLocaleString()}</div>
+    <p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>
+    <div class="stats">
+      <div class="stat"><span class="label">Biggest face</span><b>${best ? 'Tier ' + best : 'none'}</b></div>
+      <div class="stat"><span class="label">Merges</span><b>${merges}</b></div>
+      <div class="stat"><span class="label">Best combo</span><b>${bestCombo > 1 ? '×' + bestCombo : 'none'}</b></div>
+      <div class="stat"><span class="label">Missions</span><b>${missionsDone}</b></div>
+      <div class="stat"><span class="label">Rocks smashed</span><b>${rocksSmashed}</b></div>
+      <div class="stat"><span class="label">Shots</span><b>${shots}</b></div>
+    </div>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Physics lab', () => { closeModal(); openLab('log', gameOverBack); }]]), 450);
+  updateHud();
+}
+function gameOverBack() { state = 'over'; openModal('Tank full!', `<div class="big-score">${score.toLocaleString()}</div><p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Back to title', toTitle]]); }
+function toTitle() {
+  if (state === 'playing' || state === 'paused') { if (score > bests[difficulty]) { bests[difficulty] = score; store.set('bests', bests); } }
+  closeModal(); state = 'title'; Sound.musicStop(); emptyWorld(); refreshTitle(); $('titleScreen').hidden = false;
+}
+
+function handleEvents() {
+  if (!pending.length) return;
+  let scored = false;
+  for (const ev of pending) {
+    ev.mode = state === 'test' ? 'Test' : 'Game';
+    if (ev.type === 'C1' && ev.newId) pops.set(ev.newId, 0);
+    ev.id = logRows.length + 1;
+    logRows.push(ev); logDirty = true;
+    const X = sx(ev.x), Y = sy(ev.y);
+    if (ev.type === 'C2') {
+      const rel = Math.abs(ev.v1 - ev.v2), ang = Math.atan2(-ev.uy, ev.ux), amt = Math.min(0.28, 0.05 + rel * 0.03);
+      for (const [id, t] of [[ev.id1, ev.tier1], [ev.id2, ev.tier2]]) if (t !== -1) squash.set(id, { t: 0, ang, amt });
+      if (ev.mode === 'Game' && (ev.tier1 === -1 || ev.tier2 === -1)) rockHit(ev);
+      burst(X, Y, '#fff', 4 + Math.round(rel), 60 + rel * 25, { stars: 1, size: 4 });
+      Sound.bounce(rel, Math.min(ev.m1, ev.m2));
+    }
+    if (ev.mode === 'Game' && ev.type === 'C1') {
+      combo = ev.t - lastMergeT <= 1.0 ? combo + 1 : 1; lastMergeT = ev.t;
+      ev.combo = Math.min(combo, 5); ev.awarded = ev.points * ev.combo;
+      bestCombo = Math.max(bestCombo, ev.combo);
+      score += ev.awarded; merges++; scored = true;
+      const tier = ev.newTier || 1, col = TIER_COLORS[tier - 1];
+      burst(X, Y, col, 14 + tier * 3, 160 + tier * 25, { size: 4 + tier * 0.6, up: 60 });
+      Sound.merge(tier);
+      popups.push({ x: ev.x, y: ev.y + 0.2, text: `+${ev.awarded}`, sub: `Δp ${Math.abs(ev.dpTarget).toFixed(1)}`, color: ev.combo > 1 ? SUN : '#fff', size: 24 + Math.min(14, ev.awarded / 25), t: 0, life: 1.1 });
+      if (tier >= 5) doShake(2 + tier * 0.9, 0.25 + tier * 0.03);
+      if (ev.combo > 1) { banner(`Combo ×${ev.combo}!`, 'sun'); Sound.combo(ev.combo); doShake(3 + ev.combo * 1.5, 0.3); }
+      if (tier > best && tier >= 4) { banner(`New face!<small>Tier ${tier} · ${massOf(tier)} kg</small>`, 'pink'); Sound.newTier(); }
+      best = Math.max(best, tier);
+      if (tier === TIERS && !wonShown) { wonShown = true; win(); }
+    }
+    if (ev.mode === 'Game') { checkMission('event', ev); if (ev.type === 'C1') checkMission('combo', ev.combo); }
+    if (ev.mode === 'Test') {
+      const k = ev.type === 'C1' ? 'inelastic' : 'elastic'; trialCounts[k]++; ev.trialNo = trialCounts[k];
+      updateTrialNote();
+      if (ev.type === 'C1') { burst(X, Y, TIER_COLORS[Math.max(1, Math.min(TIERS, ev.newTier || 1)) - 1], 18, 180); Sound.merge(Math.max(1, ev.newTier || 1)); }
+      popups.push({ x: W / 2, y: ev.y + 0.9, text: ev.type === 'C1' ? 'Stick!' : 'Bounce!', sub: `p ${ev.pBefore.toFixed(2)} → ${ev.pAfter.toFixed(2)}`, color: ev.type === 'C1' ? SUN : MINT, size: 28, t: 0, life: 2.6 });
+      $('trialCount').textContent = `Trial result: v₁′ ${ev.v1a.toFixed(2)}, v₂′ ${ev.v2a.toFixed(2)} m/s · p ${ev.pBefore.toFixed(2)} → ${ev.pAfter.toFixed(2)} · KE ratio ${ev.keRatio === null ? 'n/a' : ev.keRatio.toFixed(2)} · Bounce ${trialCounts.elastic}, Stick ${trialCounts.inelastic} (need 3 each)`;
+    }
+    showLast(ev);
+  }
+  pending = [];
+  updateHud(scored);
+}
+function win() {
+  Sound.win();
+  for (let i = 0; i < 6; i++) setTimeout(() => burst(Math.random() * W * ppm, Math.random() * H * ppm * 0.5, TIER_COLORS[i % TIERS], 30, 260, { up: 120 }), i * 150);
+  banner(`Tier ${TIERS}!<small>You grew the biggest face</small>`, 'sun');
+  setTimeout(() => {
+    if (state !== 'playing') return;
+    state = 'paused'; Sound.musicStop(); setPauseUI(true);
+    openModal(`You made Tier ${TIERS}!`, `<div class="big-score">${score.toLocaleString()}</div><p>That's a ${massOf(TIERS)} kg face. Keep going for a higher score, or start fresh.</p>`,
+      [['Keep playing', resumeGame, 'go'], ['New game', newGame]]);
+  }, 1300);
+}
+
+// ---------- modal and level picker ----------
+let modalEsc = null;
+function openModal(title, bodyHtml, buttons, onEsc) {
+  $('modalTitle').textContent = title; $('modalBody').innerHTML = bodyHtml;
+  const box = $('modalBtns'); box.innerHTML = '';
+  for (const [label, fn, cls] of buttons) { const b = document.createElement('button'); b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; b.onclick = () => { Sound.click(); fn(); }; box.appendChild(b); }
+  modalEsc = onEsc || (state === 'paused' ? resumeGame : null);
+  $('modalScreen').hidden = false; setTimeout(() => { const f = box.querySelector('button'); if (f) f.focus(); }, 30);
+}
+function closeModal() { $('modalScreen').hidden = true; modalEsc = null; }
+function levelPicker(back) {
+  if (state === 'playing') { state = 'paused'; Sound.musicStop(); setPauseUI(true); }
+  const html = `<p>Changing the level starts a new game.</p><div class="lvl-list">${Object.entries(DIFF).map(([k, d]) =>
+    `<button class="card press lvl" data-pick="${k}" aria-pressed="${k === difficulty}"><span class="n">${d.name}</span><span class="d">${d.info}</span><span class="b">Best ${bests[k].toLocaleString()}</span></button>`).join('')}</div>`;
+  openModal('Choose a level', html, [['Back', () => { closeModal(); if (back) back(); else resumeGame(); }]], () => { closeModal(); if (back) back(); else resumeGame(); });
+  $('modalBody').querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { Sound.click(); setDifficulty(b.dataset.pick); newGame(); });
+}
+function setDifficulty(d) { difficulty = d; store.set('difficulty', d); if (state === 'title') emptyWorld(); refreshTitle(); }
+
+// ---------- title screen ----------
+function buildTitle() {
+  const words = [['Sui', 'l1'], ['Calculate!', 'l2']];
+  $('logo').innerHTML = words.map(([w, cls]) => `<span class="${cls}" aria-hidden="true">${[...w].map((ch, i) => `<span style="animation-delay:${(i * 0.08).toFixed(2)}s">${ch}</span>`).join('')}</span>`).join('');
+  const hero = $('hero'); hero.innerHTML = '';
+  [1, 3, 5, 4, 2].forEach(t => { const cv = document.createElement('canvas'); const s = 34 + t * 9; cv.width = cv.height = s * 2; cv.style.width = cv.style.height = s + 'px'; cv.dataset.tier = t; hero.appendChild(cv); });
+  drawHero();
+  document.querySelectorAll('.levels .lvl').forEach(b => b.onclick = () => { Sound.click(); setDifficulty(b.dataset.level); });
+}
+function drawHero() {
+  document.querySelectorAll('#hero canvas').forEach(cv => { const c = cv.getContext('2d'), s = cv.width; c.clearRect(0, 0, s, s); drawFace(c, s / 2, s / 2, s / 2 - 4, +cv.dataset.tier, massOf(+cv.dataset.tier), 1, false); });
+}
+function refreshTitle() {
+  document.querySelectorAll('.levels .lvl').forEach(b => b.setAttribute('aria-pressed', b.dataset.level === difficulty));
+  document.querySelectorAll('[data-best]').forEach(s => s.textContent = bests[s.dataset.best].toLocaleString());
+  updateHud();
+}
+$('playBtn').onclick = () => { Sound.unlock(); Sound.click(); newGame(); };
+$('titleHow').onclick = () => { Sound.click(); showTips(null); };
+$('titleLab').onclick = () => { Sound.click(); $('titleScreen').hidden = true; openLab(null, () => { $('titleScreen').hidden = false; }); };
+
+// ---------- sound button ----------
+const SOUND_UI = { all: ['#i-sound', 'Sound', 'Sound: on', 'Sound: music and effects on'], sfx: ['#i-sfx', 'FX only', 'Sound: effects only', 'Sound: effects only, music off'], off: ['#i-mute', 'Muted', 'Sound: off', 'Sound: off'] };
+function showSoundUI() {
+  const [icon, short, long, aria] = SOUND_UI[Sound.mode];
+  $('soundBtn').querySelector('use').setAttribute('href', icon); $('soundLabel').textContent = short;
+  $('soundBtn').setAttribute('aria-label', aria); $('titleSound').textContent = long;
+}
+function cycleSound() {
+  Sound.unlock();
+  const order = ['all', 'sfx', 'off'], m = order[(order.indexOf(Sound.mode) + 1) % 3];
+  Sound.setMode(m); showSoundUI(); Sound.click();
+  if (m === 'all' && state === 'playing') Sound.musicStart();
+}
+$('soundBtn').onclick = cycleSound; $('titleSound').onclick = cycleSound;
+
+// =====================================================================
+// DATA, TEST MODE, LAB (same data as the previous version)
+// =====================================================================
+const f3 = v => (v === null || v === undefined) ? 'n/a' : (Math.abs(v) < 5e-4 ? 0 : v).toFixed(3);
+const pct = v => v === null ? 'n/a' : `${(v < 5e-4 ? 0 : v).toFixed(3)}%`;
+function showLast(ev) {
+  const el = $('lastType');
+  el.textContent = ev.type === 'C1' ? 'C1 · stick (perfectly inelastic)' : 'C2 · bounce (elastic)';
+  el.className = 'pill ' + (ev.type === 'C1' ? 'c1' : 'c2');
+  $('k_m').textContent = `${ev.m1} / ${ev.m2} kg`;
+  $('k_vb').textContent = `${f3(ev.v1)} / ${f3(ev.v2)}`;
+  $('k_va').textContent = `${f3(ev.v1a)} / ${f3(ev.v2a)}`;
+  $('k_p').textContent = `${f3(ev.pBefore)} → ${f3(ev.pAfter)}`;
+  $('k_pd').textContent = pct(ev.pctDiff);
+  $('k_ke').textContent = `${f3(ev.keBefore)} → ${f3(ev.keAfter)}`;
+  $('k_kr').textContent = f3(ev.keRatio);
+  $('k_pts').textContent = ev.type === 'C1' && ev.mode === 'Game' ? `${f3(Math.abs(ev.dpTarget))} · +${ev.points}${ev.combo > 1 ? ' ×' + ev.combo : ''}` : `${f3(Math.abs(ev.dpTarget))} · none`;
+}
+const COLS = ['#', 'Mode', 'Type', 'm₁ (kg)', 'm₂ (kg)', 'v₁', 'v₂', 'v₁′', 'v₂′', 'p before', 'p after', '% diff', 'KE before', 'KE after', 'KE ratio', '|Δp| target', 'Points', 'Combo', 't (s)'];
+function rowVals(ev) {
+  return [ev.id, ev.mode === 'Test' ? `Test ${ev.trialNo}` : 'Game', ev.type === 'C1' ? 'C1 perfectly inelastic' : 'C2 elastic',
+    ev.m1, ev.m2, f3(ev.v1), f3(ev.v2), f3(ev.v1a), f3(ev.v2a), f3(ev.pBefore), f3(ev.pAfter), pct(ev.pctDiff),
+    f3(ev.keBefore), f3(ev.keAfter), f3(ev.keRatio), f3(Math.abs(ev.dpTarget)), ev.mode === 'Game' && ev.type === 'C1' ? ev.points : 0, ev.combo > 1 ? `x${ev.combo}` : '', ev.t.toFixed(2)];
+}
+function filtered() {
+  return logRows.filter(ev => filter === 'all' || (filter === 'test' && ev.mode === 'Test') || (filter === 'c1' && ev.type === 'C1') || (filter === 'c2' && ev.type === 'C2'));
+}
+function renderLog() {
+  logDirty = false;
+  const rows = filtered(), t = $('logTable');
+  t.style.minWidth = rows.length ? '' : '0';
+  if (!rows.length) { t.innerHTML = `<tr><td class="empty" style="text-align:left">No collisions yet. Play a round, or run a trial in Test mode.</td></tr>`; return; }
+  const shown = rows.slice(-300).reverse();
+  let html = '<thead><tr>' + COLS.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+  for (const ev of shown) html += `<tr class="${ev.type === 'C1' ? 'c1' : 'c2'}">` + rowVals(ev).map(v => `<td>${v}</td>`).join('') + '</tr>';
+  if (rows.length > 300) html += `<tr><td colspan="${COLS.length}" class="empty">Showing the newest 300 of ${rows.length}. Copy as CSV to get all of them.</td></tr>`;
+  t.innerHTML = html + '</tbody>';
+}
+function csv() {
+  const head = ['Row', 'Mode', 'Collision type', 'm1 (kg)', 'm2 (kg)', 'v1 (m/s)', 'v2 (m/s)', "v1' (m/s)", "v2' (m/s)", 'p before (kg m/s)', 'p after (kg m/s)', '% difference', 'KE before (J)', 'KE after (J)', 'KE ratio', '|dp| to target (kg m/s)', 'Points', 'Combo', 'Time (s)'];
+  const lines = [head.join(',')];
+  for (const ev of filtered()) lines.push(rowVals(ev).map(v => String(v).replace('%', '').replace(/,/g, ' ')).join(','));
+  return lines.join('\n');
+}
+$('copyCsv').onclick = () => {
+  const text = csv();
+  const fallback = () => { $('csvFallback').hidden = false; const ta = $('csvOut'); ta.value = text; ta.focus(); ta.select(); };
+  try { navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it into Google Sheets or Excel.'), fallback); } catch (e) { fallback(); }
+};
+if (location.protocol === 'file:' || window.SUICALC_APP) {
+  $('dlCsv').hidden = false;
+  $('dlCsv').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv()], { type: 'text/csv' })); a.download = 'suicalculate-data.csv'; a.click(); };
+}
+let clearArmed = false;
+$('clearLog').onclick = () => {
+  if (!clearArmed) { clearArmed = true; $('clearLog').textContent = 'Tap again to clear'; setTimeout(() => { clearArmed = false; $('clearLog').textContent = 'Clear log'; }, 3000); return; }
+  clearArmed = false; $('clearLog').textContent = 'Clear log';
+  logRows = []; trialCounts.elastic = trialCounts.inelastic = 0; logDirty = true; updateTrialNote();
+};
+for (const [id, val] of [['fAll', 'all'], ['fTest', 'test'], ['fC1', 'c1'], ['fC2', 'c2']]) {
+  $(id).onclick = () => { filter = val; for (const k of ['fAll', 'fTest', 'fC1', 'fC2']) $(k).setAttribute('aria-pressed', k === id); logDirty = true; renderLog(); };
+}
+let toastT;
+function toast(text) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2400); }
+
+// test mode
+for (const sel of [$('tA'), $('tB')]) for (let t = 1; t <= TIERS; t++) { const o = document.createElement('option'); o.value = t; o.textContent = `T${t} · ${massOf(t)} kg`; sel.appendChild(o); }
+$('tA').value = 1; $('tB').value = 3;
+function updateTrialNote() { $('trialCount').textContent = `No gravity · right is + · velocities in m/s · Bounce trials ${trialCounts.elastic} · Stick trials ${trialCounts.inelastic} (need 3 each)`; }
+function setType(t) { testType = t; $('typeE').setAttribute('aria-pressed', t === 'elastic'); $('typeI').setAttribute('aria-pressed', t === 'inelastic'); setupTrial(); }
+$('typeE').onclick = () => setType('elastic'); $('typeI').onclick = () => setType('inelastic');
+for (const id of ['tA', 'tB', 'vA', 'vB']) $(id).addEventListener('change', () => setupTrial());
+function enterTest() {
+  if (state === 'playing' || state === 'paused') { if (score > bests[difficulty]) { bests[difficulty] = score; store.set('bests', bests); } }
+  closeModal(); $('titleScreen').hidden = true; Sound.musicStop();
+  state = 'test'; drag = null; popups = []; particles = [];
+  $('missionBar').hidden = true; $('testBar').hidden = false; setPauseUI(false);
+  setupTrial(); updateTrialNote();
+}
+function setupTrial() {
+  if (state !== 'test') return;
+  const tA = +$('tA').value, tB = +$('tB').value;
+  world = Phys.createWorld({ gravity: false, forced: testType, logLimit: 1 });
+  world.onEvent = ev => pending.push(ev);
+  Phys.addBody(world, { tier: tA, x: 1.0, y: 2.5, vx: 0 });
+  Phys.addBody(world, { tier: tB, x: 3.0, y: 2.5, vx: 0 });
+  trial = { running: false, hitAt: null };
+}
+function runTrial() {
+  const vA = +$('vA').value, vB = +$('vB').value;
+  if (!isFinite(vA) || !isFinite(vB) || Math.abs(vA) > 12 || Math.abs(vB) > 12) { toast('Use velocities between −12 and 12 m/s.'); return; }
+  if (vA <= vB) { toast('The faces never meet. Give Face A a bigger velocity than Face B (right is +).'); return; }
+  setupTrial(); popups = [];
+  world.bodies[0].vx = vA; world.bodies[1].vx = vB;
+  trial.running = true; Sound.launch(Math.min(1, Math.abs(vA - vB) / 12));
+}
+function testTick() {
+  if (!trial || !trial.running) return;
+  if (world.events.length && trial.hitAt === null) trial.hitAt = world.time;
+  if (trial.hitAt !== null && world.time - trial.hitAt > 1.2) trial.running = false;
+  if (world.time > 5 && trial.hitAt === null) { trial.running = false; toast('No collision happened. Check the velocities.'); }
+}
+$('runTrial').onclick = runTrial;
+$('exitTest').onclick = () => { Sound.click(); newGame(); };
+
+// lab sheet
+let labBack = null;
+function openLab(tab, back) {
+  if (state === 'playing') { state = 'paused'; Sound.musicStop(); setPauseUI(true); labBack = resumeGame; }
+  else labBack = back || null;
+  $('lab').hidden = false; if (tab) showTab(tab);
+  renderLog(); setTimeout(() => $('labClose').focus(), 30);
+}
+function closeLab(runBack = true) {
+  if ($('lab').hidden) return;
+  $('lab').hidden = true; const b = labBack; labBack = null;
+  if (runBack && b) b();
+}
+function showTab(tab) {
+  document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === tab));
+  document.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== tab);
+  if (tab === 'log') renderLog();
+}
+document.querySelectorAll('.tabs [data-tab]').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+$('labClose').onclick = () => closeLab();
+$('startTest').onclick = () => { Sound.click(); closeLab(false); enterTest(); };
+
+// faces
+function drawFaceSlots() {
+  document.querySelectorAll('.face-slot canvas').forEach(cv => {
+    const t = +cv.dataset.tier, c = cv.getContext('2d');
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 120, 120); drawFace(c, 60, 60, 54, t, massOf(t));
+  });
+}
+function buildFaceSlots() {
+  const grid = $('faceGrid'); grid.innerHTML = '';
+  for (let t = 1; t <= TIERS; t++) {
+    const slot = document.createElement('div'); slot.className = 'face-slot';
+    slot.innerHTML = `<canvas width="120" height="120" data-tier="${t}"></canvas>
+      <span class="t">Tier ${t} · ${massOf(t)} kg</span>
+      <input type="text" id="fname${t}" placeholder="Teacher name" value="" aria-label="Tier ${t} teacher name">
+      <div class="row"><label class="btn" for="ffile${t}">Upload photo</label><input type="file" id="ffile${t}" accept="image/*"><button class="btn" id="fclr${t}">Remove</button></div>`;
+    grid.appendChild(slot);
+    const name = slot.querySelector(`#fname${t}`); name.value = faces[t - 1].name || '';
+    name.addEventListener('input', () => { faces[t - 1].name = name.value.slice(0, 40); saveFaces(); });
+    slot.querySelector(`#ffile${t}`).addEventListener('change', e => { const f = e.target.files[0]; if (f) loadPhoto(t, f); e.target.value = ''; });
+    slot.querySelector(`#fclr${t}`).addEventListener('click', () => { faces[t - 1].img = ''; saveFaces(); rebuildImgs(); drawFaceSlots(); drawHero(); updateHud(); });
+  }
+  drawFaceSlots();
+}
+function loadPhoto(t, file) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const s = Math.min(im.naturalWidth, im.naturalHeight), cv = document.createElement('canvas');
+      cv.width = cv.height = 256;
+      cv.getContext('2d').drawImage(im, (im.naturalWidth - s) / 2, (im.naturalHeight - s) / 2, s, s, 0, 0, 256, 256);
+      faces[t - 1].img = cv.toDataURL('image/jpeg', 0.85);
+      saveFaces(); rebuildImgs();
+    };
+    im.onerror = () => { $('facesMsg').textContent = 'That file could not be opened as a picture. Try a JPG or PNG.'; };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+
+// ---------- toolbar, keys, input ----------
+$('tbPause').onclick = () => { Sound.click(); togglePause(); };
+$('tbRestart').onclick = () => { Sound.click(); newGame(); };
+$('tbLevel').onclick = () => { Sound.click(); const s = state; levelPicker(s === 'over' ? gameOverBack : s === 'test' ? () => {} : null); };
+$('tbLab').onclick = () => { Sound.click(); if (state === 'over') { closeModal(); openLab(null, gameOverBack); } else openLab(); };
+$('skipMission').onclick = () => { Sound.click(); if (state === 'playing') newMission(); };
+document.addEventListener('keydown', e => {
+  if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if (e.key === 'Escape') { if (!$('lab').hidden) closeLab(); else if (!$('modalScreen').hidden && modalEsc) modalEsc(); return; }
+  if ((e.key === 'p' || e.key === 'P') && $('lab').hidden && (state === 'playing' || (state === 'paused' && !$('modalScreen').hidden))) togglePause();
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'playing') pauseGame(); Sound.musicStop(); } });
+
+function toWorld(e) { const r = canvas.getBoundingClientRect(); const k = r.width / W; return { x: (e.clientX - r.left) / k, y: H - (e.clientY - r.top) / k }; }
+// Aiming: start a pull anywhere in the tank area (including the space beside the tank) and keep pulling
+// past its edges; pointer capture keeps the drag going until you let go.
+const aimArea = $('stageWrap');
+aimArea.addEventListener('pointerdown', e => {
+  if (state !== 'playing' || cooldown > 0) return;
+  try { aimArea.setPointerCapture(e.pointerId); } catch (err) {}
+  const p = toWorld(e); drag = { sx: p.x, sy: p.y, px: 0, py: 0 }; canvas.classList.add('aiming');
+});
+aimArea.addEventListener('pointermove', e => { if (!drag) return; const p = toWorld(e); drag.px = drag.sx - p.x; drag.py = drag.sy - p.y; });
+aimArea.addEventListener('pointerup', () => { if (drag && state === 'playing') launch(); drag = null; canvas.classList.remove('aiming'); });
+aimArea.addEventListener('pointercancel', () => { drag = null; canvas.classList.remove('aiming'); });
+
+// =====================================================================
+// MAIN LOOP
+// =====================================================================
+let last = performance.now(), acc = 0;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const running = state === 'playing' || (state === 'test' && trial && trial.running);
+  if (running) {
+    acc += dt;
+    while (acc >= DT) { Phys.step(world, DT); acc -= DT; }
+    if (state === 'playing') { cooldown = Math.max(0, cooldown - dt); checkDanger(dt); if (rockDue > 0) { rockDue -= dt; if (rockDue <= 0) spawnRock(); } }
+    if (state === 'test') testTick();
+    handleEvents();
+    for (const b of world.bodies) {   // trails behind fast faces
+      if (!b.trail) b.trail = [];
+      if (Math.hypot(b.vx, b.vy) > 2) { b.trail.push({ x: b.x, y: b.y }); if (b.trail.length > 10) b.trail.shift(); }
+      else if (b.trail.length) b.trail.shift();
+    }
+  } else acc = 0;
+  for (const p of popups) p.t += dt;
+  popups = popups.filter(p => p.t < p.life);
+  for (const p of particles) { p.t += dt; p.vy += 700 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.985; p.rot += dt * 5; }
+  particles = particles.filter(p => p.t < p.life);
+  for (const [id, q] of squash) { q.t += dt; if (q.t > 0.35) squash.delete(id); }
+  for (const [id, a] of pops) { if (a > 0.35) pops.delete(id); else pops.set(id, a + dt); }
+  shake.t += dt;
+  if (logDirty && !$('lab').hidden) renderLog();
+  if (ppm > 0 && world) draw();
+  requestAnimationFrame(frame);
+}
+
+rebuildImgs(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
+requestAnimationFrame(frame);
+})();
+
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
