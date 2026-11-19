@@ -226,6 +226,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); font-weight: 500; }
 .empty { padding: 14px; color: var(--muted); font-family: var(--font-body); white-space: normal !important; }
 textarea#csvOut { width: 100%; min-height: 120px; font: 12px var(--font-data); border: 2px solid var(--ink); border-radius: 10px; }
 .face-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.ver { margin: 18px 0 4px; text-align: center; font-size: 11px; letter-spacing: 0.06em; color: #2E244559; user-select: text; }
 .secret-slot { border-color: #E0A500 !important; background: #FFF6D6 !important; box-shadow: 0 0 0 3px #FFC93C55; }
 .face-slot { background: #fff; border: 2.5px solid var(--ink); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: start; }
 .face-slot canvas { width: 60px; height: 60px; }
@@ -479,6 +480,7 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
         <label class="chk"><input type="checkbox" id="arrows"> Show velocity arrows on every face</label>
         <label class="chk"><input type="checkbox" id="showNums"> Show m/s and momentum while aiming</label>
       </div>
+      <p class="ver" id="verLabel"></p>
     </div>
   </div>
 </section>
@@ -685,6 +687,9 @@ if (typeof module !== 'undefined') module.exports = Phys;
 </script><script>
 (() => {
 const { W, H, LAUNCH, VMAX, massOf } = Phys;
+// Game version: change these every time a new version is published.
+// v1.0 (17 Nov 2026) SuiCalculate arcade + app. v1.1 (19 Nov 2026) secret ball, version label.
+const GAME_VERSION = '1.1', GAME_DATE = '19 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_FULL = 1.2;              // metres of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1697,6 +1702,8 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+$('verLabel').textContent = `SuiCalculate v${GAME_VERSION} · ${GAME_DATE}`;
+console.log(`SuiCalculate v${GAME_VERSION} (${GAME_DATE})`);
 rebuildImgs(); rebuildSecret(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
 requestAnimationFrame(frame);
 })();
