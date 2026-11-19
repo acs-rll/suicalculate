@@ -226,6 +226,15 @@ table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); font-weight: 500; }
 .empty { padding: 14px; color: var(--muted); font-family: var(--font-body); white-space: normal !important; }
 textarea#csvOut { width: 100%; min-height: 120px; font: 12px var(--font-data); border: 2px solid var(--ink); border-radius: 10px; }
 .face-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.shake-btn { position: absolute; left: 8px; top: 8px; z-index: 3; display: grid; gap: 3px; justify-items: center; padding: 6px 10px 5px; border: 3px solid var(--ink); border-radius: 14px; background: var(--sun); color: var(--ink); font: 700 14px var(--font-display); box-shadow: 0 3px 0 var(--ink); cursor: pointer; touch-action: manipulation; }
+.shake-btn .sk-top { display: flex; align-items: center; gap: 5px; }
+.shake-btn svg { width: 18px; height: 18px; }
+.shake-btn b { background: var(--ink); color: #fff; border-radius: 999px; min-width: 20px; padding: 0 6px; font-size: 12px; line-height: 18px; }
+.shake-btn .sk-pips { display: flex; gap: 3px; }
+.shake-btn .sk-pips i { width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--ink); background: #fff; }
+.shake-btn .sk-pips i.on { background: var(--mint); }
+.shake-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.shake-btn[disabled] { background: #E6E1F0; opacity: 0.8; cursor: default; }
 .ver { margin: 18px 0 4px; text-align: center; font-size: 11px; letter-spacing: 0.06em; color: #2E244559; user-select: text; }
 .secret-slot { border-color: #E0A500 !important; background: #FFF6D6 !important; box-shadow: 0 0 0 3px #FFC93C55; }
 .face-slot { background: #fff; border: 2.5px solid var(--ink); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: start; }
@@ -338,6 +347,7 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
     <div class="stage" id="stage">
       <canvas id="board" aria-label="Game tank. Drag back anywhere and let go to launch the face."></canvas>
       <div class="banner-layer" id="bannerLayer" aria-live="polite"></div>
+      <button class="shake-btn" id="shakeBtn" hidden><span class="sk-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l3-3M4 16l3 3M20 8l-3-3M20 16l-3 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><rect x="8" y="6" width="8" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>Shake <b id="shakeCount">1</b></span><span class="sk-pips" id="shakePips"></span></button>
     </div>
   </div>
 
@@ -473,6 +483,7 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
         <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
         <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
         <p>Rocks (12 kg) never merge. A rock breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
+        <p><b style="color:var(--ink)">Tank shake:</b> the tank jolts, giving every face the same change in velocity, Δv of about 5 m/s up plus a random sideways part (up to 4 m/s). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
         <p>Not logged: hits on walls and the floor (outside forces), and faces resting in the pile slower than 0.6 m/s.</p>
       </div>
       <div class="panel">
@@ -688,8 +699,8 @@ if (typeof module !== 'undefined') module.exports = Phys;
 (() => {
 const { W, H, LAUNCH, VMAX, massOf } = Phys;
 // Game version: change these every time a new version is published.
-// v1.0 (17 Nov 2026) SuiCalculate arcade + app. v1.1 (19 Nov 2026) secret ball, version label.
-const GAME_VERSION = '1.1', GAME_DATE = '19 Nov 2026';
+// v1.0 (17 Nov 2026) SuiCalculate arcade + app. v1.1 (19 Nov 2026) secret ball, version label. v1.2 (19 Nov 2026) tank shake.
+const GAME_VERSION = '1.2', GAME_DATE = '19 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_FULL = 1.2;              // metres of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -809,6 +820,10 @@ let world, state = 'title', score = 0, best = 0, merges = 0, current = 1, next =
 // Secret ball: about 1 in 25 launched faces wears the secret member photo. Same tier, mass and physics.
 const SECRET_CHANCE = 1 / 25, SECRET_BONUS = 100, secretIds = new Set();
 let curSecret = false, nextSecret = false;
+// Tank shake: the tank jolts, so every face gets the same change in velocity (Δv). Impulse on each face J = m·Δv.
+// Start with 1 shake, earn 1 more every 5 merges, hold up to 3.
+const SHAKE_UP = 5, SHAKE_SIDE = 4, SHAKE_EVERY = 5, SHAKE_MAX = 3;
+let shakes = 1, shakeProgress = 0, shakeGrace = 0, shakeUIState = '', shakeAt = -99;
 const rollSecret = () => Math.random() < SECRET_CHANCE;
 const escapeHtml = t => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 let cooldown = 0, drag = null, dangerT = 0, tickT = 0, popups = [], pending = [], wonShown = false;
@@ -1223,7 +1238,7 @@ function newGame() {
   state = 'playing'; score = 0; best = 0; merges = 0; dangerT = 0; cooldown = 0; drag = null; wonShown = false; newBest = false;
   popups = []; pending = []; particles = []; squash.clear(); pops.clear();
   lineY = DIFF[difficulty].line; combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
-  shots = 0; rockDue = -1; rocksSmashed = 0; lastSoftT = -9; softHinted = false;
+  shots = 0; rockDue = -1; shakes = 1; shakeProgress = 0; shakeGrace = 0; shakeAt = -99; updateShakeUI(); rocksSmashed = 0; lastSoftT = -9; softHinted = false;
   current = randTier(); next = randTier(); curSecret = false; nextSecret = rollSecret(); secretIds.clear();
   newMission();
   $('missionBar').hidden = false; $('testBar').hidden = true;
@@ -1243,6 +1258,7 @@ function showTips(then, firstTime) {
       <div class="tip"><span class="tip-n">${d.mergeEnergy} J</span><span>Crash energy needed. Light faces need a fast hit; heavy faces merge with a gentle bump.</span></div>
       <div class="speeds"><span class="label">Speed needed (m/s)</span><div>${row}</div></div>
       <div class="tip"><span class="tip-n">Too soft!</span><span>This pops up when two matching faces touch too slowly. They bounce or stack instead.</span></div>
+      <div class="tip"><span class="tip-n">Shake</span><span>Stuck at the bottom? Tap Shake (or S). The tank jolts and every face gets the same Δv, so J = mΔv. Earn a shake every 5 merges (max 3).</span></div>
       <div class="tip rock"><span class="tip-n">Rocks</span><span>Every ${d.rockEvery} shots a rock drops in. Rocks never merge. Smash one with a hit of Δp ${d.rockBreak} kg·m/s or more.</span></div>
       ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and only 1.5&nbsp;s on the danger line before the tank overflows.</span></div>' : ''}
     </div>
@@ -1300,6 +1316,7 @@ function updateHud(bumpScore) {
   }
 }
 function setPauseUI(paused) {
+  updateShakeUI();
   $('tbPauseIcon').setAttribute('href', paused ? '#i-play' : '#i-pause');
   $('tbPauseText').textContent = paused ? 'Resume' : 'Pause';
   $('tbPause').disabled = state === 'test' || state === 'over';
@@ -1320,8 +1337,33 @@ function checkDanger(dt) {
     if (b.y + b.r > lineY && Math.hypot(b.vx, b.vy) < 1.0) { danger = true; break; }
   }
   if (danger) { tickT -= dt; if (tickT <= 0) { Sound.tick(); tickT = 0.5; } } else tickT = 0;
+  if (shakeGrace > 0) { shakeGrace -= dt; danger = false; }
   dangerT = danger ? dangerT + dt : 0;
   if (dangerT > DIFF[difficulty].dangerTime) gameOver();
+}
+function tankShake() {
+  if (state !== 'playing' || shakes <= 0 || !world.bodies.length) return;
+  shakes--; shakeGrace = 1.8; shakeAt = world.time;
+  // Same Δv for every face (up, plus a random sideways part). Light and heavy faces jump the same way,
+  // so they hit each other at different angles and matching faces can crash hard enough to merge.
+  let dvSum = 0, n = 0, jMin = Infinity, jMax = 0;
+  for (const b of world.bodies) {
+    const up = SHAKE_UP * (0.85 + 0.3 * Math.random()), side = (Math.random() - 0.5) * 2 * SHAKE_SIDE;
+    b.vy += up; b.vx += side; b.touching = false;
+    const dv = Math.hypot(up, side), J = b.m * dv; dvSum += dv; n++; jMin = Math.min(jMin, J); jMax = Math.max(jMax, J);
+  }
+  doShake(16, 0.5); Sound.thunk(); Sound.crack();
+  burst(W * ppm / 2, H * ppm - 6, '#fff', 24, 260, { up: 160, size: 5 });
+  popups.push({ x: W / 2, y: 2.6, text: 'Tank shake!', sub: `Δv ≈ ${(dvSum / n).toFixed(1)} m/s · J = mΔv: ${jMin.toFixed(1)} to ${jMax.toFixed(0)} kg·m/s`, color: SUN, size: 26, t: 0, life: 2.2 });
+  updateShakeUI();
+}
+function updateShakeUI() {
+  const btn = $('shakeBtn'); if (!btn) return;
+  btn.hidden = !(state === 'playing' || state === 'paused');
+  btn.disabled = shakes <= 0 || state !== 'playing';
+  $('shakeCount').textContent = shakes;
+  $('shakePips').innerHTML = Array.from({ length: SHAKE_EVERY }, (_, i) => `<i class="${i < shakeProgress ? 'on' : ''}"></i>`).join('');
+  btn.setAttribute('aria-label', `Shake the tank, ${shakes} left. Next shake in ${SHAKE_EVERY - shakeProgress} merges.`);
 }
 function gameOver() {
   state = 'over'; drag = null; Sound.musicStop(); Sound.gameOver(); setPauseUI(false);
@@ -1375,6 +1417,8 @@ function handleEvents() {
         burst(X, Y, GOLD, 30, 260, { up: 80 });
       }
       score += ev.awarded; merges++; scored = true;
+      // merges caused by a shake (within 3 s) don't earn new shakes, so shaking can't loop forever
+      if (ev.t - shakeAt > 3 && ++shakeProgress >= SHAKE_EVERY) { shakeProgress = 0; if (shakes < SHAKE_MAX) { shakes++; banner('+1 Shake!', 'mint'); } updateShakeUI(); }
       const tier = ev.newTier || 1, col = TIER_COLORS[tier - 1];
       burst(X, Y, col, 14 + tier * 3, 160 + tier * 25, { size: 4 + tier * 0.6, up: 60 });
       Sound.merge(tier);
@@ -1654,6 +1698,7 @@ $('skipMission').onclick = () => { Sound.click(); if (state === 'playing') newMi
 document.addEventListener('keydown', e => {
   if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
   if (e.key === 'Escape') { if (!$('lab').hidden) closeLab(); else if (!$('modalScreen').hidden && modalEsc) modalEsc(); return; }
+  if ((e.key === 's' || e.key === 'S') && $('lab').hidden && $('modalScreen').hidden) { tankShake(); return; }
   if ((e.key === 'p' || e.key === 'P') && $('lab').hidden && (state === 'playing' || (state === 'paused' && !$('modalScreen').hidden))) togglePause();
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'playing') pauseGame(); Sound.musicStop(); } });
@@ -1677,6 +1722,7 @@ aimArea.addEventListener('pointercancel', () => { drag = null; canvas.classList.
 let last = performance.now(), acc = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (state !== shakeUIState) { shakeUIState = state; updateShakeUI(); }
   const running = state === 'playing' || (state === 'test' && trial && trial.running);
   if (running) {
     acc += dt;
@@ -1704,6 +1750,8 @@ function frame(now) {
 
 $('verLabel').textContent = `SuiCalculate v${GAME_VERSION} · ${GAME_DATE}`;
 console.log(`SuiCalculate v${GAME_VERSION} (${GAME_DATE})`);
+$('shakeBtn').addEventListener('pointerdown', e => e.stopPropagation());
+$('shakeBtn').onclick = e => { e.stopPropagation(); tankShake(); };
 rebuildImgs(); rebuildSecret(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
 requestAnimationFrame(frame);
 })();
