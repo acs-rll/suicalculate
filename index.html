@@ -226,6 +226,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); font-weight: 500; }
 .empty { padding: 14px; color: var(--muted); font-family: var(--font-body); white-space: normal !important; }
 textarea#csvOut { width: 100%; min-height: 120px; font: 12px var(--font-data); border: 2px solid var(--ink); border-radius: 10px; }
 .face-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.secret-slot { border-color: #E0A500 !important; background: #FFF6D6 !important; box-shadow: 0 0 0 3px #FFC93C55; }
 .face-slot { background: #fff; border: 2.5px solid var(--ink); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: start; }
 .face-slot canvas { width: 60px; height: 60px; }
 .face-slot .t { font: 600 12.5px var(--font-display); color: var(--muted); }
@@ -451,7 +452,7 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
     </div>
 
     <div class="pane" data-pane="faces" hidden>
-      <p>Add a photo for each tier. Photos are cropped to a circle and saved in this browser only. Only use a teacher's photo after they have agreed.</p>
+      <p>Add a photo for each tier. Photos are cropped to a circle and saved in this browser only. Only use a teacher's photo after they have agreed. The gold slot at the end is the secret ball: about 1 in 25 launches wears that photo and gives +100 when it merges.</p>
       <div class="face-grid" id="faceGrid"></div>
       <p class="msg" id="facesMsg"></p>
     </div>
@@ -681,9 +682,7 @@ const Phys = (() => {
   return { W, H, LINE, LAUNCH, G, VMAX, MAX_TIER, RADII, E_THRESH, massOf, radiusOf, createWorld, addBody, step };
 })();
 if (typeof module !== 'undefined') module.exports = Phys;
-
-</script>
-<script>
+</script><script>
 (() => {
 const { W, H, LAUNCH, VMAX, massOf } = Phys;
 const DT = 1 / 240;                 // physics time step (s)
@@ -802,6 +801,11 @@ const Sound = (() => {
 // GAME STATE
 // =====================================================================
 let world, state = 'title', score = 0, best = 0, merges = 0, current = 1, next = 1;
+// Secret ball: about 1 in 25 launched faces wears the secret member photo. Same tier, mass and physics.
+const SECRET_CHANCE = 1 / 25, SECRET_BONUS = 100, secretIds = new Set();
+let curSecret = false, nextSecret = false;
+const rollSecret = () => Math.random() < SECRET_CHANCE;
+const escapeHtml = t => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 let cooldown = 0, drag = null, dangerT = 0, tickT = 0, popups = [], pending = [], wonShown = false;
 let logRows = [], logDirty = true, filter = 'all', trial = null, testType = 'elastic';
 let particles = [], shake = { t: 0, dur: 0, amp: 0 }, squash = new Map(), pops = new Map();
@@ -871,6 +875,14 @@ let faces = Array.from({ length: TIERS }, () => ({ name: '', img: '' }));
 try { const s = JSON.parse(localStorage.getItem(FACE_KEY)); if (Array.isArray(s)) s.slice(0, TIERS).forEach((f, i) => { if (f) faces[i] = f; }); } catch (e) {}
 const faceImgs = [];
 function rebuildImgs() { faces.forEach((f, i) => { if (f.img) { const im = new Image(); im.onload = () => { drawFaceSlots(); drawHero(); updateHud(); }; im.src = f.img; faceImgs[i] = im; } else faceImgs[i] = null; }); }
+const SECRET_KEY = 'momentum-merge-secret-v1';
+let secret = { name: '', img: '' }, secretImg = null;
+try { const s = JSON.parse(localStorage.getItem(SECRET_KEY)); if (s && typeof s === 'object') secret = { name: s.name || '', img: s.img || '' }; } catch (e) {}
+function rebuildSecret() { if (secret.img) { const im = new Image(); im.onload = () => { drawFaceSlots(); updateHud(); }; im.src = secret.img; secretImg = im; } else secretImg = null; }
+function saveSecret() {
+  try { localStorage.setItem(SECRET_KEY, JSON.stringify(secret)); $('facesMsg').textContent = ''; }
+  catch (e) { $('facesMsg').textContent = 'This browser would not save the photos, so they last until you close the page.'; }
+}
 function saveFaces() {
   try { localStorage.setItem(FACE_KEY, JSON.stringify(faces)); $('facesMsg').textContent = ''; }
   catch (e) { $('facesMsg').textContent = 'This browser would not save the photos, so they last until you close the page.'; }
@@ -899,11 +911,28 @@ function shade(hex, amt) {
   return `rgb(${f(r)},${f(g)},${f(b)})`;
 }
 
+// Gold ring and twinkling stars around a secret face.
+const GOLD = '#FFC93C';
+function drawSparkle(c, x, y, r, lw) {
+  const t = performance.now() / 1000;
+  c.save();
+  c.beginPath(); c.arc(x, y, r + lw * 1.3, 0, Math.PI * 2); c.lineWidth = lw * 1.2; c.strokeStyle = GOLD;
+  c.shadowColor = GOLD; c.shadowBlur = reduceMotion ? 0 : r * 0.5; c.stroke(); c.shadowBlur = 0;
+  for (let i = 0; i < 3; i++) {
+    const a = (reduceMotion ? 0 : t * 1.4) + i * 2.094, d = r + lw * 3, s = Math.max(3, r * 0.2) * (0.75 + 0.25 * Math.sin(t * 5 + i * 2));
+    const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d;
+    c.beginPath();
+    for (let k = 0; k < 8; k++) { const rr = k % 2 ? s * 0.35 : s, aa = k * Math.PI / 4; c.lineTo(px + Math.cos(aa) * rr, py + Math.sin(aa) * rr); }
+    c.closePath(); c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = Math.max(1, s * 0.2); c.fill(); c.stroke();
+  }
+  c.restore();
+}
+
 // A cartoon face: round body, thick outline, shine, eyes, smile and blush. Each tier has its own look.
-function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true) {
+function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true, isSecret = false) {
   c.save(); c.globalAlpha = alpha;
-  const col = tier >= 1 ? TIER_COLORS[tier - 1] : '#B9B2CC';
-  const img = tier >= 1 ? faceImgs[tier - 1] : null;
+  const col = isSecret ? GOLD : tier >= 1 ? TIER_COLORS[tier - 1] : '#B9B2CC';
+  const img = isSecret ? secretImg : tier >= 1 ? faceImgs[tier - 1] : null;
   const lw = Math.max(2, r * 0.085);
   c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
   if (img && img.complete && img.naturalWidth) {
@@ -941,6 +970,7 @@ function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true) {
       else { c.beginPath(); c.arc(x, y + r * 0.1, r * 0.16, Math.PI * 0.15, Math.PI * 0.85); c.stroke(); }
     }
   }
+  if (isSecret) drawSparkle(c, x, y, r, lw);
   if (badge && r > 13) {
     const tag = `${+m.toFixed(2)} kg`, fs = Math.max(8, Math.min(13, r * 0.24));
     c.font = `600 ${fs}px Fredoka, sans-serif`;
@@ -1000,8 +1030,8 @@ function draw() {
     if (q && !reduceMotion) {
       const u = q.t / 0.35, a = q.amt * Math.exp(-u * 4) * Math.cos(u * 11);
       c.save(); c.translate(X, Y); c.rotate(q.ang); c.scale(1 - a, 1 + a * 0.7); c.rotate(-q.ang);
-      drawFace(c, 0, 0, b.r * ppm * k, b.tier, b.m); c.restore();
-    } else drawFace(c, X, Y, b.r * ppm * k, b.tier, b.m);
+      drawFace(c, 0, 0, b.r * ppm * k, b.tier, b.m, 1, true, b.secret); c.restore();
+    } else drawFace(c, X, Y, b.r * ppm * k, b.tier, b.m, 1, true, b.secret);
   }
   if ($('arrows').checked) for (const b of world.bodies) {
     const sp = Math.hypot(b.vx, b.vy); if (sp < 0.25) continue;
@@ -1137,7 +1167,7 @@ function drawSlingshot(c) {
       c.strokeStyle = power < 0.5 ? MINT : power < 0.85 ? SUN : DANGER;
       c.beginPath(); c.arc(fx + ox, fy + oy, r + 9, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
     }
-    drawFace(c, fx + ox, fy + oy, r, current, massOf(current));
+    drawFace(c, fx + ox, fy + oy, r, current, massOf(current), 1, true, curSecret);
     if (drag && v.sp > 0 && $('showNums').checked) {
       const txt = `${v.sp.toFixed(1)} m/s · p ${(massOf(current) * v.sp).toFixed(1)}`;
       c.font = '600 13px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 16;
@@ -1145,7 +1175,7 @@ function drawSlingshot(c) {
       c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 2.5; c.beginPath(); c.roundRect(bx, by, tw, 22, 11); c.fill(); c.stroke();
       c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 8, by + 11.5);
     }
-  } else drawFace(c, fx, fy, r, current, massOf(current), 0.3);
+  } else drawFace(c, fx, fy, r, current, massOf(current), 0.3, true, curSecret);
   c.restore();
 }
 
@@ -1189,7 +1219,7 @@ function newGame() {
   popups = []; pending = []; particles = []; squash.clear(); pops.clear();
   lineY = DIFF[difficulty].line; combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
   shots = 0; rockDue = -1; rocksSmashed = 0; lastSoftT = -9; softHinted = false;
-  current = randTier(); next = randTier();
+  current = randTier(); next = randTier(); curSecret = false; nextSecret = rollSecret(); secretIds.clear();
   newMission();
   $('missionBar').hidden = false; $('testBar').hidden = true;
   closeModal(); $('titleScreen').hidden = true;
@@ -1218,10 +1248,12 @@ function launch() {
   const v = launchVel();
   checkMission('launch', { m: massOf(current), v: v.sp, p: massOf(current) * v.sp });
   // a tiny random nudge in start position (not velocity) so straight drops don't balance in a perfect tower
-  Phys.addBody(world, { tier: current, x: LAUNCH.x + (Math.random() - 0.5) * 0.03, y: LAUNCH.y, vx: v.vx, vy: v.vy });
+  const nb = Phys.addBody(world, { tier: current, x: LAUNCH.x + (Math.random() - 0.5) * 0.03, y: LAUNCH.y, vx: v.vx, vy: v.vy });
+  if (curSecret) { nb.secret = true; secretIds.add(nb.id); }
   Sound.launch(v.sp / VMAX);
   if (v.sp > 1) burst(sx(LAUNCH.x), sy(LAUNCH.y), '#fff', 6, 140, { stars: 0, size: 4 });
-  current = next; next = randTier(); cooldown = 0.5; drag = null; canvas.classList.remove('aiming');
+  current = next; next = randTier(); curSecret = nextSecret; nextSecret = rollSecret(); cooldown = 0.5;
+  if (curSecret) { banner(`SECRET!<small>${secret.name ? escapeHtml(secret.name) + ' · ' : ''}+${SECRET_BONUS} when it merges</small>`, 'sun'); Sound.newTier(); } drag = null; canvas.classList.remove('aiming');
   shots++; if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
   updateHud();
 }
@@ -1256,7 +1288,7 @@ function updateHud(bumpScore) {
   $('hudBestWrap').classList.toggle('newbest', newBest);
   $('hudLevel').textContent = DIFF[difficulty].name; $('tbLevelName').textContent = DIFF[difficulty].name;
   const hc = $('hudNext').getContext('2d'); hc.setTransform(1, 0, 0, 1, 0, 0); hc.clearRect(0, 0, 96, 96);
-  if (DIFF[difficulty].showNext || state === 'title') drawFace(hc, 48, 48, 22 + next * 6, next, massOf(next), 1, false);
+  if (DIFF[difficulty].showNext || state === 'title') drawFace(hc, 48, 48, 22 + next * 6, next, massOf(next), 1, false, nextSecret);
   else {
     hc.beginPath(); hc.arc(48, 48, 34, 0, Math.PI * 2); hc.fillStyle = '#E6E1F0'; hc.fill(); hc.lineWidth = 5; hc.strokeStyle = INK; hc.stroke();
     hc.fillStyle = INK; hc.font = '700 44px Fredoka, sans-serif'; hc.textAlign = 'center'; hc.textBaseline = 'middle'; hc.fillText('?', 48, 51);
@@ -1331,6 +1363,12 @@ function handleEvents() {
       combo = ev.t - lastMergeT <= 1.0 ? combo + 1 : 1; lastMergeT = ev.t;
       ev.combo = Math.min(combo, 5); ev.awarded = ev.points * ev.combo;
       bestCombo = Math.max(bestCombo, ev.combo);
+      if (secretIds.has(ev.id1) || secretIds.has(ev.id2)) {
+        secretIds.delete(ev.id1); secretIds.delete(ev.id2);
+        ev.awarded += SECRET_BONUS; ev.secretBonus = SECRET_BONUS;
+        banner(`Secret bonus!<small>+${SECRET_BONUS}</small>`, 'sun'); Sound.fanfare();
+        burst(X, Y, GOLD, 30, 260, { up: 80 });
+      }
       score += ev.awarded; merges++; scored = true;
       const tier = ev.newTier || 1, col = TIER_COLORS[tier - 1];
       burst(X, Y, col, 14 + tier * 3, 160 + tier * 25, { size: 4 + tier * 0.6, up: 60 });
@@ -1552,8 +1590,10 @@ $('startTest').onclick = () => { Sound.click(); closeLab(false); enterTest(); };
 // faces
 function drawFaceSlots() {
   document.querySelectorAll('.face-slot canvas').forEach(cv => {
-    const t = +cv.dataset.tier, c = cv.getContext('2d');
-    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 120, 120); drawFace(c, 60, 60, 54, t, massOf(t));
+    const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 120, 120);
+    if (cv.dataset.secret) { drawFace(c, 60, 60, 46, 1, 1, 1, false, true); return; }
+    const t = +cv.dataset.tier;
+    drawFace(c, 60, 60, 54, t, massOf(t));
   });
 }
 function buildFaceSlots() {
@@ -1570,6 +1610,16 @@ function buildFaceSlots() {
     slot.querySelector(`#ffile${t}`).addEventListener('change', e => { const f = e.target.files[0]; if (f) loadPhoto(t, f); e.target.value = ''; });
     slot.querySelector(`#fclr${t}`).addEventListener('click', () => { faces[t - 1].img = ''; saveFaces(); rebuildImgs(); drawFaceSlots(); drawHero(); updateHud(); });
   }
+  const ss = document.createElement('div'); ss.className = 'face-slot secret-slot';
+  ss.innerHTML = `<canvas width="120" height="120" data-secret="1"></canvas>
+    <span class="t">Secret ball · rare</span>
+    <input type="text" id="fnameS" placeholder="Member name" aria-label="Secret ball name">
+    <div class="row"><label class="btn" for="ffileS">Upload photo</label><input type="file" id="ffileS" accept="image/*"><button class="btn" id="fclrS">Remove</button></div>`;
+  grid.appendChild(ss);
+  const sn = ss.querySelector('#fnameS'); sn.value = secret.name || '';
+  sn.addEventListener('input', () => { secret.name = sn.value.slice(0, 40); saveSecret(); });
+  ss.querySelector('#ffileS').addEventListener('change', e => { const f = e.target.files[0]; if (f) loadPhoto('S', f); e.target.value = ''; });
+  ss.querySelector('#fclrS').addEventListener('click', () => { secret.img = ''; saveSecret(); rebuildSecret(); drawFaceSlots(); updateHud(); });
   drawFaceSlots();
 }
 function loadPhoto(t, file) {
@@ -1580,8 +1630,9 @@ function loadPhoto(t, file) {
       const s = Math.min(im.naturalWidth, im.naturalHeight), cv = document.createElement('canvas');
       cv.width = cv.height = 256;
       cv.getContext('2d').drawImage(im, (im.naturalWidth - s) / 2, (im.naturalHeight - s) / 2, s, s, 0, 0, 256, 256);
-      faces[t - 1].img = cv.toDataURL('image/jpeg', 0.85);
-      saveFaces(); rebuildImgs();
+      const data = cv.toDataURL('image/jpeg', 0.85);
+      if (t === 'S') { secret.img = data; saveSecret(); rebuildSecret(); }
+      else { faces[t - 1].img = data; saveFaces(); rebuildImgs(); }
     };
     im.onerror = () => { $('facesMsg').textContent = 'That file could not be opened as a picture. Try a JPG or PNG.'; };
     im.src = rd.result;
@@ -1646,10 +1697,9 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-rebuildImgs(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
+rebuildImgs(); rebuildSecret(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
 requestAnimationFrame(frame);
 })();
-
 </script>
 <script>
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
