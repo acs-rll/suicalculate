@@ -480,7 +480,7 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
         <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
         <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
         <p>Rocks (12 kg) never merge. A rock breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
-        <p><b style="color:var(--ink)">The box:</b> faces are fired from a slingshot on a 5.1 m cliff into an open box (walls 5.0 m high, 4.5 m on Hard). Walls and the ground take away half the speed of a hit. A face that falls out of the box ends the game; a shot that misses the box just rolls away.</p>
+        <p><b style="color:var(--ink)">The box:</b> faces are fired from a slingshot on a 2.55 m cliff into an open box (walls 5.0 m high, 4.5 m on Hard). Walls and the ground take away half the speed of a hit. A face that falls out of the box ends the game; a shot that misses the box just rolls away.</p>
         <p><b style="color:var(--ink)">Box shake:</b> the box jolts, giving every face in it the same change in velocity, Δv of about 5 m/s up plus a sideways part toward the middle (up to 4 m/s, so faces are not thrown out). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
         <p>Not logged: hits on walls and the floor (outside forces), and faces resting in the pile slower than 0.6 m/s.</p>
       </div>
@@ -517,8 +517,8 @@ const Phys = (() => {
   const H = 9.5;          // default view height (m); the game may show more sky on tall screens
   const BOX = { l: 2.3, r: 6.1, t: 0.12 };  // inner left and right edges of the box (3.8 m wide) and wall thickness (m)
   const LINE = 5.0;       // default wall height (m)
-  const CLIFF = { x2: 1.45, y2: 5.1 };      // the cliff the slingshot stands on: right edge and top (m)
-  const LAUNCH = { x: 0.8, y: 5.75 }; // slingshot fork position (m)
+  const CLIFF = { x2: 1.45, y2: 2.55 };      // the cliff the slingshot stands on: right edge and top (m)
+  const LAUNCH = { x: 0.8, y: 3.2 }; // slingshot fork position (m)
   const G = 10;           // gravity (m/s^2), as chosen by the group
   const VMAX = 12;        // fastest launch the slingshot allows (m/s)
   const MAX_TIER = 10;
@@ -951,7 +951,7 @@ function saveFaces() {
 let ppm = 100, dpr = 1, cw = 0;
 // Fit the whole scene to the screen: full width if possible, and show at least MIN_VIEW metres of height.
 // On tall phones the extra space becomes more sky (up to MAX_VIEW).
-const MIN_VIEW = 7.7, MAX_VIEW = 13.5;   // 7.7 m: the ground strip up to about 1.5 m above the slingshot
+const MIN_VIEW = 7.7, MAX_VIEW = 13.5;   // 7.7 m: the ground strip up to about 2 m above the box walls, room for lobs
 let ch = 0;
 function fitStage() {
   const r = $('stageWrap').getBoundingClientRect();
