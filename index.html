@@ -16,7 +16,7 @@
 <title>SuiCalculate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one-screen arcade. Sky and hills behind; HUD on top, the glass tank in the middle, a chunky toolbar on the grass.
    Single bright cartoon theme on purpose: every colour is set explicitly, so it looks the same on any host background. */
@@ -271,117 +271,123 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
 }
 
 /* =====================================================================
-   CAMPUS THEME (v2.1 test): school campus at night behind a notebook-doodle UI.
-   Cream lined paper, blue ballpoint ink, a red margin line, highlighter accents, sticky-note buttons.
+   PAPERCRAFT THEME (v2.2): golden-hour campus made of construction paper.
+   Torn paper cards held on with washi tape, cut-out paper letters, warm sunset colours.
+   Single warm look on purpose; every colour is set explicitly.
    ===================================================================== */
 :root {
-  --ink: #1F3A93; --muted: #5E6C9A; --card: #FFFBEF; --cream: #FFFBEF; --paper: #FFFBEF; --rule: #D3E1F4; --margin: #F4A7A1;
-  --sun: #FFF176; --pink: #FF8FC8; --pink-dark: #D81B78; --mint: #A5F2A0; --mint-dark: #2E7D32; --danger: #E53935;
-  --font-display: "Patrick Hand", "Comic Sans MS", system-ui, sans-serif;
-  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
-  --sketch: 255px 14px 225px 14px / 14px 225px 14px 255px;
+  --ink: #3D2340; --muted: #7A5A6E; --paper: #FFF4DE; --cream: #FFF4DE; --card: #FFF4DE;
+  --orange: #F28C38; --coral: #F2675A; --sun: #F2B33D; --teal: #2A9D8F; --plum: #6D3B6B; --leaf: #7FB069;
+  --pink: #F2675A; --pink-dark: #C2413A; --mint: #2A9D8F; --mint-dark: #1F7A6E; --danger: #D62839;
+  --font-display: "Fredoka", "Nunito", system-ui, sans-serif; --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.24  0 0 0 0 0.14  0 0 0 0 0.25  0 0 0 0.09 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
+  --lift: 0 2px 0 rgba(61, 35, 64, 0.08), 0 6px 14px rgba(61, 35, 64, 0.3);
   color-scheme: light;
 }
-body { background: #0B1230; }
+body { background: #F28C38; color: var(--ink); }
 .scenery canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.card { background: var(--paper) repeating-linear-gradient(180deg, transparent 0 21px, var(--rule) 21px 22px); border: 2px solid var(--ink); border-radius: var(--sketch);
-  box-shadow: 2px 3px 0 rgba(11, 18, 48, 0.45); }
-.scorecard, .strip { background: linear-gradient(90deg, transparent 0 16px, var(--margin) 16px 17.5px, transparent 17.5px), var(--paper) repeating-linear-gradient(180deg, transparent 0 21px, var(--rule) 21px 22px); padding-left: 24px; }
-.label { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
-.score { font-family: var(--font-display); font-weight: 400; font-size: 38px; color: var(--ink); }
-.score::after { content: ""; }
-@keyframes bump { 40% { transform: scale(1.12) rotate(-2deg); background: var(--sun); } }
-.best { font-family: var(--font-display); font-size: 15px; }
-.best b { color: var(--ink); } .best.newbest b { background: var(--pink); }
-.iconbtn, .tb { font-family: var(--font-display); font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--ink); }
-.tb small { font-family: var(--font-display); font-weight: 400; font-size: 12.5px; }
-.mission-text { font-family: var(--font-display); font-weight: 400; font-size: 18px; }
-.mission-hint { font-size: 12px; }
-.chip { background: var(--sun); border: 1.5px solid var(--ink); font-family: var(--font-display); font-weight: 400; font-size: 15px; transform: rotate(-3deg); border-radius: 3px; }
-.mini { background: #fff; font-family: var(--font-display); font-weight: 400; font-size: 14px; border: 1.5px solid var(--ink); border-radius: var(--sketch); }
-@keyframes flash { 30% { background: var(--mint); transform: scale(1.02) rotate(-1deg); } }
-.btn { font-family: var(--font-display); font-weight: 400; font-size: 19px; background: #fff; border: 2px solid var(--ink); border-radius: var(--sketch); color: var(--ink); box-shadow: 2px 3px 0 rgba(31, 58, 147, 0.35); }
-.btn.primary { background: var(--sun); color: var(--ink); border-radius: 2px; transform: rotate(-1.5deg); box-shadow: 3px 5px 0 rgba(11, 18, 48, 0.35); }
-.btn.go { background: var(--mint); color: var(--ink); border-radius: 2px; transform: rotate(1deg); box-shadow: 3px 5px 0 rgba(11, 18, 48, 0.35); }
-.btn.big { font-size: 28px; padding: 8px 30px; }
-.btn:active, .card.press:active, .tb:active, .iconbtn:active { transform: translateY(2px); box-shadow: 1px 1px 0 rgba(31, 58, 147, 0.35); }
-button:focus-visible, select:focus-visible, input:focus-visible, label.btn:focus-within { outline: 3px solid var(--pink); outline-offset: 3px; }
-.seg { border: 2px solid var(--ink); border-radius: var(--sketch); background: #fff; }
-.seg button { font-family: var(--font-display); font-weight: 400; font-size: 15px; color: var(--ink); }
-.seg button + button { border-left: 1.5px dashed var(--ink); }
-.seg button[aria-pressed="true"] { background: var(--sun); color: var(--ink); }
-select, input[type="number"], input[type="text"] { border: 1.5px solid var(--ink); color: var(--ink); }
-/* title: a notebook page over the campus */
-.title-screen { background: rgba(11, 18, 48, 0.45); }
-.title-inner { background: linear-gradient(90deg, transparent 0 26px, var(--margin) 26px 28px, transparent 28px), var(--paper) repeating-linear-gradient(180deg, transparent 0 27px, var(--rule) 27px 28px);
-  padding: 18px 16px 16px 34px; border-radius: 4px; box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.35); transform: rotate(-0.6deg); position: relative; }
-.title-inner::before { content: ""; position: absolute; left: 50%; top: -12px; width: 110px; height: 26px; transform: translateX(-50%) rotate(2deg); background: rgba(255, 241, 118, 0.75); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-.logo { font-family: var(--font-display); font-weight: 400; color: var(--ink); text-shadow: none; letter-spacing: 0.01em; }
-.logo .l1 { font-size: clamp(54px, 16vw, 80px); }
-.logo .l2 { font-size: clamp(44px, 13vw, 68px); color: var(--ink); background: linear-gradient(180deg, transparent 0 45%, var(--pink) 45% 88%, transparent 88%); padding: 0 6px; }
-.logo .l1 span span:nth-child(odd) { color: #D81B78; }
-.tagline { color: var(--ink); font-family: var(--font-body); }
-.step { font-family: var(--font-display); font-weight: 400; font-size: 16px; line-height: 1.15; }
-.step b { background: transparent; border: 2px solid var(--ink); font-weight: 400; font-size: 19px; }
-.lvl { color: var(--ink); }
-.lvl .n { font-family: var(--font-display); font-weight: 400; font-size: 24px; }
-.lvl .d { font-size: 12px; }
-.lvl .b { font-family: var(--font-display); font-weight: 400; font-size: 15px; }
-.lvl[aria-pressed="true"] { background: var(--sun); }
-.credit { color: var(--muted); font-family: var(--font-display); font-size: 15px; }
+/* torn paper cards: a jagged bottom edge in the card's own colour (--pc) */
+.card, .btn, .stat, .tip, .panel, .face-slot, .speeds { --pc: var(--paper); }
+.card { background: var(--grain), var(--pc); border: 0; border-radius: 3px; box-shadow: var(--lift); position: relative; }
+.card::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 7px; pointer-events: none;
+  background: linear-gradient(45deg, transparent 33.3%, var(--pc) 33.3% 66.6%, transparent 66.6%), linear-gradient(-45deg, transparent 33.3%, var(--pc) 33.3% 66.6%, transparent 66.6%);
+  background-size: 9px 14px; background-position: 0 -7px; filter: drop-shadow(0 3px 2px rgba(61, 35, 64, 0.18)); }
+/* washi tape on the main cards */
+.scorecard::before, .strip::before, .modal::before, .title-inner::before { content: ""; position: absolute; left: 50%; top: -9px; width: 76px; height: 18px; transform: translateX(-50%) rotate(-3deg); z-index: 2;
+  background: repeating-linear-gradient(45deg, rgba(42, 157, 143, 0.8) 0 6px, rgba(255, 244, 222, 0.8) 6px 12px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); }
+.strip::before { left: 18%; transform: rotate(4deg); background: repeating-linear-gradient(-45deg, rgba(242, 103, 90, 0.8) 0 6px, rgba(255, 244, 222, 0.8) 6px 12px); }
+.modal::before { background: repeating-linear-gradient(90deg, rgba(242, 179, 61, 0.85) 0 8px, rgba(255, 244, 222, 0.85) 8px 16px); }
+.label { font-family: var(--font-display); font-weight: 600; font-size: 11.5px; letter-spacing: 0.1em; color: var(--muted); }
+.score { font-family: var(--font-display); font-weight: 700; font-size: 34px; color: var(--ink); }
+@keyframes bump { 40% { transform: scale(1.14) rotate(-3deg); color: var(--coral); } }
+.best { font-family: var(--font-display); font-weight: 500; }
+.best b { color: var(--ink); } .best.newbest b { color: var(--coral); }
+.iconbtn, .tb { font-family: var(--font-display); font-weight: 600; color: var(--ink); }
+.tb svg { color: var(--teal); } .iconbtn svg { color: var(--coral); }
+.mission-text { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+.chip { --pc: var(--sun); background: var(--sun); color: var(--ink); border: 0; font-family: var(--font-display); font-weight: 600; border-radius: 3px; rotate: -3deg; box-shadow: 0 3px 6px rgba(61, 35, 64, 0.25); }
+.mini { background: #fff; border: 0; box-shadow: 0 2px 5px rgba(61, 35, 64, 0.25); border-radius: 3px; font-family: var(--font-display); font-weight: 600; }
+@keyframes flash { 30% { background: var(--leaf); transform: scale(1.02) rotate(-1deg); } }
+/* buttons: thick paper tabs */
+.btn { background: var(--grain), var(--pc); border: 0; border-radius: 4px; color: var(--ink); font-family: var(--font-display); font-weight: 600; box-shadow: var(--lift); }
+.btn.primary { --pc: var(--coral); color: #fff; rotate: -1.5deg; }
+.btn.go { --pc: var(--teal); color: #fff; rotate: 1deg; }
+.btn:active, .card.press:active, .tb:active, .iconbtn:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(61, 35, 64, 0.3); }
+button:focus-visible, select:focus-visible, input:focus-visible, label.btn:focus-within { outline: 3px solid var(--plum); outline-offset: 3px; }
+.seg { background: #fff; border: 0; border-radius: 4px; box-shadow: 0 2px 6px rgba(61, 35, 64, 0.25); }
+.seg button { font-family: var(--font-display); font-weight: 600; color: var(--ink); }
+.seg button + button { border-left: 1.5px dashed rgba(61, 35, 64, 0.35); }
+.seg button[aria-pressed="true"] { background: var(--sun); }
+select, input[type="number"], input[type="text"] { border: 0; box-shadow: inset 0 0 0 1.5px rgba(61, 35, 64, 0.35); border-radius: 4px; background: #fff; color: var(--ink); }
+/* title: a taped paper card with cut-out letters */
+.title-screen { background: rgba(61, 35, 64, 0.18); }
+.title-inner { background: var(--grain), var(--paper); padding: 22px 18px 18px; border-radius: 4px; box-shadow: 0 10px 24px rgba(61, 35, 64, 0.35); rotate: -0.6deg; position: relative; }
+.logo { font-family: var(--font-display); font-weight: 700; color: #fff; text-shadow: none; line-height: 1.05; }
+.logo .l1 { font-size: clamp(46px, 14vw, 66px); } .logo .l2 { font-size: clamp(34px, 10.5vw, 52px); }
+.logo span span { padding: 0 0.07em; margin: 0 0.015em; border-radius: 0.08em; box-shadow: 0 3px 5px rgba(61, 35, 64, 0.3); background: var(--orange); }
+.logo span span:nth-child(4n+1) { background: var(--coral); rotate: -5deg; }
+.logo span span:nth-child(4n+2) { background: var(--teal); rotate: 3deg; }
+.logo span span:nth-child(4n+3) { background: var(--sun); color: var(--ink); rotate: -2deg; }
+.logo span span:nth-child(4n) { background: var(--plum); rotate: 4deg; }
+.tagline { color: var(--ink); }
+.step { font-family: var(--font-display); font-weight: 500; }
+.step b { background: var(--coral); color: #fff; border: 0; border-radius: 3px; rotate: -4deg; box-shadow: 0 2px 4px rgba(61, 35, 64, 0.3); }
+.lvl { --pc: #fff; }
+.lvl[aria-pressed="true"] { --pc: var(--sun); background: var(--grain), var(--sun); }
+.lvl .n { font-family: var(--font-display); font-weight: 700; } .lvl .b { font-family: var(--font-display); font-weight: 600; color: var(--plum); }
+.credit { color: var(--muted); }
 /* overlays */
-.modal-screen { background: rgba(11, 18, 48, 0.55); }
-.modal { background: linear-gradient(90deg, transparent 0 22px, var(--margin) 22px 23.5px, transparent 23.5px), var(--paper) repeating-linear-gradient(180deg, transparent 0 25px, var(--rule) 25px 26px); border-radius: 4px; padding-left: 30px; }
-.modal h2 { font-family: var(--font-display); font-weight: 400; font-size: 36px; color: var(--ink); }
-.modal .big-score { font-family: var(--font-display); font-weight: 400; font-size: 64px; color: var(--ink); background: linear-gradient(180deg, transparent 0 50%, var(--sun) 50% 90%, transparent 90%); padding: 0 10px; }
-.newbest-chip { background: var(--pink); color: var(--ink); border: 1.5px solid var(--ink); font-family: var(--font-display); font-weight: 400; font-size: 17px; border-radius: 3px; }
-.stat { background: #fff; border: 1.5px solid var(--ink); border-radius: var(--sketch); }
-.stat b { font-family: var(--font-display); font-weight: 400; font-size: 24px; }
-.lab { background: var(--paper) repeating-linear-gradient(180deg, transparent 0 25px, var(--rule) 25px 26px); }
-.lab-head h2, .pane h3 { font-family: var(--font-display); font-weight: 400; }
-.lab-head h2 { font-size: 30px; } .pane h3 { font-size: 22px; }
-.panel { background: #fff; border: 1.5px solid var(--ink); border-radius: var(--sketch); }
-.formula { background: #FFFDE7; color: var(--ink); }
-.pill { font-family: var(--font-display); font-weight: 400; font-size: 14px; border: 1.5px solid var(--ink); }
-.pill.c1 { background: var(--sun); } .pill.c2 { background: var(--mint); }
-.btns .btn { font-size: 16px; box-shadow: 2px 2px 0 rgba(31, 58, 147, 0.3); }
-table.data th { background: #FFFBEF; color: var(--ink); }
-table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); }
-.face-slot { border-radius: var(--sketch); }
-.face-slot .t { font-family: var(--font-display); font-weight: 400; font-size: 15px; }
-.face-slot .btn { font-size: 15px; box-shadow: none; }
-.secret-slot { border-color: #C9A227 !important; background: #FFF9C4 !important; box-shadow: none; }
-.tip { border: 1.5px solid var(--ink); border-radius: var(--sketch); color: var(--ink); }
-.tip-n { font-family: var(--font-display); font-weight: 400; font-size: 17px; background: var(--sun); border: 1.5px solid var(--ink); border-radius: 3px; }
-.tip.rock .tip-n { background: #90CAF9; } .tip.hard .tip-n { background: var(--pink); color: var(--ink); }
-.sp { font-family: var(--font-display); font-weight: 400; font-size: 16px; background: #FFFDE7; }
-.toast { background: var(--sun); color: var(--ink); border: 1.5px solid var(--ink); font-family: var(--font-display); font-size: 17px; border-radius: 3px; }
-.ver { color: rgba(31, 58, 147, 0.45); font-family: var(--font-display); font-size: 13px; }
-/* banners: words on a strip of highlighter */
-.banner { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 9vw, 44px); color: var(--ink); text-shadow: none;
-  background: linear-gradient(180deg, transparent 0 12%, rgba(255, 241, 118, 0.95) 12% 92%, transparent 92%); padding: 0 12px; transform-origin: center; border-radius: 3px; }
-.banner small { font-size: 0.5em; }
-.banner.b-pink { color: var(--ink); background: linear-gradient(180deg, transparent 0 12%, rgba(255, 143, 200, 0.95) 12% 92%, transparent 92%); }
-.banner.b-mint { color: var(--ink); background: linear-gradient(180deg, transparent 0 12%, rgba(165, 242, 160, 0.95) 12% 92%, transparent 92%); }
-.banner.b-sun { color: var(--ink); }
-@keyframes pop { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 18% { transform: scale(1.12) rotate(-3deg); opacity: 1; }
-  35% { transform: scale(1) rotate(-2deg); } 80% { opacity: 1; transform: rotate(-2deg); } 100% { opacity: 0; transform: translateY(-30px) rotate(-2deg); } }
-/* shake button and power-up tray: sticky notes */
-.shake-btn { background: var(--mint); border: 1.5px solid var(--ink); border-radius: 2px; color: var(--ink); font: 400 17px var(--font-display); box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); transform: rotate(-2deg); }
-.shake-btn b { background: var(--ink); }
-.shake-btn .sk-pips i { border: 1.5px solid var(--ink); }
-.shake-btn .sk-pips i.on { background: var(--ink); }
-.shake-btn[disabled] { background: #DDE3D8; opacity: 0.85; }
-.pu-tray { position: absolute; right: 6px; top: 8px; z-index: 3; display: flex; gap: 5px; }
-.pu { width: 54px; height: 44px; display: grid; place-items: center; align-content: center; border: 1.5px solid var(--ink); border-radius: 2px; font-family: var(--font-display); color: var(--ink);
-  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); cursor: pointer; padding: 0; touch-action: manipulation; line-height: 1; }
-.pu b { font-weight: 400; font-size: 15px; } .pu small { font-size: 11.5px; }
-.pu:nth-child(1) { transform: rotate(2deg); } .pu:nth-child(2) { transform: rotate(-2deg); } .pu:nth-child(3) { transform: rotate(1.5deg); }
-.pu-anvil { background: #CFD8E6; } .pu-bouncy { background: var(--pink); } .pu-blast { background: #FFB38A; }
-.pu.empty { background: rgba(255, 251, 239, 0.18); border: 1.5px dashed rgba(255, 251, 239, 0.6); color: rgba(255, 251, 239, 0.7); box-shadow: none; font-size: 20px; cursor: default; }
+.modal-screen { background: rgba(61, 35, 64, 0.4); }
+.modal { background: var(--grain), var(--paper); border-radius: 4px; }
+.modal h2 { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--ink); }
+.modal .big-score { font-family: var(--font-display); font-weight: 700; font-size: 52px; color: #fff; background: var(--coral); padding: 0 14px; rotate: -2deg; box-shadow: 0 4px 8px rgba(61, 35, 64, 0.3); border-radius: 4px; }
+.newbest-chip { background: var(--sun); color: var(--ink); border: 0; border-radius: 3px; box-shadow: 0 3px 6px rgba(61, 35, 64, 0.3); font-family: var(--font-display); }
+.stat { background: #fff; border: 0; border-radius: 3px; box-shadow: 0 2px 6px rgba(61, 35, 64, 0.2); }
+.stat b { font-family: var(--font-display); font-weight: 700; }
+.lab { background: var(--grain), var(--paper); }
+.lab-head h2, .pane h3 { font-family: var(--font-display); font-weight: 700; color: var(--ink); }
+.panel, .face-slot, .tip, .speeds { background: #fff; border: 0; border-radius: 4px; box-shadow: 0 2px 6px rgba(61, 35, 64, 0.2); color: var(--ink); }
+.formula { background: #FFF4DE; color: var(--ink); }
+.pill { border: 0; box-shadow: 0 1px 3px rgba(61, 35, 64, 0.25); background: #fff; font-family: var(--font-display); font-weight: 600; }
+.pill.c1 { background: var(--sun); } .pill.c2 { background: #BFE3DE; }
+.btns .btn { box-shadow: 0 2px 5px rgba(61, 35, 64, 0.25); }
+.tablewrap { background: #fff; border: 0; box-shadow: 0 2px 6px rgba(61, 35, 64, 0.2); }
+table.data th { background: #FFF4DE; color: var(--ink); }
+table.data tr.c1 td:nth-child(3) { color: var(--coral); }
+.face-slot .t { font-family: var(--font-display); font-weight: 600; }
+.face-slot .btn { box-shadow: 0 1px 3px rgba(61, 35, 64, 0.25); }
+.secret-slot { background: #FFF1C7 !important; border: 0 !important; box-shadow: 0 0 0 2px var(--sun), 0 2px 6px rgba(61, 35, 64, 0.2) !important; }
+.tip-n { background: var(--coral); color: #fff; border: 0; border-radius: 3px; font-family: var(--font-display); font-weight: 600; rotate: -2deg; }
+.tip.rock .tip-n { background: var(--plum); } .tip.hard .tip-n { background: var(--ink); }
+.sp { background: #FFF4DE; font-family: var(--font-display); font-weight: 600; }
+.toast { background: var(--ink); color: #fff; border: 0; font-family: var(--font-display); font-weight: 600; border-radius: 4px; }
+.ver { color: rgba(61, 35, 64, 0.45); font-family: var(--font-display); }
+/* banners: each word on a cut-out paper strip */
+.banner { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 8vw, 38px); color: var(--ink); text-shadow: none; background: none; padding: 0; line-height: 1.25; }
+.banner .cut { display: inline-block; padding: 0.02em 0.28em 0.06em; margin: 0.06em 0.04em; background: var(--grain), #FFF4DE; border-radius: 3px; box-shadow: 0 4px 8px rgba(61, 35, 64, 0.35); }
+.banner .cut.c0 { rotate: -3deg; } .banner .cut.c1 { rotate: 2deg; } .banner .cut.c2 { rotate: -1deg; } .banner .cut.c3 { rotate: 3deg; }
+.banner.b-pink .cut { background: var(--grain), var(--coral); color: #fff; }
+.banner.b-mint .cut { background: var(--grain), var(--teal); color: #fff; }
+.banner.b-sun .cut { background: var(--grain), var(--sun); }
+.banner small { display: block; font-size: 0.42em; font-family: var(--font-display); font-weight: 600; color: var(--ink); background: #FFF4DE; width: fit-content; margin: 4px auto 0; padding: 2px 10px; border-radius: 3px; box-shadow: 0 2px 5px rgba(61, 35, 64, 0.3); }
+@keyframes pop { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 18% { transform: scale(1.1) rotate(-2deg); opacity: 1; }
+  35% { transform: scale(1) rotate(-1deg); } 80% { opacity: 1; transform: rotate(-1deg); } 100% { opacity: 0; transform: translateY(-30px) rotate(-1deg); } }
+/* shake button and power-up tray: paper tabs with tape */
+.shake-btn { background: var(--grain), var(--leaf); border: 0; border-radius: 3px; color: var(--ink); font: 600 15px var(--font-display); box-shadow: var(--lift); rotate: -2deg; }
+.shake-btn b { background: var(--ink); color: #fff; }
+.shake-btn .sk-pips i { border: 1.5px solid var(--ink); background: #fff; }
+.shake-btn .sk-pips i.on { background: var(--plum); }
+.shake-btn[disabled] { background: var(--grain), #CBD8BE; opacity: 0.85; }
+.pu-tray { position: absolute; right: 6px; top: 8px; z-index: 3; display: flex; gap: 6px; }
+.pu { width: 56px; height: 46px; display: grid; place-items: center; align-content: center; border: 0; border-radius: 3px; font-family: var(--font-display); color: var(--ink);
+  box-shadow: var(--lift); cursor: pointer; padding: 0; touch-action: manipulation; line-height: 1.05; position: relative; }
+.pu b { font-weight: 700; font-size: 14px; } .pu small { font-size: 11px; font-weight: 600; }
+.pu::before { content: ""; position: absolute; top: -6px; left: 50%; width: 26px; height: 10px; transform: translateX(-50%) rotate(-4deg); background: rgba(255, 244, 222, 0.75); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15); }
+.pu:nth-child(1) { rotate: 2deg; } .pu:nth-child(2) { rotate: -2deg; } .pu:nth-child(3) { rotate: 1.5deg; }
+.pu-anvil { background: var(--grain), #C9CEDD; } .pu-bouncy { background: var(--grain), #F7A1B7; } .pu-blast { background: var(--grain), #F6A54A; }
 .pu:active { transform: translateY(2px); }
-.pu-loaded { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%) rotate(-1deg); z-index: 3; background: var(--sun); border: 1.5px solid var(--ink); border-radius: 2px;
-  font: 400 16px var(--font-display); color: var(--ink); padding: 3px 12px; box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); cursor: pointer; white-space: nowrap; }
+.pu-loaded { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); rotate: -1deg; z-index: 3; background: var(--grain), var(--sun); border: 0; border-radius: 3px;
+  font: 600 14px var(--font-display); color: var(--ink); padding: 4px 12px; box-shadow: var(--lift); cursor: pointer; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -451,7 +457,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); }
 
   <div class="stage-wrap" id="stageWrap">
     <div class="stage" id="stage">
-      <canvas id="board" aria-label="Game scene: a catapult on the bleachers and an open trophy case on a school field at night. Drag back anywhere and let go to fling the face into the case."></canvas>
+      <canvas id="board" aria-label="Game scene: a papercraft school field at sunset, with a popsicle-stick catapult on a stack of textbooks and an open paper display box. Drag back anywhere and let go to fling the face into the case."></canvas>
       <div class="banner-layer" id="bannerLayer" aria-live="polite"></div>
       <div class="pu-tray" id="puTray" hidden></div>
       <button class="pu-loaded" id="puLoaded" hidden></button>
@@ -472,7 +478,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); }
   <div class="title-inner">
     <div class="hero" id="hero" aria-hidden="true"></div>
     <h1 class="logo" id="logo" aria-label="SuiCalculate"></h1>
-    <p class="tagline">Fling faces from the catapult into the trophy case. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
+    <p class="tagline">Fling faces from the popsicle-stick catapult into the paper display box. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
     <div class="steps">
       <div class="card step"><b>1</b>Drag back, then let go</div>
       <div class="card step"><b>2</b>Smash matching faces to merge</div>
@@ -591,7 +597,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); }
         <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
         <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
         <p>Textbooks (12 kg) never merge. A textbook breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
-        <p><b style="color:var(--ink)">The campus:</b> faces are flung from a catapult on 2.55 m high bleachers into an open trophy case (walls 5.0 m high, 4.5 m on Hard). Gravity is Earth's, g = 10 m/s². Walls and the ground take away half the speed of a hit. A face that falls out of the case ends the game; a shot that misses the case just rolls away.</p>
+        <p><b style="color:var(--ink)">The campus:</b> faces are flung from a popsicle-stick catapult on a 2.55 m stack of textbooks into an open paper display box (walls 5.0 m high, 4.5 m on Hard). Gravity is Earth's, g = 10 m/s². Walls and the ground take away half the speed of a hit. A face that falls out of the case ends the game; a shot that misses the case just rolls away.</p>
         <p><b style="color:var(--ink)">Power-ups:</b> a ×3 combo earns one (hold up to 3, tap to load). <b>Anvil</b>: same size as the loaded face but 4× the mass, so 4× the momentum at the same speed; it never merges and disappears 4 s after it lands. <b>Bouncy</b>: walls and ground give back all its speed (e = 1, no kinetic energy lost) for 6 s, instead of half (e = 0.5). <b>Blast</b>: when it lands in the case, every face within 1.4 m gets an outward impulse J of up to 6 N·s (less farther away). Δv = J ÷ m, so a 1 kg face gets up to 6 m/s but a 16 kg face only 0.375 m/s.</p>
         <p><b style="color:var(--ink)">Challenges:</b> as your score grows, the catapult starts moving closer and farther (every 12 shots at first, down to every 4), and later wind gusts blow. Wind is a sideways force F of up to 5 N on faces in the open air, so a = F ÷ m: a 1 kg face drifts 4× more than a 4 kg one. The glass case blocks the wind, and the aim guide includes it.</p>
         <p><b style="color:var(--ink)">Case shake:</b> the case jolts, giving every face in it the same change in velocity, Δv of about 5 m/s up plus a sideways part toward the middle (up to 4 m/s, so faces are not thrown out). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
@@ -858,12 +864,14 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v1.0 (17 Nov 2026) SuiCalculate arcade + app. v1.1 (19 Nov 2026) secret ball, version label. v1.2 (19 Nov 2026) tank shake.
 // v2.0 (22 Nov 2026) Angry Birds launcher on a cliff outside an open box; a face falling out of the box ends the game.
 // v2.1 (22 Nov 2026) school campus at night, notebook UI, catapult, trophy case, power-ups, wind gusts, moving catapult.
-const GAME_VERSION = '2.1', GAME_DATE = '22 Nov 2026';
+// v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
+const GAME_VERSION = '2.2', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
 const TIER_COLORS = ['#FF5A5F', '#FF9F1C', '#FFD23F', '#A3E048', '#3DD68C', '#2EC4E6', '#4D8DFF', '#8A6CFF', '#D667FF', '#FF6FB5'];
-const INK = '#2E2445', PINK = '#FF6FB5', SUN = '#FFE45C', MINT = '#7EE08A', DANGER = '#FF5252', MUTED = '#6E668A';
+const INK = '#3D2340', PINK = '#F2675A', SUN = '#F2B33D', MINT = '#2A9D8F', DANGER = '#D62839', MUTED = '#7A5A6E';
+const PAPER_COLS = ['#F28C38', '#F2675A', '#F2B33D', '#2A9D8F', '#6D3B6B', '#FFF4DE', '#7FB069'];
 const $ = id => document.getElementById(id);
 const canvas = $('board'), ctx = canvas.getContext('2d');
 let reduceMotion = false;
@@ -920,6 +928,8 @@ const Sound = (() => {
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.03); g.gain.setValueAtTime(v, t + d * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
     o.connect(fl); o2.connect(fl); fl.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + d + 0.05); o2.stop(t + d + 0.05);
   }
+  // paper crinkle: a few tiny random bursts of filtered noise
+  function crinkleAt(t, v, n) { for (let i = 0; i < n; i++) noiseAt(t + Math.random() * 0.06 * n / 3, 0.012 + Math.random() * 0.02, v * (0.4 + Math.random() * 0.6), 2500 + Math.random() * 5000, null, sfx, 'bandpass'); }
   function glockAt(t, f, v, dest) { toneAt(t, f, 0.6, 'sine', v, null, dest); toneAt(t, f * 2.76, 0.18, 'sine', v * 0.35, null, dest); }
   function clapAt(t, v, dest) { for (let i = 0; i < 3; i++) noiseAt(t + i * 0.012, 0.06, v, 1300, null, dest, 'bandpass'); }
   function whistleAt(t, d, dest, v = 0.12) { const o = ac.createOscillator(), lfo = ac.createOscillator(), lg = ac.createGain(), g = ac.createGain();
@@ -934,19 +944,21 @@ const Sound = (() => {
     unlock,
     get mode() { return mode; },
     setMode(m) { mode = m; store.set('sound', m); if (m !== 'all') api.musicStop(); },
-    click() { if (ok()) { const t = now(); noiseAt(t, 0.03, 0.12, 3000, null, sfx, 'bandpass'); toneAt(t, 900, 0.04, 'triangle', 0.06, null, sfx); } },
+    click() { if (ok()) { const t = now(); noiseAt(t, 0.025, 0.14, 4200, null, sfx, 'bandpass'); noiseAt(t + 0.03, 0.02, 0.08, 6000, null, sfx, 'highpass'); } },   // paper "snip"
     // catapult: a wooden creak-thwump plus a whoosh
-    launch(power) { if (!ok()) return; const t = now(); toneAt(t, 140, 0.12, 'triangle', 0.3, 70, sfx); noiseAt(t, 0.05, 0.2, 700, null, sfx, 'lowpass');
-      noiseAt(t + 0.02, 0.28, 0.12 + power * 0.25, 800, 3500, sfx); },
+    // popsicle-stick catapult: a rubber-band "twang", a stick clack, and a paper whoosh
+    launch(power) { if (!ok()) return; const t = now(); toneAt(t, 180 + power * 120, 0.18, 'triangle', 0.18, 90, sfx); noiseAt(t, 0.03, 0.18, 2500, null, sfx, 'bandpass');
+      noiseAt(t + 0.02, 0.3, 0.1 + power * 0.2, 900, 3000, sfx); },
     bounce(speed, mass) {
       if (!ok()) return; const t = now(); if (t - lastBounce < 0.04) return; lastBounce = t;
       const f = 520 / Math.pow(mass, 0.22), v = Math.min(0.32, 0.06 + speed * 0.04);
-      toneAt(t, f * 1.8, 0.14, 'sine', v, f * 0.8, sfx); noiseAt(t, 0.02, v * 0.4, 2500, null, sfx);
+      toneAt(t, f * 1.2, 0.09, 'sine', v * 0.8, f * 0.6, sfx); crinkleAt(t, v * 0.6, 3);   // soft paper "tap"
     },
+    rustle() { if (ok()) crinkleAt(now(), 0.12, 8); },
     boing() { if (!ok()) return; const t = now(); toneAt(t, 220, 0.35, 'sine', 0.25, 660, sfx); toneAt(t + 0.1, 660, 0.2, 'sine', 0.1, 330, sfx); },
     merge(tier) {
       if (!ok()) return; const t = now(), n = PENTA[Math.min(tier, TIERS) - 1];
-      glockAt(t, midi(n), 0.22, sfx); glockAt(t + 0.07, midi(n + 7), 0.12, sfx);
+      crinkleAt(t, 0.25, 5); glockAt(t + 0.02, midi(n), 0.2, sfx); glockAt(t + 0.09, midi(n + 7), 0.1, sfx);
       if (tier >= 6) { brassAt(t, midi(n - 24), 0.35, 0.12, sfx); toneAt(t, 90, 0.3, 'sine', 0.3, 45, sfx); }
     },
     combo(k) { if (!ok()) return; const t = now(); [0, 4, 7, 12, 16, 19].slice(0, Math.min(k, 5) + 1).forEach((iv, i) => brassAt(t + i * 0.07, midi(60 + iv), 0.12, 0.07, sfx)); clapAt(t + 0.3, 0.2, sfx); },
@@ -954,12 +966,12 @@ const Sound = (() => {
     newTier() { if (!ok()) return; const t = now(); [84, 88, 91, 96].forEach((n, i) => glockAt(t + i * 0.06, midi(n), 0.12, sfx)); },
     tick() { if (ok()) whistleAt(now(), 0.12, sfx, 0.07); },
     whistle() { if (ok()) { const t = now(); whistleAt(t, 0.18, sfx); whistleAt(t + 0.24, 0.45, sfx); } },
-    thunk() { if (!ok()) return; const t = now(); toneAt(t, 160, 0.12, 'sine', 0.24, 80, sfx); noiseAt(t, 0.05, 0.08, 500, null, sfx, 'lowpass'); },
+    thunk() { if (!ok()) return; const t = now(); toneAt(t, 150, 0.12, 'sine', 0.22, 70, sfx); crinkleAt(t, 0.15, 3); },
     // textbook incoming: referee whistle
     rock() { if (ok()) whistleAt(now(), 0.6, sfx); },
-    crack() { if (!ok()) return; const t = now(); noiseAt(t, 0.12, 0.25, 4000, 1500, sfx, 'highpass'); toneAt(t, 180, 0.08, 'square', 0.04, 90, sfx, 900); },
+    crack() { if (!ok()) return; const t = now(); noiseAt(t, 0.16, 0.3, 3000, 7000, sfx, 'highpass'); },   // paper rip
     // book slam + crowd "ooh"
-    smash() { if (!ok()) return; const t = now(); toneAt(t, 120, 0.25, 'sine', 0.45, 40, sfx); noiseAt(t, 0.3, 0.45, 900, 120, sfx, 'lowpass'); noiseAt(t, 0.2, 0.2, 5000, 2000, sfx, 'highpass'); cheerAt(t + 0.1, 0.9, 0.06, sfx); },
+    smash() { if (!ok()) return; const t = now(); toneAt(t, 110, 0.25, 'sine', 0.42, 40, sfx); noiseAt(t, 0.35, 0.35, 2500, 6000, sfx, 'highpass'); crinkleAt(t + 0.05, 0.3, 10); cheerAt(t + 0.1, 0.9, 0.06, sfx); },
     // sad trombone
     gameOver() { if (!ok()) return; const t = now(); [[67, 0.35], [66, 0.35], [65, 0.35], [64, 0.9]].forEach(([n, d], i) => {
       const o = ac.createOscillator(), fl = ac.createBiquadFilter(), g2 = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain(), st = t + i * 0.38;
@@ -1158,8 +1170,12 @@ function drawSparkle(c, x, y, r, lw) {
 }
 
 // A cartoon face: round body, thick outline, shine, eyes, smile and blush. Each tier has its own look.
-function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true, isSecret = false) {
+// Faces are paper stickers: a cream die-cut border with a soft paper shadow, the face inside, and a glossy sheen on top.
+function drawFace(c, x, y, R, tier, m, alpha = 1, badge = true, isSecret = false) {
   c.save(); c.globalAlpha = alpha;
+  c.save(); c.shadowColor = 'rgba(61,35,64,0.35)'; c.shadowBlur = Math.max(2, R * 0.25); c.shadowOffsetX = R * 0.05; c.shadowOffsetY = R * 0.12;
+  c.fillStyle = '#FFF8EC'; c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.fill(); c.restore();
+  const r = R * 0.86;   // the face inside the sticker border
   const col = isSecret ? GOLD : tier >= 1 ? TIER_COLORS[tier - 1] : '#B9B2CC';
   const img = isSecret ? secretImg : tier >= 1 ? faceImgs[tier - 1] : null;
   const lw = Math.max(2, r * 0.085);
@@ -1199,9 +1215,13 @@ function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true, isSecret = false
       else { c.beginPath(); c.arc(x, y + r * 0.1, r * 0.16, Math.PI * 0.15, Math.PI * 0.85); c.stroke(); }
     }
   }
-  if (isSecret) drawSparkle(c, x, y, r, lw);
-  if (badge && r > 13) {
-    const tag = `${+m.toFixed(2)} kg`, fs = Math.max(8, Math.min(13, r * 0.24));
+  // glossy sticker sheen
+  if (R > 6) { c.save(); c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.clip();
+    const sg = c.createLinearGradient(x - R, y - R, x + R * 0.2, y + R * 0.2); sg.addColorStop(0, 'rgba(255,255,255,0.55)'); sg.addColorStop(0.45, 'rgba(255,255,255,0.12)'); sg.addColorStop(0.46, 'rgba(255,255,255,0)');
+    c.fillStyle = sg; c.fillRect(x - R, y - R, 2 * R, 2 * R); c.restore(); }
+  if (isSecret) drawSparkle(c, x, y, R, lw);
+  if (badge && R > 13) {
+    const tag = `${+m.toFixed(2)} kg`, fs = Math.max(8, Math.min(13, R * 0.24));
     c.font = `800 ${fs}px Nunito, sans-serif`;
     const tw = c.measureText(tag).width + fs * 0.8, by = y + r * 0.56;
     c.fillStyle = 'rgba(46, 36, 69, 0.82)'; c.beginPath(); c.roundRect(x - tw / 2, by, tw, fs * 1.35, fs * 0.7); c.fill();
@@ -1221,7 +1241,7 @@ function draw() {
   }
   drawScene(c, wpx, hpx);
   if (state === 'test') {
-    c.font = `600 ${Math.max(12, ppm * 0.22)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = INK; c.globalAlpha = 0.7;
+    c.font = `600 ${Math.max(12, ppm * 0.22)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = INK; c.globalAlpha = 0.7;
     c.fillText('TEST MODE · no gravity', sx(BOX_MID), sy(wallH) - 8); c.globalAlpha = 1;
     c.save(); c.setLineDash([6, 6]); c.strokeStyle = 'rgba(46,36,69,0.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(sx(BOX.l), sy(2.5)); c.lineTo(sx(BOX.r), sy(2.5)); c.stroke(); c.restore();
   }
@@ -1270,7 +1290,9 @@ function draw() {
   for (const p of particles) {
     const a = 1 - p.t / p.life; c.globalAlpha = Math.max(0, a); c.fillStyle = p.col;
     if (p.star) { star(c, p.x, p.y, p.size * (0.6 + a * 0.6), p.rot); }
-    else { c.beginPath(); c.arc(p.x, p.y, p.size * (0.5 + a * 0.5), 0, Math.PI * 2); c.fill(); c.lineWidth = 1.5; c.strokeStyle = INK; c.stroke(); }
+    else { // paper confetti: a little rectangle that tumbles (its width flips as it turns)
+      c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.scale(1, Math.abs(Math.cos(p.rot * 1.7)) * 0.8 + 0.2);
+      c.fillRect(-p.size, -p.size * 0.55, p.size * 2, p.size * 1.1); c.restore(); }
   }
   c.globalAlpha = 1;
   // score popups
@@ -1278,67 +1300,89 @@ function draw() {
     const u = p.t / p.life, rise = (1 - Math.pow(1 - Math.min(1, u * 1.4), 3)) * 46, sc = u < 0.15 ? 0.6 + u / 0.15 * 0.5 : 1.1 - Math.min(0.1, (u - 0.15));
     c.save(); c.globalAlpha = u > 0.7 ? (1 - u) / 0.3 : 1; c.translate(sx(p.x), sy(p.y) - rise); c.scale(sc, sc);
     c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
-    c.font = `700 ${p.size}px "Patrick Hand", sans-serif`; c.lineWidth = 5; c.strokeStyle = INK; c.strokeText(p.text, 0, 0); c.fillStyle = p.color; c.fillText(p.text, 0, 0);
-    if (p.sub) { c.font = `600 ${Math.round(p.size * 0.5)}px "Patrick Hand", sans-serif`; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(p.sub, 0, p.size * 0.75); c.fillStyle = INK; c.fillText(p.sub, 0, p.size * 0.75); }
+    c.font = `700 ${p.size}px Fredoka, sans-serif`; c.lineWidth = 5; c.strokeStyle = INK; c.strokeText(p.text, 0, 0); c.fillStyle = p.color; c.fillText(p.text, 0, 0);
+    if (p.sub) { c.font = `600 ${Math.round(p.size * 0.5)}px Fredoka, sans-serif`; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(p.sub, 0, p.size * 0.75); c.fillStyle = INK; c.fillText(p.sub, 0, p.size * 0.75); }
     c.restore();
   }
 }
-// ---------- school campus at night (game canvas) ----------
-// The field itself is painted by the campus background so it runs the full width of the screen.
-const WOOD = '#B9733A', WOOD_DK = '#7A4A22', METAL = '#8E97B5', METAL_DK = '#4E5677', CASE_GLASS = 'rgba(200,235,255,0.14)';
-function flick(period, phase = 0) { return reduceMotion ? 1 : 0.55 + 0.45 * (0.5 + 0.5 * Math.sin((performance.now() / 1000 + phase) * Math.PI * 2 / period)); }
+// ---------- papercraft campus (game canvas) ----------
+// Everything is construction paper: flat colours, slightly rough edges, soft paper shadows.
+// The grass itself is painted by the background so it runs the full width of the screen.
+const STICK = '#E9C48A', STICK_DK = '#B98A4E', BOX_PAPER = '#2A9D8F';
+function paperShadow(c, on, blur = 6, oy = 3) { if (on) { c.shadowColor = 'rgba(61,35,64,0.32)'; c.shadowBlur = blur; c.shadowOffsetX = 1; c.shadowOffsetY = oy; } else { c.shadowColor = 'transparent'; c.shadowBlur = 0; c.shadowOffsetX = 0; c.shadowOffsetY = 0; } }
+// a rectangle with slightly uneven (hand-cut) edges
+function cutRect(c, x, y, w, h, seed = 1) {
+  const j = Math.min(2.2, Math.max(0.8, Math.min(w, h) * 0.03)), n = (k) => (Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453) % 1;
+  c.beginPath(); c.moveTo(x + n(1) * j, y + n(2) * j); c.lineTo(x + w * 0.5, y + n(3) * j); c.lineTo(x + w - n(4) * j, y + n(5) * j);
+  c.lineTo(x + w + n(6) * j, y + h * 0.5); c.lineTo(x + w - n(7) * j, y + h - n(8) * j); c.lineTo(x + w * 0.5, y + h + n(9) * j);
+  c.lineTo(x + n(10) * j, y + h - n(11) * j); c.lineTo(x - n(12) * j, y + h * 0.5); c.closePath();
+}
+// a craft stick (popsicle stick) between two points
+function stick(c, x1, y1, x2, y2, w) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1);
+  c.save(); c.translate(x1, y1); c.rotate(a);
+  paperShadow(c, true, 4, 2); c.fillStyle = STICK; c.beginPath(); c.roundRect(-w / 2, -w / 2, L + w, w, w / 2); c.fill(); paperShadow(c, false);
+  c.strokeStyle = 'rgba(185,138,78,0.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(w * 0.2, -w * 0.12); c.lineTo(L - w * 0.1, -w * 0.12); c.stroke();
+  c.restore();
+}
 function drawScene(c, wpx, hpx) {
-  const gy = sy(0), bx2 = sx(CLIFF.x2), by = sy(CLIFF.y2), left = -20;
-  // ---- bleachers: stepped metal stands (solid block the catapult stands on) ----
-  c.fillStyle = METAL_DK; c.fillRect(left, by, bx2 - left, gy - by);
-  const steps = 5, sh = (gy - by) / steps;
-  for (let i = 0; i < steps; i++) {
-    const y = by + i * sh, x2 = bx2 - 0; c.fillStyle = i % 2 ? '#5A6385' : '#646E92'; c.fillRect(left, y, x2 - left, sh);
-    c.fillStyle = METAL; c.fillRect(left, y, x2 - left, Math.max(3, sh * 0.18));   // seat plank
-    c.fillStyle = '#2E3552'; for (let x = left + 14; x < x2 - 6; x += Math.max(16, ppm * 0.4)) c.fillRect(x, y + sh * 0.18, 3, sh * 0.82);  // risers
+  const gy = sy(0), bx2 = sx(CLIFF.x2), by = sy(CLIFF.y2), left = -24;
+  // ---- stack of textbooks (the solid platform the catapult stands on) ----
+  const books = 6, bh = (gy - by) / books, cols = ['#6D3B6B', '#F2675A', '#2A9D8F', '#F2B33D', '#F28C38', '#3D5A80'];
+  for (let i = 0; i < books; i++) {
+    const y = gy - (i + 1) * bh, inset = [0, 6, 2, 9, 4, 0][i], over = [4, -3, 6, -2, 3, 0][i];
+    const x2 = bx2 - inset + over;
+    paperShadow(c, true, 5, 3); c.fillStyle = cols[i]; cutRect(c, left, y, x2 - left, bh, i + 3); c.fill(); paperShadow(c, false);
+    // page edge strip at the open side, and a spine label
+    c.fillStyle = '#FFF4DE'; c.fillRect(x2 - Math.max(5, ppm * 0.09), y + bh * 0.16, Math.max(4, ppm * 0.07), bh * 0.68);
+    c.strokeStyle = 'rgba(61,35,64,0.15)'; c.lineWidth = 1; for (let k = 1; k < 4; k++) { const yy = y + bh * (0.16 + 0.17 * k); c.beginPath(); c.moveTo(x2 - Math.max(5, ppm * 0.09), yy); c.lineTo(x2 - 1, yy); c.stroke(); }
+    if (bh > 18) { const title = ['PHYSICS', 'CALCULUS', 'CHEMISTRY', 'BIOLOGY', 'PHYSICS 2', 'ENGLISH'][i], lx = left + 30 + (i % 3) * 8;
+      c.font = `600 ${Math.min(13, bh * 0.36)}px Fredoka, sans-serif`; const tw = c.measureText(title).width;
+      c.fillStyle = 'rgba(255,244,222,0.9)'; c.fillRect(lx - 5, y + bh * 0.26, tw + 10, bh * 0.48);
+      c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(title, lx, y + bh * 0.5 + 1); }
   }
-  c.strokeStyle = '#1E2440'; c.lineWidth = 2; c.strokeRect(left, by, bx2 - left, gy - by);
-  // railing on top
-  c.strokeStyle = '#C9D0E8'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(left, by - ppm * 0.35); c.lineTo(bx2 - 4, by - ppm * 0.35);
-  for (let x = left + 10; x < bx2; x += Math.max(18, ppm * 0.45)) { c.moveTo(x, by - ppm * 0.35); c.lineTo(x, by); } c.moveTo(bx2 - 4, by - ppm * 0.35); c.lineTo(bx2 - 4, by); c.stroke();
-  // ---- display case: dark back, wooden base cabinet, plaque ----
+  // ---- display box: the back is teal construction paper (inside of the box) ----
   const l = sx(BOX.l), r = sx(BOX.r), top = sy(wallH);
-  const bg = c.createLinearGradient(0, top, 0, gy); bg.addColorStop(0, 'rgba(20,24,58,0.35)'); bg.addColorStop(1, 'rgba(20,24,58,0.6)');
-  c.fillStyle = bg; c.fillRect(l, top, r - l, gy - top);
-  // shelf light glow from the top
-  const lg = c.createRadialGradient((l + r) / 2, top, 4, (l + r) / 2, top, (r - l) * 0.8); lg.addColorStop(0, 'rgba(255,240,190,0.25)'); lg.addColorStop(1, 'rgba(255,240,190,0)');
-  c.fillStyle = lg; c.fillRect(l, top, r - l, gy - top);
+  c.fillStyle = BOX_PAPER; c.fillRect(l, top, r - l, gy - top);
+  c.fillStyle = 'rgba(255,244,222,0.12)'; for (let k = 0; k < 4; k++) { c.fillRect(l, top + (gy - top) * (0.2 + k * 0.2), r - l, 2); }   // paper fold lines
+  // inner shadow along the top and sides (depth)
+  let ig = c.createLinearGradient(0, top, 0, top + 30); ig.addColorStop(0, 'rgba(30,20,40,0.35)'); ig.addColorStop(1, 'rgba(30,20,40,0)'); c.fillStyle = ig; c.fillRect(l, top, r - l, 30);
   // rim warning
   const warn = rimT > 0 && state === 'playing', pulse = warn ? 0.5 + 0.5 * Math.sin(performance.now() / 80) : 0;
   if (state !== 'test') {
-    c.save(); c.setLineDash([8, 7]); c.lineWidth = 2; c.strokeStyle = warn ? DANGER : 'rgba(255,240,190,0.5)'; c.globalAlpha = warn ? 0.6 + 0.4 * pulse : 1;
+    c.save(); c.setLineDash([8, 7]); c.lineWidth = 2.5; c.strokeStyle = warn ? DANGER : 'rgba(255,244,222,0.6)'; c.globalAlpha = warn ? 0.6 + 0.4 * pulse : 1;
     c.beginPath(); c.moveTo(l, top); c.lineTo(r, top); c.stroke(); c.restore();
-    if (warn) { c.font = `700 ${Math.max(14, ppm * 0.28)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = '#FF8A80'; c.fillText('Careful!', (l + r) / 2, top - 6); }
+    if (warn) { c.font = `700 ${Math.max(14, ppm * 0.26)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom';
+      const tw = c.measureText('Careful!').width + 16; c.fillStyle = '#FFF4DE'; paperShadow(c, true, 4, 2); c.fillRect((l + r) / 2 - tw / 2, top - 30, tw, 24); paperShadow(c, false);
+      c.fillStyle = DANGER; c.fillText('Careful!', (l + r) / 2, top - 9); }
   }
 }
 function drawBoxFront(c) {
   const gy = sy(0), top = sy(wallH), t = BOX.t * ppm, l = sx(BOX.l), r = sx(BOX.r);
-  // glass front: tint + two diagonal reflections
-  c.fillStyle = CASE_GLASS; c.fillRect(l, top, r - l, gy - top);
-  c.save(); c.globalAlpha = 0.22; c.fillStyle = '#fff';
-  c.beginPath(); c.moveTo(l + (r - l) * 0.06, gy); c.lineTo(l + (r - l) * 0.11, gy); c.lineTo(l + (r - l) * 0.25, top); c.lineTo(l + (r - l) * 0.2, top); c.fill();
-  c.beginPath(); c.moveTo(l + (r - l) * 0.15, gy); c.lineTo(l + (r - l) * 0.17, gy); c.lineTo(l + (r - l) * 0.31, top); c.lineTo(l + (r - l) * 0.29, top); c.fill();
+  // clear plastic front: faint tint and two shiny strips
+  c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(l, top, r - l, gy - top);
+  c.save(); c.globalAlpha = 0.28; c.fillStyle = '#fff';
+  c.beginPath(); c.moveTo(l + (r - l) * 0.07, gy); c.lineTo(l + (r - l) * 0.12, gy); c.lineTo(l + (r - l) * 0.26, top); c.lineTo(l + (r - l) * 0.21, top); c.fill();
+  c.beginPath(); c.moveTo(l + (r - l) * 0.16, gy); c.lineTo(l + (r - l) * 0.18, gy); c.lineTo(l + (r - l) * 0.32, top); c.lineTo(l + (r - l) * 0.3, top); c.fill();
   c.restore();
-  // wooden frame posts (the walls) with brass trim
-  for (const x of [l - t, r]) {
-    const pg = c.createLinearGradient(x, 0, x + t, 0); pg.addColorStop(0, WOOD_DK); pg.addColorStop(0.5, WOOD); pg.addColorStop(1, WOOD_DK);
-    c.fillStyle = pg; c.fillRect(x, top, t, gy - top); c.strokeStyle = '#3A220E'; c.lineWidth = 1.5; c.strokeRect(x, top, t, gy - top);
-    c.fillStyle = '#E8C468'; c.fillRect(x - 2, top - 5, t + 4, 6);   // brass cap
+  // walls: mustard paper strips with a folded edge, held with sticks
+  for (const [x, side] of [[l - t, -1], [r, 1]]) {
+    paperShadow(c, true, 6, 3); c.fillStyle = '#F2B33D'; cutRect(c, x, top - 4, t, gy - top + 4, side + 5); c.fill(); paperShadow(c, false);
+    c.fillStyle = 'rgba(61,35,64,0.18)'; c.fillRect(side < 0 ? x + t * 0.65 : x, top, t * 0.35, gy - top);   // fold shade
   }
-  // base cabinet + plaque
-  const bh = Math.max(10, ppm * 0.2), bxl = l - t - 5, bw = r - l + 2 * t + 10;
-  c.fillStyle = WOOD; c.fillRect(bxl, gy, bw, bh); c.strokeStyle = '#3A220E'; c.lineWidth = 1.5; c.strokeRect(bxl, gy, bw, bh);
-  const pw = Math.min(bw * 0.45, 140), ph = Math.max(8, bh * 0.7);
-  c.fillStyle = '#E8C468'; c.fillRect(bxl + bw / 2 - pw / 2, gy + (bh - ph) / 2, pw, ph);
-  if (ph > 9) { c.fillStyle = '#5A3A10'; c.font = `700 ${Math.max(8, ph * 0.75)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PHYSICS DEPT.', bxl + bw / 2, gy + bh / 2 + 1); }
+  // base: a coral paper strip with a cut-out label
+  const bh = Math.max(10, ppm * 0.2), bxl = l - t - 6, bw = r - l + 2 * t + 12;
+  paperShadow(c, true, 6, 3); c.fillStyle = '#F2675A'; cutRect(c, bxl, gy - 2, bw, bh, 9); c.fill(); paperShadow(c, false);
+  const pw = Math.min(bw * 0.5, 150), ph = Math.max(9, bh * 0.75);
+  c.fillStyle = '#FFF4DE'; cutRect(c, bxl + bw / 2 - pw / 2, gy - 2 + (bh - ph) / 2, pw, ph, 11); c.fill();
+  if (ph > 9) { c.fillStyle = INK; c.font = `600 ${Math.max(8, ph * 0.72)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PHYSICS DEPT.', bxl + bw / 2, gy - 2 + bh / 2 + 1); }
+  // two craft sticks taped across the top corners
+  stick(c, l - t - 4, top + 10, l + t * 1.5, top - 6, Math.max(5, ppm * 0.08));
+  stick(c, r - t * 1.5, top - 6, r + t + 4, top + 10, Math.max(5, ppm * 0.08));
 }
 // Heavy textbook (12 kg): a thick book with a coloured cover, page edges, a title, cracks after strong hits, and a mass tag.
 function drawRock(c, x, y, r, b) {
+  c.save(); paperShadow(c, true, Math.max(3, r * 0.25), r * 0.14); c.fillStyle = 'rgba(0,0,0,0.01)'; c.beginPath(); c.arc(x, y + r * 0.1, r * 0.7, 0, Math.PI * 2); c.fill(); c.restore();
   const seed = b.seed || 1, ang = ((seed % 1) - 0.5) * 0.9, cols = ['#E53935', '#1E88E5', '#43A047', '#8E24AA'], col = cols[Math.floor(seed) % cols.length];
   c.save(); c.translate(x, y); c.rotate(ang);
   const w2 = r * 1.5, h2 = r * 1.05;
@@ -1349,7 +1393,7 @@ function drawRock(c, x, y, r, b) {
   c.beginPath(); c.roundRect(-w2 / 2, h2 / 2 - r * 0.2, w2, r * 0.2, r * 0.06); c.fill(); c.stroke();       // bottom cover
   c.beginPath(); c.roundRect(-w2 / 2 - r * 0.05, -h2 / 2, r * 0.25, h2, r * 0.08); c.fill(); c.stroke();     // spine
   c.strokeRect(-w2 / 2, -h2 / 2, w2, h2);
-  if (r > 10) { c.fillStyle = '#fff'; c.font = `700 ${Math.max(7, r * 0.22)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PHYSICS', r * 0.12, 0); }
+  if (r > 10) { c.fillStyle = '#fff'; c.font = `700 ${Math.max(7, r * 0.22)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PHYSICS', r * 0.12, 0); }
   c.strokeStyle = INK; c.lineWidth = Math.max(1.5, r * 0.06); c.lineCap = 'round';
   for (let i = 0; i < (b.cracks || 0); i++) { const k = (i - 1) * 0.28; c.beginPath(); c.moveTo(w2 / 2, k * r); c.lineTo(w2 / 4, k * r + r * 0.12); c.lineTo(0, k * r - r * 0.1); c.stroke(); }
   c.restore();
@@ -1363,17 +1407,18 @@ function drawRock(c, x, y, r, b) {
 // Power-up faces: anvil (steel, ×4), blast (fuse + sparks), bouncy (normal face with a pink spring ring).
 function drawPower(c, x, y, r, kind, tier, m, alpha = 1) {
   c.save(); c.globalAlpha = alpha;
+  if (kind !== 'bouncy') { c.save(); paperShadow(c, true, Math.max(2, r * 0.25), r * 0.12); c.fillStyle = '#FFF8EC'; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.restore(); }
   if (kind === 'anvil') {
     const g = c.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r); g.addColorStop(0, '#E3E7F2'); g.addColorStop(1, '#5D6582');
     c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.lineWidth = Math.max(2, r * 0.09); c.strokeStyle = INK; c.stroke();
     c.fillStyle = '#3A4060'; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + 0.5; c.beginPath(); c.arc(x + Math.cos(a) * r * 0.72, y + Math.sin(a) * r * 0.72, Math.max(1.2, r * 0.07), 0, Math.PI * 2); c.fill(); }
-    c.fillStyle = INK; c.font = `700 ${Math.max(9, r * 0.75)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('×4', x, y + r * 0.05);
+    c.fillStyle = INK; c.font = `700 ${Math.max(9, r * 0.75)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('×4', x, y + r * 0.05);
   } else if (kind === 'blast') {
     const g = c.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r); g.addColorStop(0, '#FFB38A'); g.addColorStop(1, '#D84315');
     c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.lineWidth = Math.max(2, r * 0.09); c.strokeStyle = INK; c.stroke();
     c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(1.5, r * 0.1); c.beginPath(); c.moveTo(x + r * 0.4, y - r * 0.8); c.quadraticCurveTo(x + r * 0.7, y - r * 1.3, x + r * 1.0, y - r * 1.15); c.stroke();
     const s = 0.6 + 0.4 * Math.sin(performance.now() / 60); c.fillStyle = '#FFE45C'; star(c, x + r * 1.0, y - r * 1.15, Math.max(3, r * 0.3) * s, performance.now() / 200);
-    c.fillStyle = '#fff'; c.font = `700 ${Math.max(9, r * 0.7)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('J!', x, y + r * 0.05);
+    c.fillStyle = '#fff'; c.font = `700 ${Math.max(9, r * 0.7)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('J!', x, y + r * 0.05);
   } else {
     drawFace(c, x, y, r, tier, m, alpha, true);
     c.strokeStyle = '#FF6FB5'; c.lineWidth = Math.max(2, r * 0.12); c.setLineDash([Math.max(3, r * 0.25), Math.max(2, r * 0.15)]);
@@ -1387,18 +1432,23 @@ function drawPower(c, x, y, r, kind, tier, m, alpha = 1) {
   }
   c.restore();
 }
-// Wind sign: drawn near the top of the scene when there is wind.
+// Wind sign: a paper label with an arrow, above the box, when there is wind.
 function drawWind(c) {
   if (!world || !world.wind || Math.abs(world.wind) < 0.05 || state === 'test') return;
-  const F = world.wind, cx = sx(BOX_MID), cy = Math.max(60, sy(wallH) - 34), len = Math.min(70, 18 + Math.abs(F) * 12), dir = Math.sign(F);
-  c.save(); c.lineCap = 'round'; c.strokeStyle = '#BFF6FF'; c.fillStyle = '#BFF6FF'; c.lineWidth = 3; c.globalAlpha = 0.9;
-  for (const dy of [-6, 6]) { c.beginPath(); c.moveTo(cx - dir * len / 2, cy + dy); c.lineTo(cx + dir * len / 2, cy + dy); c.stroke(); }
-  c.beginPath(); c.moveTo(cx + dir * (len / 2 + 9), cy); c.lineTo(cx + dir * len / 2 - dir * 2, cy - 11); c.lineTo(cx + dir * len / 2 - dir * 2, cy + 11); c.closePath(); c.fill();
-  c.font = `700 15px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom';
-  c.fillText(`wind ${Math.abs(F).toFixed(1)} N`, cx, cy - 12);
+  const F = world.wind, cx = sx(BOX_MID), cy = sy(wallH) + 50,   // just inside the top of the box, clear of the buttons
+   len = Math.min(70, 18 + Math.abs(F) * 12), dir = Math.sign(F);
+  c.save(); c.font = '600 14px Fredoka, sans-serif'; const txt = `wind ${Math.abs(F).toFixed(1)} N`, tw = Math.max(c.measureText(txt).width, len + 18) + 16;
+  paperShadow(c, true, 5, 3); c.fillStyle = '#FFF4DE'; cutRect(c, cx - tw / 2, cy - 30, tw, 44, 13); c.fill(); paperShadow(c, false);
+  c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, cx, cy - 18);
+  c.strokeStyle = '#2A9D8F'; c.fillStyle = '#2A9D8F'; c.lineWidth = 3.5; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(cx - dir * len / 2, cy + 3); c.lineTo(cx + dir * len / 2, cy + 3); c.stroke();
+  c.beginPath(); c.moveTo(cx + dir * (len / 2 + 8), cy + 3); c.lineTo(cx + dir * len / 2 - dir * 2, cy - 5); c.lineTo(cx + dir * len / 2 - dir * 2, cy + 11); c.closePath(); c.fill();
   c.restore();
 }
 function star(c, x, y, r, rot) {
+  c.save(); c.shadowColor = 'rgba(61,35,64,0.3)'; c.shadowBlur = 3; c.shadowOffsetY = 2; star0(c, x, y, r, rot); c.restore();
+}
+function star0(c, x, y, r, rot) {
   c.save(); c.translate(x, y); c.rotate(rot); c.beginPath();
   for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * 0.42 : r; const a = i * Math.PI / 4; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
   c.closePath(); c.fill(); c.restore();
@@ -1453,48 +1503,45 @@ function drawAimGuide(c, v) {
   }
   c.restore();
 }
-// The physics-lab catapult on the bleachers. The arm pulls back as you charge, and swings forward when it fires.
-// The face sits in the bucket at LAUNCH (that is exactly where it starts in the physics).
+// The popsicle-stick catapult on the stack of textbooks. The arm pulls back as you charge and swings forward when it fires.
+// The face sits in the bottle-cap bucket at LAUNCH (that is exactly where it starts in the physics).
 let armSwing = 0;
 function drawSlingshot(c) {
   const fx = sx(LAUNCH.x), fy = sy(LAUNCH.y), r = Phys.radiusOf(current) * ppm, u = ppm;
-  const v = launchVel(), power = v.sp / VMAX, deck = sy(CLIFF.y2);
-  const px = fx + 0.42 * u, py = deck - 0.24 * u;                 // pivot of the arm
-  const restAng = Math.atan2(-(fy - py), fx - px);                 // arm angle at rest (pointing up and back to the bucket)
+  const v = launchVel(), power = v.sp / VMAX, deck = sy(CLIFF.y2), sw = Math.max(6, 0.09 * u);
+  const px = fx + 0.42 * u, py = deck - 0.24 * u;                  // pivot of the arm
+  const restAng = Math.atan2(-(fy - py), fx - px);
   const ang = restAng + (drag ? power * 0.45 : 0) - armSwing * 1.6;
   const armLen = Math.hypot(fx - px, fy - py);
-  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
-  // base frame with wheels
-  c.fillStyle = WOOD; c.strokeStyle = '#3A220E'; c.lineWidth = 1.5;
-  c.beginPath(); c.roundRect(fx - 0.05 * u, deck - 0.12 * u, 0.68 * u, 0.08 * u, 3); c.fill(); c.stroke();
-  for (const wx of [fx + 0.03 * u, fx + 0.55 * u]) { c.fillStyle = '#4A2E14'; c.beginPath(); c.arc(wx, deck - 0.05 * u, 0.06 * u, 0, Math.PI * 2); c.fill(); c.fillStyle = '#E8C468'; c.beginPath(); c.arc(wx, deck - 0.05 * u, 0.02 * u, 0, Math.PI * 2); c.fill(); }
-  // A-frame uprights to the pivot
-  c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(5, 0.07 * u); c.beginPath(); c.moveTo(px - 0.16 * u, deck - 0.1 * u); c.lineTo(px, py); c.lineTo(px + 0.16 * u, deck - 0.1 * u); c.stroke();
-  c.strokeStyle = WOOD; c.lineWidth = Math.max(3, 0.045 * u); c.beginPath(); c.moveTo(px - 0.16 * u, deck - 0.1 * u); c.lineTo(px, py); c.lineTo(px + 0.16 * u, deck - 0.1 * u); c.stroke();
-  // arm: bucket end and a short end with a counterweight
-  const ex = px + Math.cos(ang) * armLen, ey = py - Math.sin(ang) * armLen, cx2 = px - Math.cos(ang) * 0.24 * u, cy2 = py + Math.sin(ang) * 0.24 * u;
-  c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(6, 0.08 * u); c.beginPath(); c.moveTo(cx2, cy2); c.lineTo(ex, ey); c.stroke();
-  c.strokeStyle = WOOD; c.lineWidth = Math.max(4, 0.055 * u); c.beginPath(); c.moveTo(cx2, cy2); c.lineTo(ex, ey); c.stroke();
-  c.fillStyle = '#5D6582'; c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.roundRect(cx2 - 0.08 * u, cy2 - 0.06 * u, 0.16 * u, 0.14 * u, 3); c.fill(); c.stroke();
-  c.fillStyle = '#E8C468'; c.beginPath(); c.arc(px, py, Math.max(3, 0.04 * u), 0, Math.PI * 2); c.fill();
-  // bucket
-  c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(3, 0.05 * u); c.beginPath(); c.arc(ex, ey, r + 3, -ang + Math.PI * 0.35, -ang + Math.PI * 1.65, true); c.stroke();
+  c.save(); c.lineCap = 'round';
+  // base: two sticks lying flat, and an A-frame of sticks up to the pivot
+  stick(c, fx - 0.08 * u, deck - sw * 0.5, fx + 0.66 * u, deck - sw * 0.5, sw);
+  stick(c, px - 0.2 * u, deck - sw, px, py, sw);
+  stick(c, px + 0.2 * u, deck - sw, px, py, sw);
+  // rubber band wrapped at the pivot
+  c.strokeStyle = '#F2675A'; c.lineWidth = Math.max(2, 0.03 * u); c.beginPath(); c.ellipse(px, py, sw * 0.9, sw * 0.6, 0.4, 0, Math.PI * 2); c.stroke();
+  // arm (one long stick) with the bucket at the end
+  const ex = px + Math.cos(ang) * armLen, ey = py - Math.sin(ang) * armLen;
+  stick(c, px - Math.cos(ang) * 0.12 * u, py + Math.sin(ang) * 0.12 * u, ex, ey, sw);
+  // bottle-cap bucket (red cap with ridges) behind the face
+  paperShadow(c, true, 4, 2); c.fillStyle = '#D62839'; c.beginPath(); c.arc(ex, ey, r + 4, 0, Math.PI * 2); c.fill(); paperShadow(c, false);
+  c.strokeStyle = '#A51D2D'; c.lineWidth = 1.5; for (let k = 0; k < 18; k++) { const a = k * Math.PI / 9; c.beginPath(); c.moveTo(ex + Math.cos(a) * (r + 1), ey + Math.sin(a) * (r + 1)); c.lineTo(ex + Math.cos(a) * (r + 4), ey + Math.sin(a) * (r + 4)); c.stroke(); }
   const ready = cooldown <= 0 && state !== 'title';
   const mass = (curPower === 'anvil' ? 4 : 1) * massOf(current);
   if (ready || state === 'title') {
     if (drag && v.sp > 0 && DIFF[difficulty].preview) drawAimGuide(c, v);
     if (drag && v.sp > 0) {
-      c.lineWidth = 5; c.strokeStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.arc(ex, ey, r + 9, 0, Math.PI * 2); c.stroke();
+      c.lineWidth = 6; c.strokeStyle = 'rgba(255,244,222,0.55)'; c.beginPath(); c.arc(ex, ey, r + 11, 0, Math.PI * 2); c.stroke();
       c.strokeStyle = power < 0.5 ? MINT : power < 0.85 ? SUN : DANGER;
-      c.beginPath(); c.arc(ex, ey, r + 9, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
+      c.beginPath(); c.arc(ex, ey, r + 11, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
     }
     if (curPower) drawPower(c, ex, ey, r, curPower, current, mass); else drawFace(c, ex, ey, r, current, massOf(current), 1, true, curSecret);
     if (drag && v.sp > 0 && $('showNums').checked) {
       const txt = `${v.sp.toFixed(1)} m/s · p ${(mass * v.sp).toFixed(1)}`;
-      c.font = '700 16px "Patrick Hand", sans-serif'; const tw = c.measureText(txt).width + 16;
+      c.font = '600 14px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 18;
       let bx = ex - tw / 2; bx = Math.max(4, Math.min(cw - tw - 4, bx)); const by = Math.min(ch - 30, deck + 8);
-      c.fillStyle = '#FFF59D'; c.strokeStyle = '#1F3A93'; c.lineWidth = 1.5; c.beginPath(); c.roundRect(bx, by, tw, 24, 3); c.fill(); c.stroke();
-      c.fillStyle = '#1F3A93'; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 8, by + 13);
+      paperShadow(c, true, 5, 3); c.fillStyle = '#FFF4DE'; cutRect(c, bx, by, tw, 24, 7); c.fill(); paperShadow(c, false);
+      c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 9, by + 13);
     }
   } else if (!armSwing) drawFace(c, ex, ey, r, current, massOf(current), 0.3, true, curSecret);
   c.restore();
@@ -1505,8 +1552,9 @@ function burst(x, y, col, n, speed, opts = {}) {
   if (reduceMotion) n = Math.ceil(n / 3);
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, s = speed * (0.35 + Math.random() * 0.75);
-    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (opts.up || 0), t: 0, life: 0.5 + Math.random() * 0.5,
-      size: (opts.size || 5) * (0.6 + Math.random() * 0.8), col: Math.random() < 0.3 ? '#fff' : col, star: Math.random() < (opts.stars ?? 0.35), rot: Math.random() * 6 });
+    const isStar = Math.random() < (opts.stars ?? 0.35);
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - (opts.up || 0), t: 0, life: isStar ? 0.5 + Math.random() * 0.5 : 1.1 + Math.random() * 0.8,
+      size: (opts.size || 5) * (0.6 + Math.random() * 0.8) * (isStar ? 1 : 1.35), col: Math.random() < 0.45 ? PAPER_COLS[Math.floor(Math.random() * PAPER_COLS.length)] : col, star: isStar, rot: Math.random() * 6 });
   }
   if (particles.length > 500) particles.splice(0, particles.length - 500);
 }
@@ -1515,7 +1563,10 @@ const bannerQ = []; let bannerBusy = false;
 function banner(html, cls = '') { bannerQ.push([html, cls]); if (!bannerBusy) nextBanner(); }
 function nextBanner() {
   const item = bannerQ.shift(); if (!item) { bannerBusy = false; return; }
-  bannerBusy = true; const el = document.createElement('div'); el.className = 'banner' + (item[1] ? ' b-' + item[1] : ''); el.innerHTML = item[0];
+  bannerBusy = true; const el = document.createElement('div'); el.className = 'banner' + (item[1] ? ' b-' + item[1] : '');
+  // each word of the main text sits on its own cut-out paper strip
+  const cut = item[0].indexOf('<small>'), main = cut < 0 ? item[0] : item[0].slice(0, cut), rest = cut < 0 ? '' : item[0].slice(cut);
+  el.innerHTML = (main.includes('<') ? main : main.split(' ').filter(Boolean).map((w, i) => `<span class="cut c${i % 4}">${w}</span>`).join(' ')) + rest;
   $('bannerLayer').appendChild(el);
   setTimeout(() => { el.remove(); nextBanner(); }, bannerQ.length ? 800 : 1250);
 }
@@ -1710,7 +1761,7 @@ function updateHud(bumpScore) {
   if (DIFF[difficulty].showNext || state === 'title') drawFace(hc, 48, 48, 22 + next * 6, next, massOf(next), 1, false, nextSecret);
   else {
     hc.beginPath(); hc.arc(48, 48, 34, 0, Math.PI * 2); hc.fillStyle = '#E6E1F0'; hc.fill(); hc.lineWidth = 5; hc.strokeStyle = INK; hc.stroke();
-    hc.fillStyle = INK; hc.font = '700 44px "Patrick Hand", sans-serif'; hc.textAlign = 'center'; hc.textBaseline = 'middle'; hc.fillText('?', 48, 51);
+    hc.fillStyle = INK; hc.font = '700 44px Fredoka, sans-serif'; hc.textAlign = 'center'; hc.textBaseline = 'middle'; hc.fillText('?', 48, 51);
   }
 }
 function setPauseUI(paused) {
@@ -2137,117 +2188,120 @@ aimArea.addEventListener('pointerup', () => { if (drag && state === 'playing') l
 aimArea.addEventListener('pointercancel', () => { drag = null; canvas.classList.remove('aiming'); });
 
 // =====================================================================
-// CAMPUS BACKGROUND: a full-screen canvas behind everything, drawn every frame.
-// Parallax layers (far moves least): stars and moon, city skyline, school building, floodlights.
-// They drift slowly, lean away from your pull, and shake less than the game. The flag shows the wind.
+// PAPERCRAFT BACKGROUND (golden hour): a full-screen canvas behind everything, drawn every frame.
+// Layers of construction paper with soft shadows. Far layers move least (parallax): they lean away from your pull
+// and shake less than the game. Clouds and birds hang on strings and sway; the flag shows the wind.
 // =====================================================================
 const Campus = (() => {
   const cv = $('space'), c = cv.getContext('2d');
-  let w = 0, h = 0, dp = 1, t = 0, px = 0, py = 0, shooting = [], nextShoot = 6, flagWind = 0;
-  let stars, skyline, school, clouds = [];
-  let seed = 4242; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  let w = 0, h = 0, dp = 1, t = 0, px = 0, py = 0, flagWind = 0, lastGy = -1;
+  let sky, hillsFar, hillsNear, trees, grain, grainPat = null, hangers = [];
+  const SH = 'rgba(61,35,64,0.3)';
+  let seed = 777; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const off = (W2, H2) => { const o = document.createElement('canvas'); o.width = Math.max(1, Math.round(W2 * dp)); o.height = Math.max(1, Math.round(H2 * dp)); const x = o.getContext('2d'); x.scale(dp, dp); return [o, x]; };
+  const shadow = (x, on, blur = 10, oy = 5) => { x.shadowColor = on ? SH : 'transparent'; x.shadowBlur = on ? blur : 0; x.shadowOffsetY = on ? oy : 0; x.shadowOffsetX = on ? 1 : 0; };
+  // a wavy band of paper from y0 down to y1 (top edge is a gentle wave with tiny cut wobbles)
+  function band(x, y0, y1, col, amp, freq, ph, width) {
+    x.fillStyle = col; x.beginPath(); x.moveTo(-20, y1);
+    for (let i = 0; i <= 60; i++) { const xx = -20 + i * (width + 40) / 60; x.lineTo(xx, y0 + Math.sin(xx * freq + ph) * amp + Math.sin(xx * freq * 3.3 + ph * 2) * amp * 0.25 + (rnd() - 0.5) * 1.2); }
+    x.lineTo(width + 20, y1); x.closePath(); x.fill();
+  }
+  function roughCircle(x, cx, cy, r) { x.beginPath(); for (let i = 0; i < 40; i++) { const a = i / 40 * Math.PI * 2, rr = r * (1 + (rnd() - 0.5) * 0.025); x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } x.closePath(); }
   function build() {
-    w = window.innerWidth; h = window.innerHeight; dp = Math.min(window.devicePixelRatio || 1, 2); seed = 4242;
-    cv.width = Math.round(w * dp); cv.height = Math.round(h * dp);
+    w = window.innerWidth; h = window.innerHeight; dp = Math.min(window.devicePixelRatio || 1, 2); seed = 777;
+    cv.width = Math.round(w * dp); cv.height = Math.round(h * dp); lastGy = -1;
     let x;
-    [stars, x] = off(w, h);
-    for (let i = 0; i < 160 * Math.max(1, w * h / 400000); i++) { x.globalAlpha = 0.25 + 0.6 * rnd(); x.fillStyle = '#fff'; x.beginPath(); x.arc(rnd() * w, rnd() * h * 0.7, 0.5 + rnd() * 1.1, 0, Math.PI * 2); x.fill(); }
-    // city skyline (far)
-    const sh = Math.max(60, h * 0.16);
-    [skyline, x] = off(w + 160, sh);
-    x.fillStyle = '#232A5A';
-    for (let xx = 0; xx < w + 160;) { const bw = 18 + rnd() * 34, bh = sh * (0.3 + rnd() * 0.65); x.fillRect(xx, sh - bh, bw, bh);
-      x.fillStyle = 'rgba(255,214,120,0.55)'; for (let wy = sh - bh + 5; wy < sh - 4; wy += 7) for (let wx = xx + 3; wx < xx + bw - 3; wx += 6) if (rnd() < 0.28) x.fillRect(wx, wy, 2.5, 3);
-      x.fillStyle = '#232A5A'; xx += bw + 2 + rnd() * 6; }
-    // school building (mid): main block, entrance, clock tower, windows
-    const bw = Math.min(w * 0.75, 520), bh = Math.max(80, h * 0.2);
-    [school, x] = off(bw, bh * 1.6);
-    const top = bh * 0.6;
-    x.fillStyle = '#323A72'; x.fillRect(0, top, bw, bh);
-    x.fillStyle = '#3B4483'; x.fillRect(bw * 0.4, top - bh * 0.25, bw * 0.2, bh * 1.25);                       // tower
-    x.beginPath(); x.moveTo(bw * 0.38, top - bh * 0.25); x.lineTo(bw * 0.5, top - bh * 0.55); x.lineTo(bw * 0.62, top - bh * 0.25); x.closePath(); x.fill();
-    x.fillStyle = '#F5F0DC'; x.beginPath(); x.arc(bw * 0.5, top - bh * 0.07, bh * 0.08, 0, Math.PI * 2); x.fill();           // clock
-    x.strokeStyle = '#323A72'; x.lineWidth = 2; x.beginPath(); x.moveTo(bw * 0.5, top - bh * 0.07); x.lineTo(bw * 0.5, top - bh * 0.13); x.moveTo(bw * 0.5, top - bh * 0.07); x.lineTo(bw * 0.535, top - bh * 0.07); x.stroke();
-    for (let row = 0; row < 3; row++) for (let col = 0; col < 14; col++) {
-      const wx = bw * 0.04 + col * bw * 0.066, wy = top + bh * 0.12 + row * bh * 0.27;
-      if (wx > bw * 0.38 && wx < bw * 0.6) continue;
-      x.fillStyle = rnd() < 0.35 ? 'rgba(255,220,130,0.85)' : 'rgba(20,24,58,0.8)'; x.fillRect(wx, wy, bw * 0.04, bh * 0.15);
+    // sky: stacked paper bands from plum at the top to mustard at the horizon, with the paper sun
+    [sky, x] = off(w, h);
+    const cols = ['#6D3B6B', '#9C4A6E', '#D85A5A', '#F2675A', '#F28C38', '#F6A54A', '#F2B33D'];
+    x.fillStyle = cols[0]; x.fillRect(0, 0, w, h);
+    cols.forEach((col, i) => { if (!i) return; shadow(x, true, 12, 4); band(x, h * (0.04 + i * 0.1), h + 20, col, 6 + i, 0.012 + i * 0.002, i * 1.7, w); });
+    shadow(x, false);
+    // the sun: three layered paper circles
+    const sr = Math.max(36, Math.min(w, h) * 0.11), sxc = w * 0.16, syc = h * 0.47;
+    [[1.35, '#F6C35A'], [1.15, '#FFD27A'], [0.95, '#FFE3A3']].forEach(([k, col]) => { shadow(x, true, 14, 5); x.fillStyle = col; roughCircle(x, sxc, syc, sr * k); x.fill(); });
+    shadow(x, false);
+    // far hills (plum-coral) and near hills (teal), as strips that sit on the horizon
+    const hh = Math.max(110, h * 0.26);
+    [hillsFar, x] = off(w + 200, hh); shadow(x, true, 12, 5); band(x, hh * 0.35, hh + 10, '#B0566A', hh * 0.14, 0.009, 0.6, w + 200);
+    [hillsNear, x] = off(w + 200, hh); shadow(x, true, 12, 5); band(x, hh * 0.55, hh + 10, '#2A9D8F', hh * 0.1, 0.014, 2.1, w + 200); band(x, hh * 0.72, hh + 10, '#22857A', hh * 0.07, 0.02, 4.0, w + 200);
+    // trees and bushes along the horizon
+    const th = Math.max(110, h * 0.22);
+    [trees, x] = off(w + 200, th);
+    for (let i = 0; i < 9; i++) {
+      const tx = 20 + i * (w + 160) / 9 + (rnd() - 0.5) * 40, tr = th * (0.16 + rnd() * 0.1), trunk = th * (0.18 + rnd() * 0.1);
+      shadow(x, true, 8, 4); x.fillStyle = '#8A5A3B'; x.fillRect(tx - tr * 0.12, th - trunk, tr * 0.24, trunk);
+      x.fillStyle = rnd() < 0.5 ? '#3FA796' : '#7FB069'; roughCircle(x, tx, th - trunk - tr * 0.7, tr); x.fill();
+      x.fillStyle = 'rgba(255,255,255,0.12)'; roughCircle(x, tx - tr * 0.3, th - trunk - tr * 0.95, tr * 0.45); x.fill();
     }
-    x.fillStyle = 'rgba(255,220,130,0.9)'; x.fillRect(bw * 0.46, top + bh * 0.62, bw * 0.08, bh * 0.38);   // lit doorway
-    clouds = Array.from({ length: 4 }, () => ({ x: rnd() * w, y: h * (0.08 + rnd() * 0.3), s: 0.6 + rnd() * 0.8 }));
+    for (let i = 0; i < 14; i++) { const bxp = i * (w + 200) / 14 + (rnd() - 0.5) * 30, br = th * (0.07 + rnd() * 0.05); shadow(x, true, 6, 3); x.fillStyle = rnd() < 0.5 ? '#5E8C4A' : '#7FB069'; roughCircle(x, bxp, th - br * 0.5, br); x.fill(); }
+    shadow(x, false);
+    // paper grain: fine noise laid over everything at low strength
+    [grain, x] = off(160, 160);
+    const id = x.getImageData(0, 0, Math.round(160 * dp), Math.round(160 * dp));
+    for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (Math.random() - 0.5) * 90; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+    x.putImageData(id, 0, 0); grainPat = null;
+    // hanging clouds and birds on strings
+    hangers = [];
+    for (let i = 0; i < 4; i++) hangers.push({ kind: 'cloud', x: w * (0.1 + i * 0.27) + (rnd() - 0.5) * 30, len: h * (0.08 + rnd() * 0.12), s: 0.7 + rnd() * 0.5, ph: rnd() * 6 });
+    for (let i = 0; i < 3; i++) hangers.push({ kind: 'bird', x: w * (0.22 + i * 0.28) + (rnd() - 0.5) * 30, len: h * (0.16 + rnd() * 0.1), s: 0.8 + rnd() * 0.4, ph: rnd() * 6 });
   }
   function groundY() { if (!ch || state === 'title') return h * 0.86; const r = canvas.getBoundingClientRect(); return r.top + sy(0); }
-  function floodlight(x0, gy, height, lean) {
-    c.strokeStyle = '#1A1F42'; c.lineWidth = 5; c.beginPath(); c.moveTo(x0, gy); c.lineTo(x0, gy - height); c.stroke();
-    c.lineWidth = 2; for (let k = 1; k < 6; k++) { c.beginPath(); c.moveTo(x0 - 4, gy - height * k / 6); c.lineTo(x0 + 4, gy - height * (k - 0.5) / 6); c.stroke(); }
-    const hx = x0 - 16, hy = gy - height - 12;
-    const g = c.createRadialGradient(x0, hy + 8, 4, x0 + lean * 60, gy, height * 1.1); g.addColorStop(0, 'rgba(255,246,200,0.22)'); g.addColorStop(1, 'rgba(255,246,200,0)');
-    c.fillStyle = g; c.beginPath(); c.moveTo(hx, hy + 14); c.lineTo(hx + 32, hy + 14); c.lineTo(x0 + lean * 140 + 120, gy); c.lineTo(x0 + lean * 140 - 120, gy); c.closePath(); c.fill();
-    c.fillStyle = '#1A1F42'; c.fillRect(hx - 2, hy - 2, 36, 18);
-    c.fillStyle = '#FFF6C8'; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(hx + 5 + i * 8, hy + 7, 3.2, 0, Math.PI * 2); c.fill(); }
+  function drawCloud(x0, y0, s) {
+    c.fillStyle = '#FFF4DE'; c.beginPath();
+    for (const [dx, dy, rr] of [[-30, 4, 18], [-10, -8, 24], [16, -4, 20], [34, 6, 15], [0, 8, 20]]) { c.moveTo(x0 + (dx + rr) * s, y0 + dy * s); c.arc(x0 + dx * s, y0 + dy * s, rr * s, 0, Math.PI * 2); }
+    c.fill();
+  }
+  function drawBird(x0, y0, s, flap) {
+    c.fillStyle = '#6D3B6B'; c.beginPath(); c.moveTo(x0 - 18 * s, y0 - 4 * s - flap * 6 * s); c.quadraticCurveTo(x0 - 6 * s, y0 - 2 * s, x0, y0 + 4 * s);
+    c.quadraticCurveTo(x0 + 6 * s, y0 - 2 * s, x0 + 18 * s, y0 - 4 * s - flap * 6 * s); c.lineTo(x0, y0 - 1 * s); c.closePath(); c.fill();
   }
   function flag(x0, gy, height, wind) {
-    c.strokeStyle = '#C9CEDD'; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, gy); c.lineTo(x0, gy - height); c.stroke();
-    c.fillStyle = '#E8C468'; c.beginPath(); c.arc(x0, gy - height - 3, 3.5, 0, Math.PI * 2); c.fill();
-    const fw = 46, fh = 28, k = Math.max(-1, Math.min(1, wind / 4)), dir = k >= 0 ? 1 : -1, stiff = Math.abs(k);
-    const droop = (1 - stiff) * 0.9;     // no wind: the flag hangs down
-    c.fillStyle = '#FF6FB5'; c.beginPath(); c.moveTo(x0, gy - height + 2);
-    for (let i = 0; i <= 10; i++) { const u = i / 10, wave = Math.sin(t * (3 + stiff * 6) - u * 6) * 4 * (0.3 + stiff) * u;
-      c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75), gy - height + 2 + fh * droop * u * 0.9 + wave); }
-    for (let i = 10; i >= 0; i--) { const u = i / 10, wave = Math.sin(t * (3 + stiff * 6) - u * 6) * 4 * (0.3 + stiff) * u;
-      c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75) - droop * 6 * u, gy - height + 2 + fh + fh * droop * u * 0.9 + wave - droop * fh * 0.6 * u); }
-    c.closePath(); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.25)'; c.lineWidth = 1; c.stroke();
+    c.save(); c.shadowColor = SH; c.shadowBlur = 6; c.shadowOffsetY = 3;
+    c.fillStyle = '#E9C48A'; c.fillRect(x0 - 2, gy - height, 4, height);              // a long craft-stick pole
+    const fw = 46, fh = 28, k = Math.max(-1, Math.min(1, wind / 4)), dir = k >= 0 ? 1 : -1, stiff = Math.abs(k), droop = (1 - stiff) * 0.9;
+    c.fillStyle = '#F2675A'; c.beginPath(); c.moveTo(x0, gy - height + 2);
+    for (let i = 0; i <= 10; i++) { const u = i / 10, wave = Math.sin(t * (2 + stiff * 5) - u * 5) * 3 * (0.3 + stiff) * u; c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75), gy - height + 2 + fh * droop * u * 0.9 + wave); }
+    for (let i = 10; i >= 0; i--) { const u = i / 10, wave = Math.sin(t * (2 + stiff * 5) - u * 5) * 3 * (0.3 + stiff) * u; c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75) - droop * 6 * u, gy - height + 2 + fh + fh * droop * u * 0.9 + wave - droop * fh * 0.6 * u); }
+    c.closePath(); c.fill(); c.restore();
   }
   function draw(dt, aim, shk, wind) {
     if (cv.width !== Math.round(window.innerWidth * Math.min(window.devicePixelRatio || 1, 2))) build();
     if (!reduceMotion) t += dt;
-    const tx = aim ? -aim.px * 14 : 0, ty = aim ? aim.py * 10 : 0;
+    const tx = aim ? -aim.px * 12 : 0, ty = aim ? aim.py * 8 : 0;
     px += (tx - px) * Math.min(1, dt * 4); py += (ty - py) * Math.min(1, dt * 4);
     if (!isFinite(px) || !isFinite(py)) { px = 0; py = 0; }
     flagWind += ((wind || 0) - flagWind) * Math.min(1, dt * 2);
     c.setTransform(dp, 0, 0, dp, 0, 0);
-    const gy = groundY();
-    const bg = c.createLinearGradient(0, 0, 0, gy); bg.addColorStop(0, '#0B1230'); bg.addColorStop(0.6, '#1E2A5E'); bg.addColorStop(1, '#3B3F7A');
-    c.fillStyle = bg; c.fillRect(0, 0, w, h);
-    const L = d => [px * d + shk.x * d * 0.5, py * d + shk.y * d * 0.5];
-    let [ox, oy] = L(0.15);
-    const drift = (t * 2) % w; c.drawImage(stars, ox - drift, oy, w, h); c.drawImage(stars, ox - drift + w, oy, w, h);
-    if (!reduceMotion) for (let i = 0; i < 6; i++) { const sx2 = (i * 0.17 + 0.07) * w + ox, sy2 = (0.08 + (i * 0.13) % 0.4) * h + oy, a = 0.3 + 0.7 * Math.abs(Math.sin(t * 1.4 + i)); c.globalAlpha = a; c.fillStyle = '#fff'; c.beginPath(); c.arc(sx2, sy2, 1.6, 0, Math.PI * 2); c.fill(); }
-    c.globalAlpha = 1;
-    // moon
-    [ox, oy] = L(0.25); const mx = w * 0.82 + ox, my = h * 0.12 + oy, mr = Math.max(18, Math.min(w, h) * 0.05);
-    let g = c.createRadialGradient(mx, my, mr * 0.8, mx, my, mr * 3); g.addColorStop(0, 'rgba(255,248,220,0.25)'); g.addColorStop(1, 'rgba(255,248,220,0)'); c.fillStyle = g; c.beginPath(); c.arc(mx, my, mr * 3, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FFF8DC'; c.beginPath(); c.arc(mx, my, mr, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(200,190,160,0.5)'; for (const [a, b, rr] of [[-0.3, -0.2, 0.2], [0.25, 0.15, 0.15], [-0.05, 0.4, 0.1]]) { c.beginPath(); c.arc(mx + a * mr, my + b * mr, rr * mr, 0, Math.PI * 2); c.fill(); }
-    // shooting stars
-    if (!reduceMotion) {
-      nextShoot -= dt;
-      if (nextShoot <= 0) { nextShoot = 6 + Math.random() * 8; shooting.push({ x: Math.random() * w * 0.6 + w * 0.3, y: Math.random() * h * 0.25, vx: -(380 + Math.random() * 200), vy: 140 + Math.random() * 80, t: 0, life: 0.8 }); }
-      for (const s of shooting) { s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; const a = Math.max(0, 1 - s.t / s.life);
-        const gg = c.createLinearGradient(s.x, s.y, s.x - s.vx * 0.15, s.y - s.vy * 0.15); gg.addColorStop(0, `rgba(255,255,255,${a})`); gg.addColorStop(1, 'rgba(255,255,255,0)');
-        c.strokeStyle = gg; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(s.x - s.vx * 0.15, s.y - s.vy * 0.15); c.stroke(); }
-      shooting = shooting.filter(s => s.t < s.life);
+    const gy = groundY(), L = d => [px * d + shk.x * d * 0.5, py * d + shk.y * d * 0.5];
+    let [ox, oy] = L(0.12); c.drawImage(sky, ox - 12, oy - 12, w + 24, h + 24);
+    // hanging clouds and birds: strings from the top, gentle swing (pendulum), lean with the wind
+    [ox, oy] = L(0.3);
+    for (const k of hangers) {
+      const a = reduceMotion ? 0 : Math.sin(t * (k.kind === 'bird' ? 1.3 : 0.7) + k.ph) * 0.06 + flagWind * 0.015;
+      const ex = k.x + ox + Math.sin(a) * k.len, ey = k.len * Math.cos(a) + oy;
+      c.strokeStyle = 'rgba(61,35,64,0.35)'; c.lineWidth = 1; c.beginPath(); c.moveTo(k.x + ox, -5); c.lineTo(ex, ey); c.stroke();
+      c.save(); c.shadowColor = SH; c.shadowBlur = 8; c.shadowOffsetY = 4;
+      if (k.kind === 'cloud') drawCloud(ex, ey + 14 * k.s, k.s); else drawBird(ex, ey + 4, k.s, reduceMotion ? 0 : Math.sin(t * 6 + k.ph));
+      c.restore();
     }
-    // night clouds drift with the wind
-    for (const cl of clouds) { if (!reduceMotion) cl.x += (4 + flagWind * 6) * dt; if (cl.x > w + 100) cl.x = -100; if (cl.x < -100) cl.x = w + 100;
-      c.fillStyle = 'rgba(120,130,190,0.18)'; for (const [dx, dy, rr] of [[0, 0, 26], [22, -10, 20], [44, 0, 24], [22, 6, 22]]) { c.beginPath(); c.arc(cl.x + dx * cl.s + ox, cl.y + dy * cl.s + oy, rr * cl.s, 0, Math.PI * 2); c.fill(); } }
-    // city skyline
-    [ox, oy] = L(0.35); c.drawImage(skyline, -80 + ox, gy - skyline.height / dp + 4 + oy * 0.3, skyline.width / dp, skyline.height / dp);
-    // school building
-    [ox, oy] = L(0.55); const sw = school.width / dp, shh = school.height / dp; c.drawImage(school, w * 0.5 - sw * 0.35 + ox, gy - shh + 2 + oy * 0.3, sw, shh);
-    // trees
-    c.fillStyle = '#18204A'; for (let i = 0; i < 7; i++) { const tx2 = (i / 7) * w + ((i * 53) % 40) + ox * 1.2, th = 26 + (i % 3) * 10; c.beginPath(); c.arc(tx2, gy - th, th * 0.55, 0, Math.PI * 2); c.fill(); c.fillRect(tx2 - 2, gy - th, 4, th); }
-    // floodlights and flag (near)
-    [ox, oy] = L(0.8);
-    floodlight(w * 0.06 + ox, gy, Math.max(120, h * 0.33), 0.6); floodlight(w * 0.95 + ox, gy, Math.max(120, h * 0.33), -0.6);
-    { const r = canvas.getBoundingClientRect(), fxp = state === 'title' || !ch ? w * 0.85 : r.left + sx(BOX.r + BOX.t + 0.1);
-      flag(fxp, gy, state === 'title' || !ch ? h * 0.3 : (wallH + 1.3) * ppm, flagWind); }
-    // the field at exactly the game's ground line, with chalk lines
-    const fg = c.createLinearGradient(0, gy, 0, h); fg.addColorStop(0, '#2E7D32'); fg.addColorStop(1, '#174A1B');
-    c.fillStyle = fg; c.fillRect(0, gy, w, h - gy);
-    c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, gy + 0.5); c.lineTo(w, gy + 0.5); c.stroke();
-    c.strokeStyle = 'rgba(255,255,255,0.22)'; c.lineWidth = 3; for (let i = 0; i < 6; i++) { const yy = gy + 10 + i * 14; if (yy > h) break; c.beginPath(); c.moveTo(0, yy); c.lineTo(w, yy); c.stroke(); }
+    // hills and trees sit on the ground line
+    [ox, oy] = L(0.4); c.drawImage(hillsFar, -100 + ox, gy - hillsFar.height / dp + 6 + oy * 0.3, hillsFar.width / dp, hillsFar.height / dp);
+    [ox, oy] = L(0.6); c.drawImage(hillsNear, -100 + ox, gy - hillsNear.height / dp + 6 + oy * 0.3, hillsNear.width / dp, hillsNear.height / dp);
+    [ox, oy] = L(0.8); c.drawImage(trees, -100 + ox, gy - trees.height / dp + 4 + oy * 0.3, trees.width / dp, trees.height / dp);
+    // flag next to the display box (shows the wind)
+    { const r = canvas.getBoundingClientRect(), title = state === 'title' || !ch, fxp = title ? w * 0.85 : r.left + sx(BOX.r + BOX.t + 0.1);
+      flag(fxp + ox * 0.3, gy, title ? h * 0.3 : (wallH + 1.3) * ppm, flagWind); }
+    // grass: two paper strips
+    c.save(); c.shadowColor = SH; c.shadowBlur = 10; c.shadowOffsetY = -2;
+    c.fillStyle = '#7FB069'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, gy);
+    for (let xx = 0; xx <= w; xx += 12) c.lineTo(xx, gy + Math.sin(xx * 0.08) * 1.5 - (xx % 24 === 0 ? 3 : 0)); c.lineTo(w, h); c.closePath(); c.fill();
+    c.fillStyle = '#5E8C4A'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, gy + 24);
+    for (let xx = 0; xx <= w; xx += 16) c.lineTo(xx, gy + 24 + Math.sin(xx * 0.05 + 1) * 3); c.lineTo(w, h); c.closePath(); c.fill();
+    c.restore();
+    // paper grain over everything
+    if (!grainPat) grainPat = c.createPattern(grain, 'repeat');
+    c.save(); c.globalAlpha = 0.06; c.globalCompositeOperation = 'overlay'; c.fillStyle = grainPat; c.fillRect(0, 0, w, h); c.restore();
   }
   window.addEventListener('resize', build);
   build();
@@ -2276,7 +2330,7 @@ function frame(now) {
   } else acc = 0;
   for (const p of popups) p.t += dt;
   popups = popups.filter(p => p.t < p.life);
-  for (const p of particles) { p.t += dt; p.vy += 700 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.985; p.rot += dt * 5; }
+  for (const p of particles) { p.t += dt; p.vy += 600 * dt; p.vy = Math.min(p.vy, p.star ? 900 : 220); p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= p.star ? 0.985 : 0.96; p.rot += dt * (p.star ? 5 : 9); }   // confetti flutters down slowly (air drag)
   particles = particles.filter(p => p.t < p.life);
   for (const [id, q] of squash) { q.t += dt; if (q.t > 0.35) squash.delete(id); }
   for (const [id, a] of pops) { if (a > 0.35) pops.delete(id); else pops.set(id, a + dt); }
