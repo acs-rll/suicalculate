@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>html { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); } img { max-width: 100%; }</style>
-<title>SuiCalculate</title>
+<title>SuiCalculate Test</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -112,10 +112,7 @@ body {
 /* stage */
 .stage-wrap { min-height: 0; display: grid; place-items: center; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
 .stage-wrap:has(#board.aiming) { cursor: grabbing; }
-.stage { position: relative; border: 5px solid var(--ink); border-top-width: 0; border-radius: 0 0 18px 18px; background: var(--glass);
-  box-shadow: 0 6px 0 rgba(46, 36, 69, 0.28); }
-.stage::before, .stage::after { content: ""; position: absolute; top: -6px; width: 16px; height: 12px; background: var(--ink); border-radius: 6px; }
-.stage::before { left: -10px; } .stage::after { right: -10px; }
+.stage { position: relative; }
 #board { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
 #board.aiming { cursor: grabbing; }
 .banner-layer { position: absolute; inset: 0; pointer-events: none; display: grid; place-items: start center; padding-top: 34%; overflow: hidden; }
@@ -345,7 +342,7 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
 
   <div class="stage-wrap" id="stageWrap">
     <div class="stage" id="stage">
-      <canvas id="board" aria-label="Game tank. Drag back anywhere and let go to launch the face."></canvas>
+      <canvas id="board" aria-label="Game scene: a slingshot on a cliff and an open box. Drag back anywhere and let go to fire the face into the box."></canvas>
       <div class="banner-layer" id="bannerLayer" aria-live="polite"></div>
       <button class="shake-btn" id="shakeBtn" hidden><span class="sk-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l3-3M4 16l3 3M20 8l-3-3M20 16l-3 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><rect x="8" y="6" width="8" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>Shake <b id="shakeCount">1</b></span><span class="sk-pips" id="shakePips"></span></button>
     </div>
@@ -364,11 +361,11 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
   <div class="title-inner">
     <div class="hero" id="hero" aria-hidden="true"></div>
     <h1 class="logo" id="logo" aria-label="SuiCalculate"></h1>
-    <p class="tagline">Launch faces into the tank. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
+    <p class="tagline">Fire faces from the slingshot into the box. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
     <div class="steps">
       <div class="card step"><b>1</b>Drag back, then let go</div>
       <div class="card step"><b>2</b>Smash matching faces to merge</div>
-      <div class="card step"><b>3</b>Don't overflow the tank</div>
+      <div class="card step"><b>3</b>Don't let a face fall out</div>
     </div>
     <div class="levels" role="group" aria-label="Level">
       <button class="card press lvl" data-level="easy"><span class="n">Easy</span><span class="d">Aim guide, few rocks</span><span class="b">Best <span data-best="easy">0</span></span></button>
@@ -483,7 +480,8 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
         <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
         <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
         <p>Rocks (12 kg) never merge. A rock breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
-        <p><b style="color:var(--ink)">Tank shake:</b> the tank jolts, giving every face the same change in velocity, Δv of about 5 m/s up plus a random sideways part (up to 4 m/s). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
+        <p><b style="color:var(--ink)">The box:</b> faces are fired from a slingshot on a 5.1 m cliff into an open box (walls 5.0 m high, 4.5 m on Hard). Walls and the ground take away half the speed of a hit. A face that falls out of the box ends the game; a shot that misses the box just rolls away.</p>
+        <p><b style="color:var(--ink)">Box shake:</b> the box jolts, giving every face in it the same change in velocity, Δv of about 5 m/s up plus a sideways part toward the middle (up to 4 m/s, so faces are not thrown out). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
         <p>Not logged: hits on walls and the floor (outside forces), and faces resting in the pile slower than 0.6 m/s.</p>
       </div>
       <div class="panel">
@@ -513,10 +511,14 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
 //       v2' = ((m2 - m1)*v2 + 2*m1*v1) / (m1 + m2)
 //       (the impulse formula below gives exactly these values)
 const Phys = (() => {
-  const W = 4.0;          // container width (m)
-  const H = 6.8;          // play area height, floor to ceiling (m); 1 m of headroom above the slingshot for pulling back
-  const LINE = 5.0;       // overflow line height (m)
-  const LAUNCH = { x: 2.0, y: 5.75 }; // slingshot position (m)
+  // Scene (side view, metres). The slingshot stands on a cliff at the left; an open-topped box stands on the ground to the right.
+  // There is no ceiling: faces can fly over the walls, and a face that falls out of the box ends the game.
+  const W = 6.35;         // scene width shown on screen (m)
+  const H = 9.5;          // default view height (m); the game may show more sky on tall screens
+  const BOX = { l: 2.3, r: 6.1, t: 0.12 };  // inner left and right edges of the box (3.8 m wide) and wall thickness (m)
+  const LINE = 5.0;       // default wall height (m)
+  const CLIFF = { x2: 1.45, y2: 5.1 };      // the cliff the slingshot stands on: right edge and top (m)
+  const LAUNCH = { x: 0.8, y: 5.75 }; // slingshot fork position (m)
   const G = 10;           // gravity (m/s^2), as chosen by the group
   const VMAX = 12;        // fastest launch the slingshot allows (m/s)
   const MAX_TIER = 10;
@@ -537,9 +539,15 @@ const Phys = (() => {
       forced: opts.forced || null,      // test mode: 'elastic' or 'inelastic' forces the collision type
       logLimit: opts.logLimit || Infinity,
       mergeEnergy: opts.mergeEnergy || 0, // J: a merge must release at least this much kinetic energy (0 = any touch)
+      walls: boxWalls(opts.wallH || LINE),  // solid blocks faces bounce off (the box walls)
       onEvent: null,
       onSoft: null,                      // called when matching faces touch too slowly to merge
     };
+  }
+
+  function boxWalls(h) {
+    return [{ x1: BOX.l - BOX.t, x2: BOX.l, y1: 0, y2: h }, { x1: BOX.r, x2: BOX.r + BOX.t, y1: 0, y2: h },
+            { x1: -3, x2: CLIFF.x2, y1: 0, y2: CLIFF.y2, cliff: true }];
   }
 
   function addBody(w, o) {
@@ -602,7 +610,8 @@ const Phys = (() => {
     else { tier = 0; r = Math.sqrt(a.r * a.r + b.r * b.r); } // test mode: unequal masses stuck together
     const ghostA = { ...a }, ghostB = { ...b };
     a.dead = b.dead = true;
-    const nb = addBody(w, { tier, m: M, r, x: clamp(x, r, W - r), y: Math.max(y, r), vx, vy });
+    const nb = addBody(w, { tier, m: M, r, x, y: Math.max(y, r), vx, vy });
+    nb.inBox = !!(a.inBox || b.inBox);           // game flag: the merged face is in the box if either part was
     const ev = record(w, 'C1', ghostA, ghostB, nx, ny, { a: nb, b: nb });
     ev.newTier = tier; ev.newMass = M; ev.newId = nb.id;
     return nb;
@@ -657,18 +666,36 @@ const Phys = (() => {
     b.x += nx * c / b.m; b.y += ny * c / b.m;
   }
 
-  // Walls, floor and ceiling. A fast hit bounces back at half speed (energy lost);
+  // Ground and box walls. A fast hit bounces back at half speed (energy lost);
   // a slow push into a wall just stops, so a resting pile stays still.
+  // These are outside forces, so these hits are not logged as collisions.
   function wallBounce(v) { return v < -0.3 ? -v * E_WALL : 0; }
-  function wallVelocity(b) {
-    if (b.x - b.r <= 0.001 && b.vx < 0) b.vx = wallBounce(b.vx);
-    if (b.x + b.r >= W - 0.001 && b.vx > 0) b.vx = -wallBounce(-b.vx);
-    if (b.y - b.r <= 0.001) { b.touchNow = true; if (b.vy < 0) b.vy = wallBounce(b.vy); }
-    if (b.y + b.r >= H - 0.001 && b.vy > 0) b.vy = -wallBounce(-b.vy);
+  // Closest point of a wall block to the face's centre, and the direction from it to the centre.
+  function wallContact(b, k) {
+    const cx = clamp(b.x, k.x1, k.x2), cy = clamp(b.y, k.y1, k.y2);
+    let dx = b.x - cx, dy = b.y - cy, d = Math.hypot(dx, dy);
+    if (d < 1e-9) {           // centre inside the block: push out through the nearest side
+      const opts = [[b.x - k.x1, -1, 0], [k.x2 - b.x, 1, 0], [k.y2 - b.y, 0, 1]].sort((p, q) => p[0] - q[0])[0];
+      return { nx: opts[1], ny: opts[2], cx: opts[1] < 0 ? k.x1 : opts[1] > 0 ? k.x2 : b.x, cy: opts[2] > 0 ? k.y2 : b.y, d: -opts[0] };
+    }
+    return { nx: dx / d, ny: dy / d, cx, cy, d };
   }
-  function wallPosition(b) {
-    b.x = clamp(b.x, b.r, W - b.r);
-    b.y = clamp(b.y, b.r, H - b.r);
+  function wallVelocity(w, b) {
+    if (b.y - b.r <= 0.001) { b.touchNow = true; if (b.vy < 0) b.vy = wallBounce(b.vy); }
+    for (const k of w.walls) {
+      const c = wallContact(b, k);
+      if (c.d > b.r + 0.001) continue;
+      if (c.ny > 0.5) b.touchNow = true;            // resting on top of a wall
+      const vn = b.vx * c.nx + b.vy * c.ny;
+      if (vn < 0) { const nv = wallBounce(vn); b.vx += (nv - vn) * c.nx; b.vy += (nv - vn) * c.ny; }
+    }
+  }
+  function wallPosition(w, b) {
+    if (b.y < b.r) b.y = b.r;
+    for (const k of w.walls) {
+      const c = wallContact(b, k);
+      if (c.d < b.r) { b.x = c.cx + c.nx * b.r; b.y = c.cy + c.ny * b.r; }
+    }
   }
 
   // One time step:
@@ -683,26 +710,36 @@ const Phys = (() => {
     for (let it = 0; it < 8; it++) {
       const n = bs.length;
       for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) collidePair(w, bs[i], bs[j]);
-      for (const b of bs) if (!b.dead) wallVelocity(b);
+      for (const b of bs) if (!b.dead) wallVelocity(w, b);
       if (bs.some(b => b.dead)) { w.bodies = bs = w.bodies.filter(b => !b.dead); }
     }
     for (const b of bs) { b.x += b.vx * dt; b.y += b.vy * dt; }
     for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) separatePair(bs[i], bs[j]);
-    for (const b of bs) wallPosition(b);
+    for (const b of bs) wallPosition(w, b);
     w.time += dt;
   }
 
-  return { W, H, LINE, LAUNCH, G, VMAX, MAX_TIER, RADII, E_THRESH, massOf, radiusOf, createWorld, addBody, step };
+  // For the aim guide: move one pretend face through the same ground and walls (no other faces).
+  function ghostStep(w, b, dt) {
+    if (w.gravity) b.vy -= G * dt;
+    wallVelocity(w, b); b.x += b.vx * dt; b.y += b.vy * dt; wallPosition(w, b);
+  }
+
+  return { W, H, BOX, CLIFF, LINE, LAUNCH, G, VMAX, MAX_TIER, RADII, E_THRESH, massOf, radiusOf, createWorld, addBody, step, ghostStep, boxWalls };
 })();
 if (typeof module !== 'undefined') module.exports = Phys;
 </script><script>
 (() => {
-const { W, H, LAUNCH, VMAX, massOf } = Phys;
+const { W, LAUNCH, VMAX, massOf, BOX, CLIFF } = Phys;
+const BOX_MID = (BOX.l + BOX.r) / 2;
+const VIEW_BOTTOM = -0.45;          // a strip of ground shown below y = 0 (m)
+let H = Phys.H;                     // top of the view (m); grows on tall screens to fill them
 // Game version: change these every time a new version is published.
 // v1.0 (17 Nov 2026) SuiCalculate arcade + app. v1.1 (19 Nov 2026) secret ball, version label. v1.2 (19 Nov 2026) tank shake.
-const GAME_VERSION = '1.2', GAME_DATE = '19 Nov 2026';
+// v2.0 test (22 Nov 2026) Angry Birds launcher on a cliff outside an open box; a face falling out of the box ends the game.
+const GAME_VERSION = '2.0 test', GAME_DATE = '22 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
-const PULL_FULL = 1.2;              // metres of pull for full power
+const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
 const TIER_COLORS = ['#FF5A5F', '#FF9F1C', '#FFD23F', '#A3E048', '#3DD68C', '#2EC4E6', '#4D8DFF', '#8A6CFF', '#D667FF', '#FF6FB5'];
 const INK = '#2E2445', PINK = '#FF5C9A', SUN = '#FFC93C', MINT = '#2FCFA6', DANGER = '#FF4D5E', MUTED = '#6E668A';
@@ -820,13 +857,13 @@ let world, state = 'title', score = 0, best = 0, merges = 0, current = 1, next =
 // Secret ball: about 1 in 25 launched faces wears the secret member photo. Same tier, mass and physics.
 const SECRET_CHANCE = 1 / 25, SECRET_BONUS = 100, secretIds = new Set();
 let curSecret = false, nextSecret = false;
-// Tank shake: the tank jolts, so every face gets the same change in velocity (Δv). Impulse on each face J = m·Δv.
+// Box shake: the box jolts, so every face gets the same change in velocity (Δv). Impulse on each face J = m·Δv.
 // Start with 1 shake, earn 1 more every 5 merges, hold up to 3.
 const SHAKE_UP = 5, SHAKE_SIDE = 4, SHAKE_EVERY = 5, SHAKE_MAX = 3;
 let shakes = 1, shakeProgress = 0, shakeGrace = 0, shakeUIState = '', shakeAt = -99;
 const rollSecret = () => Math.random() < SECRET_CHANCE;
 const escapeHtml = t => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
-let cooldown = 0, drag = null, dangerT = 0, tickT = 0, popups = [], pending = [], wonShown = false;
+let cooldown = 0, drag = null, rimT = 0, tickT = 0, fallen = null, popups = [], pending = [], wonShown = false;
 let logRows = [], logDirty = true, filter = 'all', trial = null, testType = 'elastic';
 let particles = [], shake = { t: 0, dur: 0, amp: 0 }, squash = new Map(), pops = new Map();
 let combo = 0, lastMergeT = -9, bestCombo = 0, mission = null, missionsDone = 0, newBest = false;
@@ -834,18 +871,18 @@ const trialCounts = { elastic: 0, inelastic: 0 };
 // mergeEnergy: a merge must release at least this much kinetic energy (J). Shown to players as the speed a Tier 1 pair needs (v1).
 // rockEvery: a rock drops in after this many shots. rockBreak: Δp (kg·m/s) needed to smash a rock.
 const DIFF = {
-  easy:   { name: 'Easy',   preview: true,  maxTier: 3, line: 5.0, reward: 100, dp: 15, launchP: 25, mergeEnergy: 4, v1: 4, rockEvery: 25, rockBreak: 20, dangerTime: 2.5, showNext: true,
+  easy:   { name: 'Easy',   preview: true,  maxTier: 3, wall: 5.0, reward: 100, dp: 15, launchP: 25, mergeEnergy: 4, v1: 4, rockEvery: 25, rockBreak: 20, showNext: true,
             info: 'Aim guide on. Crash energy 4 J to merge. A rock every 25 shots.' },
-  normal: { name: 'Normal', preview: true,  maxTier: 3, line: 5.0, reward: 150, dp: 25, launchP: 30, mergeEnergy: 9, v1: 6, rockEvery: 15, rockBreak: 30, dangerTime: 2.5, showNext: true,
+  normal: { name: 'Normal', preview: true,  maxTier: 3, wall: 5.0, reward: 150, dp: 25, launchP: 30, mergeEnergy: 9, v1: 6, rockEvery: 15, rockBreak: 30, showNext: true,
             info: 'Aim guide on. Crash energy 9 J to merge. A rock every 15 shots.' },
-  hard:   { name: 'Hard',   preview: true,  maxTier: 4, line: 4.5, reward: 200, dp: 40, launchP: 50, mergeEnergy: 16, v1: 8, rockEvery: 7, rockBreak: 45, dangerTime: 1.5, showNext: false,
-            info: 'Aim guide on, no Next preview. Crash energy 16 J to merge. A rock every 7 shots. Only 1.5 s on the danger line.' },
+  hard:   { name: 'Hard',   preview: true,  maxTier: 4, wall: 4.5, reward: 200, dp: 40, launchP: 50, mergeEnergy: 16, v1: 8, rockEvery: 7, rockBreak: 45, showNext: false,
+            info: 'Aim guide on, no Next preview. Crash energy 16 J to merge. A rock every 7 shots. Lower box walls (4.5 m).' },
 };
 const ROCK_M = 12, ROCK_R = 0.32;   // rocks: 12 kg, never merge
 let shots = 0, rockDue = -1, rocksSmashed = 0, lastSoftT = -9, softHinted = false;
 let difficulty = store.get('difficulty', 'easy'); if (!DIFF[difficulty]) difficulty = 'easy';
 let bests = Object.assign({ easy: 0, normal: 0, hard: 0 }, store.get('bests', {}));
-let lineY = DIFF[difficulty].line;
+let wallH = DIFF[difficulty].wall;   // height of the box walls (m)
 const randTier = () => 1 + Math.floor(Math.random() * DIFF[difficulty].maxTier);
 $('arrows').checked = store.get('arrows', false);
 $('showNums').checked = store.get('nums', true);
@@ -912,15 +949,20 @@ function saveFaces() {
 // DRAWING
 // =====================================================================
 let ppm = 100, dpr = 1, cw = 0;
+// Fit the whole scene to the screen: full width if possible, and show at least MIN_VIEW metres of height.
+// On tall phones the extra space becomes more sky (up to MAX_VIEW).
+const MIN_VIEW = 7.7, MAX_VIEW = 13.5;   // 7.7 m: the ground strip up to about 1.5 m above the slingshot
+let ch = 0;
 function fitStage() {
   const r = $('stageWrap').getBoundingClientRect();
   if (r.width <= 0 || r.height <= 0) return;
-  cw = Math.floor(Math.max(120, Math.min(r.width - 10, (r.height - 8) * W / H)));
-  const ch = Math.round(cw * H / W);
-  $('stage').style.width = (cw + 10) + 'px'; $('stage').style.height = (ch + 5) + 'px';
+  ppm = Math.max(20, Math.min(r.width / W, r.height / MIN_VIEW));
+  const view = Math.min(MAX_VIEW, r.height / ppm);
+  cw = Math.floor(W * ppm); ch = Math.floor(view * ppm);
+  H = VIEW_BOTTOM + view;
+  $('stage').style.width = cw + 'px'; $('stage').style.height = ch + 'px';
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
-  ppm = cw / W;
 }
 new ResizeObserver(fitStage).observe($('stageWrap'));
 const sx = x => x * ppm, sy = y => (H - y) * ppm;
@@ -1003,33 +1045,18 @@ function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true, isSecret = false
 
 function draw() {
   const c = ctx; c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const wpx = W * ppm, hpx = H * ppm;
+  const wpx = cw, hpx = ch;
   c.clearRect(0, 0, wpx, hpx);
   // screen shake
   if (shake.t < shake.dur && !reduceMotion) {
     const k = shake.amp * (1 - shake.t / shake.dur);
     c.translate((Math.random() - 0.5) * 2 * k, (Math.random() - 0.5) * 2 * k);
   }
-  // glass tank
-  const g = c.createLinearGradient(0, 0, 0, hpx); g.addColorStop(0, '#F4FBFF'); g.addColorStop(1, '#D6EEFF');
-  c.fillStyle = g; c.fillRect(-20, -20, wpx + 40, hpx + 40);
-  c.save(); c.globalAlpha = 0.5; c.fillStyle = '#fff';
-  c.beginPath(); c.moveTo(wpx * 0.08, hpx); c.lineTo(wpx * 0.16, hpx); c.lineTo(wpx * 0.34, 0); c.lineTo(wpx * 0.26, 0); c.fill();
-  c.beginPath(); c.moveTo(wpx * 0.2, hpx); c.lineTo(wpx * 0.23, hpx); c.lineTo(wpx * 0.41, 0); c.lineTo(wpx * 0.38, 0); c.fill();
-  c.restore();
-  // danger zone + line
-  if (state !== 'test') {
-    const danger = dangerT > 0 && state === 'playing', pulse = danger ? 0.5 + 0.5 * Math.sin(performance.now() / 80) : 0;
-    c.fillStyle = `rgba(255, 77, 94, ${0.06 + pulse * 0.12})`; c.fillRect(0, 0, wpx, sy(lineY));
-    c.save(); c.setLineDash([12, 9]); c.lineCap = 'round'; c.lineWidth = danger ? 4 : 3; c.strokeStyle = DANGER; c.globalAlpha = danger ? 0.7 + 0.3 * pulse : 0.55;
-    c.beginPath(); c.moveTo(6, sy(lineY)); c.lineTo(wpx - 6, sy(lineY)); c.stroke(); c.restore();
-    c.font = `600 ${Math.max(11, ppm * 0.13)}px Fredoka, sans-serif`; c.textAlign = 'right'; c.textBaseline = 'bottom';
-    c.fillStyle = DANGER; c.globalAlpha = danger ? 1 : 0.7;
-    c.fillText(danger ? `DANGER ${Math.max(0, DIFF[difficulty].dangerTime - dangerT).toFixed(1)}s` : 'DANGER LINE', wpx - 8, sy(lineY) - 4); c.globalAlpha = 1;
-  } else {
-    c.font = `600 ${Math.max(12, ppm * 0.15)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = MUTED;
-    c.fillText('TEST MODE · no gravity', wpx / 2, 10);
-    c.save(); c.setLineDash([6, 6]); c.strokeStyle = 'rgba(46,36,69,0.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, sy(2.5)); c.lineTo(wpx, sy(2.5)); c.stroke(); c.restore();
+  drawScene(c, wpx, hpx);
+  if (state === 'test') {
+    c.font = `600 ${Math.max(12, ppm * 0.22)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = INK; c.globalAlpha = 0.7;
+    c.fillText('TEST MODE · no gravity', sx(BOX_MID), sy(wallH) - 8); c.globalAlpha = 1;
+    c.save(); c.setLineDash([6, 6]); c.strokeStyle = 'rgba(46,36,69,0.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(sx(BOX.l), sy(2.5)); c.lineTo(sx(BOX.r), sy(2.5)); c.stroke(); c.restore();
   }
   // trails
   for (const b of world.bodies) {
@@ -1053,6 +1080,17 @@ function draw() {
       drawFace(c, 0, 0, b.r * ppm * k, b.tier, b.m, 1, true, b.secret); c.restore();
     } else drawFace(c, X, Y, b.r * ppm * k, b.tier, b.m, 1, true, b.secret);
   }
+  drawBoxFront(c);
+  // faces above the top of the screen: a small marker at the top edge
+  for (const b of world.bodies) if (b.y - b.r > H) {
+    const X = Math.max(10, Math.min(wpx - 10, sx(b.x)));
+    c.save(); c.fillStyle = b.tier >= 1 ? TIER_COLORS[b.tier - 1] : '#B9B2CC'; c.strokeStyle = INK; c.lineWidth = 2.5;
+    c.beginPath(); c.moveTo(X, 4); c.lineTo(X - 8, 16); c.lineTo(X + 8, 16); c.closePath(); c.fill(); c.stroke(); c.restore();
+  }
+  if (fallen) {
+    const t = performance.now() / 1000, X = sx(fallen.x), Y = sy(fallen.y), rr = fallen.r * ppm + 8 + 3 * Math.sin(t * 12);
+    c.save(); c.strokeStyle = DANGER; c.lineWidth = 4; c.setLineDash([8, 6]); c.beginPath(); c.arc(X, Y, rr, 0, Math.PI * 2); c.stroke(); c.restore();
+  }
   if ($('arrows').checked) for (const b of world.bodies) {
     const sp = Math.hypot(b.vx, b.vy); if (sp < 0.25) continue;
     arrow(c, sx(b.x), sy(b.y), sx(b.x + b.vx * 0.12), sy(b.y + b.vy * 0.12));
@@ -1074,6 +1112,48 @@ function draw() {
     if (p.sub) { c.font = `600 ${Math.round(p.size * 0.5)}px Fredoka, sans-serif`; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(p.sub, 0, p.size * 0.75); c.fillStyle = INK; c.fillText(p.sub, 0, p.size * 0.75); }
     c.restore();
   }
+}
+// Ground, the cliff with the slingshot, and the open box. Drawn behind the faces.
+function drawScene(c, wpx, hpx) {
+  const gy = sy(0);
+  // ground
+  const gg = c.createLinearGradient(0, gy, 0, hpx); gg.addColorStop(0, '#7ED957'); gg.addColorStop(1, '#4FB33A');
+  c.fillStyle = gg; c.fillRect(-20, gy, wpx + 40, hpx - gy + 20);
+  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(-20, gy); c.lineTo(wpx + 20, gy); c.stroke();
+  // cliff
+  const cx2 = sx(CLIFF.x2), cy2 = sy(CLIFF.y2);
+  const cg = c.createLinearGradient(0, cy2, 0, gy); cg.addColorStop(0, '#C98A55'); cg.addColorStop(1, '#9A6339');
+  c.fillStyle = cg; c.beginPath(); c.moveTo(-20, gy); c.lineTo(-20, cy2); c.lineTo(cx2 - 6, cy2); c.quadraticCurveTo(cx2, cy2, cx2, cy2 + 6); c.lineTo(cx2, gy); c.closePath(); c.fill();
+  c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
+  c.fillStyle = '#7ED957'; c.beginPath(); c.roundRect(-20, cy2 - 4, cx2 + 22, 10, 5); c.fill(); c.stroke();
+  c.save(); c.globalAlpha = 0.18; c.fillStyle = INK;
+  for (let i = 0; i < 7; i++) { const yy = cy2 + 22 + i * (gy - cy2 - 30) / 7, xx = 8 + ((i * 37) % Math.max(10, cx2 - 26)); c.beginPath(); c.ellipse(xx, yy, 9, 4, 0, 0, Math.PI * 2); c.fill(); }
+  c.restore();
+  // box: back glass and inside
+  const l = sx(BOX.l), r = sx(BOX.r), top = sy(wallH);
+  const bg = c.createLinearGradient(0, top, 0, gy); bg.addColorStop(0, 'rgba(244,251,255,0.55)'); bg.addColorStop(1, 'rgba(214,238,255,0.85)');
+  c.fillStyle = bg; c.fillRect(l, top, r - l, gy - top);
+  // rim warning: a face sitting above the top of the walls may roll out
+  const warn = rimT > 0 && state === 'playing', pulse = warn ? 0.5 + 0.5 * Math.sin(performance.now() / 80) : 0;
+  if (state !== 'test') {
+    c.save(); c.setLineDash([10, 8]); c.lineWidth = 2.5; c.strokeStyle = warn ? DANGER : 'rgba(46,36,69,0.25)'; c.globalAlpha = warn ? 0.6 + 0.4 * pulse : 1;
+    c.beginPath(); c.moveTo(l, top); c.lineTo(r, top); c.stroke(); c.restore();
+    if (warn) { c.font = `700 ${Math.max(11, ppm * 0.2)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = DANGER; c.fillText('CAREFUL!', (l + r) / 2, top - 6); }
+  }
+}
+// Box walls in front of the faces, so faces look like they are inside a glass box.
+function drawBoxFront(c) {
+  const gy = sy(0), top = sy(wallH), t = BOX.t * ppm;
+  for (const x of [sx(BOX.l) - t, sx(BOX.r)]) {
+    c.fillStyle = '#B9733A'; c.strokeStyle = INK; c.lineWidth = 3;
+    c.beginPath(); c.roundRect(x, top - 3, t, gy - top + 3, [4, 4, 0, 0]); c.fill(); c.stroke();
+  }
+  c.save(); c.globalAlpha = 0.35; c.fillStyle = '#fff';
+  const l = sx(BOX.l), w = sx(BOX.r) - l;
+  c.beginPath(); c.moveTo(l + w * 0.06, gy); c.lineTo(l + w * 0.12, gy); c.lineTo(l + w * 0.24, top); c.lineTo(l + w * 0.18, top); c.fill();
+  c.restore();
+  c.fillStyle = '#9A6339'; c.strokeStyle = INK; c.lineWidth = 3;
+  c.beginPath(); c.roundRect(sx(BOX.l) - t - 4, gy, sx(BOX.r) - sx(BOX.l) + 2 * t + 8, 9, 4); c.fill(); c.stroke();
 }
 // A grumpy cartoon rock: lumpy outline, speckles, cracks after strong hits, and a mass tag.
 function drawRock(c, x, y, r, b) {
@@ -1126,24 +1206,26 @@ function arrow(c, x1, y1, x2, y2) {
 function launchVel() {
   if (!drag) return { vx: 0, vy: 0, sp: 0 };
   const len = Math.hypot(drag.px, drag.py);
-  if (len < 0.08) return { vx: 0, vy: 0, sp: 0 };
-  const sp = Math.min(VMAX, len / PULL_FULL * VMAX);
+  if (len * ppm < 8) return { vx: 0, vy: 0, sp: 0 };
+  const sp = Math.min(VMAX, len * ppm / PULL_PX * VMAX);   // full power at PULL_PX screen pixels, whatever the screen size
   return { vx: drag.px / len * sp, vy: drag.py / len * sp, sp };
 }
 // Aim guide: follows the same gravity and wall bounces as the game (a wall keeps half the speed),
-// and stops where the face would first touch another face or the floor. It ignores what happens after that hit.
+// and stops where the face would first touch another face or the ground. It ignores what happens after that hit.
 function drawAimGuide(c, v) {
   const rr = Phys.radiusOf(current), dt = 1 / 240, dots = [], bounces = [];  // same time step as the game
-  let x = LAUNCH.x, y = LAUNCH.y, vx = v.vx, vy = v.vy, t = 0, nextDot = 0.03, hit = null;
-  for (let i = 0; i < 800 && !hit; i++) {
-    vy -= Phys.G * dt; x += vx * dt; y += vy * dt; t += dt;
-    if (x - rr < 0) { x = rr; if (vx < 0) { bounces.push({ side: -1, y }); vx = vx < -0.3 ? -vx * 0.5 : 0; } }
-    if (x + rr > W) { x = W - rr; if (vx > 0) { bounces.push({ side: 1, y }); vx = vx > 0.3 ? -vx * 0.5 : 0; } }
-    if (y + rr > H) { y = H - rr; if (vy > 0) vy = vy > 0.3 ? -vy * 0.5 : 0; }
-    for (const b of world.bodies) if (Math.hypot(b.x - x, b.y - y) < b.r + rr) { hit = { x, y }; break; }
-    if (!hit && y - rr <= 0) hit = { x, y: rr };
-    if (!hit && t >= nextDot) { dots.push({ x, y, t }); nextDot += 0.045; }
+  const g = { x: LAUNCH.x, y: LAUNCH.y, vx: v.vx, vy: v.vy, r: rr };
+  let t = 0, nextDot = 0.03, hit = null;
+  for (let i = 0; i < 900 && !hit; i++) {
+    const bvx = g.vx, bvy = g.vy;
+    Phys.ghostStep(world, g, dt); t += dt;
+    if (g.y - rr <= 0.002) { hit = { x: g.x, y: rr }; break; }
+    if (Math.sign(bvx) !== Math.sign(g.vx) && Math.abs(bvx) > 0.3 || (bvy < -0.3 && g.vy >= 0)) bounces.push({ x: g.x, y: g.y, vx: g.vx, vy: g.vy });
+    for (const b of world.bodies) if (Math.hypot(b.x - g.x, b.y - g.y) < b.r + rr) { hit = { x: g.x, y: g.y }; break; }
+    if (g.x < -1 || g.x > W + 1) break;
+    if (!hit && t >= nextDot) { dots.push({ x: g.x, y: g.y, t }); nextDot += 0.045; }
   }
+  const x = g.x, y = g.y;
   const tEnd = Math.max(t, 0.1);
   c.save();
   // dots along the path
@@ -1151,15 +1233,16 @@ function drawAimGuide(c, v) {
     c.globalAlpha = 1 - 0.65 * (d.t / tEnd); c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 2;
     c.beginPath(); c.arc(sx(d.x), sy(d.y), 4.2, 0, Math.PI * 2); c.fill(); c.stroke();
   }
-  // wall bounce markers
+  // wall bounce markers: a pink burst where the face hits a wall
   c.globalAlpha = 1; c.strokeStyle = PINK; c.lineWidth = 3; c.lineCap = 'round';
   for (const bo of bounces) {
-    const wx = bo.side < 0 ? 3 : W * ppm - 3, wy = sy(bo.y), dir = -bo.side;
-    for (const a of [-0.6, 0, 0.6]) { c.beginPath(); c.moveTo(wx + dir * 4 * Math.cos(a), wy + 4 * Math.sin(a)); c.lineTo(wx + dir * 13 * Math.cos(a), wy + 13 * Math.sin(a)); c.stroke(); }
+    const X = sx(bo.x), Y = sy(bo.y);
+    for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; c.beginPath(); c.moveTo(X + 5 * Math.cos(a), Y + 5 * Math.sin(a)); c.lineTo(X + 12 * Math.cos(a), Y + 12 * Math.sin(a)); c.stroke(); }
   }
-  // where the face lands: a dashed outline of the loaded face
+  // where the face lands: a dashed outline of the loaded face (red if it lands outside the box)
   if (hit) {
-    c.globalAlpha = 0.9; c.setLineDash([6, 5]); c.lineWidth = 2.5; c.strokeStyle = INK; c.fillStyle = 'rgba(255,255,255,0.45)';
+    const outside = hit.x < BOX.l || hit.x > BOX.r;
+    c.globalAlpha = 0.9; c.setLineDash([6, 5]); c.lineWidth = 2.5; c.strokeStyle = outside ? DANGER : INK; c.fillStyle = outside ? 'rgba(255,77,94,0.25)' : 'rgba(255,255,255,0.45)';
     c.beginPath(); c.arc(sx(hit.x), sy(hit.y), rr * ppm, 0, Math.PI * 2); c.fill(); c.stroke();
   }
   c.restore();
@@ -1170,10 +1253,12 @@ function drawSlingshot(c) {
   let ox = 0, oy = 0;
   if (drag && v.sp > 0) { const k = power * 0.5 * ppm; ox = -v.vx / v.sp * k; oy = v.vy / v.sp * k; }
   c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
-  // wooden posts
-  for (const s of [-1, 1]) {
-    c.strokeStyle = INK; c.lineWidth = 11; c.beginPath(); c.moveTo(fx + s * spread, fy - 16); c.lineTo(fx + s * spread, fy + 14); c.stroke();
-    c.strokeStyle = '#B9733A'; c.lineWidth = 6; c.beginPath(); c.moveTo(fx + s * spread, fy - 16); c.lineTo(fx + s * spread, fy + 14); c.stroke();
+  // wooden Y-shaped slingshot standing on the cliff
+  const base = sy(CLIFF.y2), fork = fy + 14;
+  for (const [w, col] of [[11, INK], [6, '#B9733A']]) {
+    c.strokeStyle = col; c.lineWidth = w;
+    c.beginPath(); c.moveTo(fx, base); c.lineTo(fx, fork); c.stroke();
+    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(fx, fork); c.lineTo(fx + s * spread, fy - 4); c.lineTo(fx + s * spread, fy - 16); c.stroke(); }
   }
   const ready = cooldown <= 0 && state !== 'title';
   if (ready || state === 'title') {
@@ -1191,7 +1276,7 @@ function drawSlingshot(c) {
     if (drag && v.sp > 0 && $('showNums').checked) {
       const txt = `${v.sp.toFixed(1)} m/s · p ${(massOf(current) * v.sp).toFixed(1)}`;
       c.font = '600 13px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 16;
-      let bx = fx + ox - tw / 2; bx = Math.max(4, Math.min(W * ppm - tw - 4, bx)); const by = fy + oy + r + 18;
+      let bx = fx + ox - tw / 2; bx = Math.max(4, Math.min(cw - tw - 4, bx)); const by = Math.min(ch - 30, fy + oy + r + 18);
       c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 2.5; c.beginPath(); c.roundRect(bx, by, tw, 22, 11); c.fill(); c.stroke();
       c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 8, by + 11.5);
     }
@@ -1223,7 +1308,8 @@ function nextBanner() {
 // GAME FLOW
 // =====================================================================
 function emptyWorld() {
-  world = Phys.createWorld({ mergeEnergy: DIFF[difficulty].mergeEnergy });
+  wallH = DIFF[difficulty].wall;
+  world = Phys.createWorld({ mergeEnergy: DIFF[difficulty].mergeEnergy, wallH });
   world.onEvent = ev => pending.push(ev);
   world.onSoft = (a, b, speed, need) => {
     if (state !== 'playing' || world.time - lastSoftT < 0.7) return;
@@ -1235,9 +1321,9 @@ function emptyWorld() {
 }
 function newGame() {
   emptyWorld();
-  state = 'playing'; score = 0; best = 0; merges = 0; dangerT = 0; cooldown = 0; drag = null; wonShown = false; newBest = false;
+  state = 'playing'; score = 0; best = 0; merges = 0; rimT = 0; fallen = null; cooldown = 0; drag = null; wonShown = false; newBest = false;
   popups = []; pending = []; particles = []; squash.clear(); pops.clear();
-  lineY = DIFF[difficulty].line; combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
+  combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
   shots = 0; rockDue = -1; shakes = 1; shakeProgress = 0; shakeGrace = 0; shakeAt = -99; updateShakeUI(); rocksSmashed = 0; lastSoftT = -9; softHinted = false;
   current = randTier(); next = randTier(); curSecret = false; nextSecret = rollSecret(); secretIds.clear();
   newMission();
@@ -1258,11 +1344,12 @@ function showTips(then, firstTime) {
       <div class="tip"><span class="tip-n">${d.mergeEnergy} J</span><span>Crash energy needed. Light faces need a fast hit; heavy faces merge with a gentle bump.</span></div>
       <div class="speeds"><span class="label">Speed needed (m/s)</span><div>${row}</div></div>
       <div class="tip"><span class="tip-n">Too soft!</span><span>This pops up when two matching faces touch too slowly. They bounce or stack instead.</span></div>
-      <div class="tip"><span class="tip-n">Shake</span><span>Stuck at the bottom? Tap Shake (or S). The tank jolts and every face gets the same Δv, so J = mΔv. Earn a shake every 5 merges (max 3).</span></div>
+      <div class="tip"><span class="tip-n">Box</span><span>Fire faces from the cliff into the box. If a face falls <b>out</b> of the box, the game ends. Missed shots just roll away.</span></div>
+      <div class="tip"><span class="tip-n">Shake</span><span>Stuck at the bottom? Tap Shake (or S). The box jolts and every face gets the same Δv, so J = mΔv. Earn a shake every 5 merges (max 3).</span></div>
       <div class="tip rock"><span class="tip-n">Rocks</span><span>Every ${d.rockEvery} shots a rock drops in. Rocks never merge. Smash one with a hit of Δp ${d.rockBreak} kg·m/s or more.</span></div>
-      ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and only 1.5&nbsp;s on the danger line before the tank overflows.</span></div>' : ''}
+      ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and lower box walls (4.5&nbsp;m), so faces fall out more easily.</span></div>' : ''}
     </div>
-    <p>Faster and heavier faces carry more momentum (p = mv) and energy, so they merge, smash and score better.</p>`,
+    <p>Faster and heavier faces carry more momentum (p = mv) and energy, so they merge, smash and score better. But a hard hit can also knock faces out of the box.</p>`,
     [[firstTime ? "Got it, let's play!" : 'Got it', () => { closeModal(); if (then) then(); }, 'go']], () => { closeModal(); if (then) then(); });
 }
 function launch() {
@@ -1279,8 +1366,8 @@ function launch() {
   updateHud();
 }
 function spawnRock() {
-  const x = ROCK_R + 0.2 + Math.random() * (W - 2 * ROCK_R - 0.4);
-  const r = Phys.addBody(world, { tier: -1, m: ROCK_M, r: ROCK_R, x, y: H - ROCK_R - 0.05, vx: 0, vy: -1 });
+  const x = BOX.l + ROCK_R + 0.2 + Math.random() * (BOX.r - BOX.l - 2 * ROCK_R - 0.4);
+  const r = Phys.addBody(world, { tier: -1, m: ROCK_M, r: ROCK_R, x, y: Math.max(wallH + 2, H - ROCK_R - 0.3), vx: 0, vy: -1 });
   r.cracks = 0; r.seed = Math.random() * 1000;
   banner('Rock incoming!', 'pink'); Sound.rock();
 }
@@ -1330,31 +1417,50 @@ function pauseGame(showMenu = true) {
 function pauseMenuBack() { if (state === 'paused') { state = 'playing'; pauseGame(); } }
 function resumeGame() { if (state !== 'paused') return; closeModal(); state = 'playing'; setPauseUI(false); Sound.musicStart(); }
 function togglePause() { if (state === 'playing') pauseGame(); else if (state === 'paused') resumeGame(); }
-function checkDanger(dt) {
-  let danger = false;
+// The box rule. A face counts as "in the box" once its centre is between the walls and below their top
+// (or it is resting on the pile there). If a face that was in the box ends up outside the walls, the game ends.
+// A shot that never gets in is a miss: it rolls away and is removed. Rocks knocked out are just removed.
+function checkBox(dt) {
+  let rim = false, missed = 0;
   for (const b of world.bodies) {
-    if (world.time - b.born < 1.0) continue;
-    if (b.y + b.r > lineY && Math.hypot(b.vx, b.vy) < 1.0) { danger = true; break; }
+    // (fully past the rim, so a shot that just clips the top of a wall and bounces back is still a miss)
+    const inside = b.x > BOX.l + b.r * 0.9 && b.x < BOX.r - b.r * 0.9, sp = Math.hypot(b.vx, b.vy);
+    if (!b.inBox && inside && (b.y < wallH || (b.touching && sp < 1.5))) b.inBox = true;
+    const outside = b.x < BOX.l - BOX.t || b.x > BOX.r + BOX.t;
+    if (b.inBox && outside) {   // past the outside of a wall: it has left the box (even if it is still flying)
+      if (b.tier === -1) { b.dead = true; popups.push({ x: b.x, y: b.y + 0.4, text: 'Rock out!', color: '#D9D4E6', size: 18, t: 0, life: 1.2 }); Sound.thunk(); continue; }
+      fallen = b; banner('Fell out!', 'pink'); gameOver(); return;
+    }
+    if (!b.inBox && (b.x < -0.6 || b.x > W + 0.6 || (b.y - b.r < 0.03 && outside))) {
+      b.dead = true; missed++;
+      const mx = Math.max(0.5, Math.min(W - 0.5, b.x)), my = Math.max(0.6, Math.min(H - 0.8, b.y));
+      burst(sx(mx), sy(my), '#fff', 10, 120, { stars: 0, size: 4 });
+      popups.push({ x: mx, y: my + 0.3, text: 'Miss!', color: '#fff', size: 20, t: 0, life: 1.1 });
+    }
+    if (b.inBox && b.y + b.r > wallH && sp < 1.0) rim = true;
   }
-  if (danger) { tickT -= dt; if (tickT <= 0) { Sound.tick(); tickT = 0.5; } } else tickT = 0;
-  if (shakeGrace > 0) { shakeGrace -= dt; danger = false; }
-  dangerT = danger ? dangerT + dt : 0;
-  if (dangerT > DIFF[difficulty].dangerTime) gameOver();
+  if (missed) { world.bodies = world.bodies.filter(b => !b.dead); secretIds.forEach(id => { if (!world.bodies.some(b => b.id === id)) secretIds.delete(id); }); Sound.thunk(); }
+  else if (world.bodies.some(b => b.dead)) world.bodies = world.bodies.filter(b => !b.dead);
+  if (rim) { tickT -= dt; if (tickT <= 0) { Sound.tick(); tickT = 0.5; } } else tickT = 0;
+  rimT = rim ? rimT + dt : 0;
+  if (shakeGrace > 0) shakeGrace -= dt;
 }
 function tankShake() {
-  if (state !== 'playing' || shakes <= 0 || !world.bodies.length) return;
+  if (state !== 'playing' || shakes <= 0 || !world.bodies.some(b => b.inBox)) return;
   shakes--; shakeGrace = 1.8; shakeAt = world.time;
-  // Same Δv for every face (up, plus a random sideways part). Light and heavy faces jump the same way,
-  // so they hit each other at different angles and matching faces can crash hard enough to merge.
+  // Same Δv for every face in the box (up, plus a sideways part toward the middle so faces are not thrown out).
+  // Light and heavy faces jump the same way, so they hit each other at different angles and can crash hard enough to merge.
   let dvSum = 0, n = 0, jMin = Infinity, jMax = 0;
   for (const b of world.bodies) {
-    const up = SHAKE_UP * (0.85 + 0.3 * Math.random()), side = (Math.random() - 0.5) * 2 * SHAKE_SIDE;
+    if (!b.inBox) continue;
+    const toMid = Math.sign(BOX_MID - b.x) || 1, edge = Math.min(1, Math.abs(BOX_MID - b.x) / ((BOX.r - BOX.l) / 2));
+    const up = SHAKE_UP * (0.85 + 0.3 * Math.random()), side = toMid * SHAKE_SIDE * (0.25 + 0.75 * edge) * Math.random();
     b.vy += up; b.vx += side; b.touching = false;
     const dv = Math.hypot(up, side), J = b.m * dv; dvSum += dv; n++; jMin = Math.min(jMin, J); jMax = Math.max(jMax, J);
   }
   doShake(16, 0.5); Sound.thunk(); Sound.crack();
-  burst(W * ppm / 2, H * ppm - 6, '#fff', 24, 260, { up: 160, size: 5 });
-  popups.push({ x: W / 2, y: 2.6, text: 'Tank shake!', sub: `Δv ≈ ${(dvSum / n).toFixed(1)} m/s · J = mΔv: ${jMin.toFixed(1)} to ${jMax.toFixed(0)} kg·m/s`, color: SUN, size: 26, t: 0, life: 2.2 });
+  burst(sx(BOX_MID), sy(0) - 6, '#fff', 24, 260, { up: 160, size: 5 });
+  popups.push({ x: BOX_MID, y: Math.min(wallH + 0.8, H - 1.2), text: 'Box shake!', sub: `Δv ≈ ${(dvSum / n).toFixed(1)} m/s, so J = mΔv`, color: SUN, size: 26, t: 0, life: 2.2 });
   updateShakeUI();
 }
 function updateShakeUI() {
@@ -1363,14 +1469,14 @@ function updateShakeUI() {
   btn.disabled = shakes <= 0 || state !== 'playing';
   $('shakeCount').textContent = shakes;
   $('shakePips').innerHTML = Array.from({ length: SHAKE_EVERY }, (_, i) => `<i class="${i < shakeProgress ? 'on' : ''}"></i>`).join('');
-  btn.setAttribute('aria-label', `Shake the tank, ${shakes} left. Next shake in ${SHAKE_EVERY - shakeProgress} merges.`);
+  btn.setAttribute('aria-label', `Shake the box, ${shakes} left. Next shake in ${SHAKE_EVERY - shakeProgress} merges.`);
 }
 function gameOver() {
   state = 'over'; drag = null; Sound.musicStop(); Sound.gameOver(); setPauseUI(false);
   const isBest = score > bests[difficulty];
   if (isBest) { bests[difficulty] = score; store.set('bests', bests); }
   doShake(10, 0.5);
-  setTimeout(() => state === 'over' && openModal('Tank full!', `
+  setTimeout(() => state === 'over' && openModal('Fell out of the box!', `
     ${isBest && score > 0 ? '<span class="newbest-chip">New best!</span>' : ''}
     <div class="big-score">${score.toLocaleString()}</div>
     <p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>
@@ -1384,7 +1490,7 @@ function gameOver() {
     </div>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Physics lab', () => { closeModal(); openLab('log', gameOverBack); }]]), 450);
   updateHud();
 }
-function gameOverBack() { state = 'over'; openModal('Tank full!', `<div class="big-score">${score.toLocaleString()}</div><p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Back to title', toTitle]]); }
+function gameOverBack() { state = 'over'; openModal('Fell out of the box!', `<div class="big-score">${score.toLocaleString()}</div><p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Back to title', toTitle]]); }
 function toTitle() {
   if (state === 'playing' || state === 'paused') { if (score > bests[difficulty]) { bests[difficulty] = score; store.set('bests', bests); } }
   closeModal(); state = 'title'; Sound.musicStop(); emptyWorld(); refreshTitle(); $('titleScreen').hidden = false;
@@ -1434,7 +1540,7 @@ function handleEvents() {
       const k = ev.type === 'C1' ? 'inelastic' : 'elastic'; trialCounts[k]++; ev.trialNo = trialCounts[k];
       updateTrialNote();
       if (ev.type === 'C1') { burst(X, Y, TIER_COLORS[Math.max(1, Math.min(TIERS, ev.newTier || 1)) - 1], 18, 180); Sound.merge(Math.max(1, ev.newTier || 1)); }
-      popups.push({ x: W / 2, y: ev.y + 0.9, text: ev.type === 'C1' ? 'Stick!' : 'Bounce!', sub: `p ${ev.pBefore.toFixed(2)} → ${ev.pAfter.toFixed(2)}`, color: ev.type === 'C1' ? SUN : MINT, size: 28, t: 0, life: 2.6 });
+      popups.push({ x: BOX_MID, y: ev.y + 0.9, text: ev.type === 'C1' ? 'Stick!' : 'Bounce!', sub: `p ${ev.pBefore.toFixed(2)} → ${ev.pAfter.toFixed(2)}`, color: ev.type === 'C1' ? SUN : MINT, size: 28, t: 0, life: 2.6 });
       $('trialCount').textContent = `Trial result: v₁′ ${ev.v1a.toFixed(2)}, v₂′ ${ev.v2a.toFixed(2)} m/s · p ${ev.pBefore.toFixed(2)} → ${ev.pAfter.toFixed(2)} · KE ratio ${ev.keRatio === null ? 'n/a' : ev.keRatio.toFixed(2)} · Bounce ${trialCounts.elastic}, Stick ${trialCounts.inelastic} (need 3 each)`;
     }
     showLast(ev);
@@ -1444,7 +1550,7 @@ function handleEvents() {
 }
 function win() {
   Sound.win();
-  for (let i = 0; i < 6; i++) setTimeout(() => burst(Math.random() * W * ppm, Math.random() * H * ppm * 0.5, TIER_COLORS[i % TIERS], 30, 260, { up: 120 }), i * 150);
+  for (let i = 0; i < 6; i++) setTimeout(() => burst(Math.random() * cw, Math.random() * ch * 0.5, TIER_COLORS[i % TIERS], 30, 260, { up: 120 }), i * 150);
   banner(`Tier ${TIERS}!<small>You grew the biggest face</small>`, 'sun');
   setTimeout(() => {
     if (state !== 'playing') return;
@@ -1591,10 +1697,11 @@ function enterTest() {
 function setupTrial() {
   if (state !== 'test') return;
   const tA = +$('tA').value, tB = +$('tB').value;
-  world = Phys.createWorld({ gravity: false, forced: testType, logLimit: 1 });
+  wallH = DIFF[difficulty].wall;
+  world = Phys.createWorld({ gravity: false, forced: testType, logLimit: 1, wallH });
   world.onEvent = ev => pending.push(ev);
-  Phys.addBody(world, { tier: tA, x: 1.0, y: 2.5, vx: 0 });
-  Phys.addBody(world, { tier: tB, x: 3.0, y: 2.5, vx: 0 });
+  Phys.addBody(world, { tier: tA, x: BOX.l + 1.0, y: 2.5, vx: 0 });
+  Phys.addBody(world, { tier: tB, x: BOX.l + 3.0, y: 2.5, vx: 0 });
   trial = { running: false, hitAt: null };
 }
 function runTrial() {
@@ -1704,7 +1811,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'playing') pauseGame(); Sound.musicStop(); } });
 
 function toWorld(e) { const r = canvas.getBoundingClientRect(); const k = r.width / W; return { x: (e.clientX - r.left) / k, y: H - (e.clientY - r.top) / k }; }
-// Aiming: start a pull anywhere in the tank area (including the space beside the tank) and keep pulling
+// Aiming: start a pull anywhere on the screen and keep pulling
 // past its edges; pointer capture keeps the drag going until you let go.
 const aimArea = $('stageWrap');
 aimArea.addEventListener('pointerdown', e => {
@@ -1727,7 +1834,7 @@ function frame(now) {
   if (running) {
     acc += dt;
     while (acc >= DT) { Phys.step(world, DT); acc -= DT; }
-    if (state === 'playing') { cooldown = Math.max(0, cooldown - dt); checkDanger(dt); if (rockDue > 0) { rockDue -= dt; if (rockDue <= 0) spawnRock(); } }
+    if (state === 'playing') { cooldown = Math.max(0, cooldown - dt); checkBox(dt); if (rockDue > 0) { rockDue -= dt; if (rockDue <= 0) spawnRock(); } }
     if (state === 'test') testTick();
     handleEvents();
     for (const b of world.bodies) {   // trails behind fast faces
