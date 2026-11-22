@@ -16,7 +16,7 @@
 <title>SuiCalculate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one-screen arcade. Sky and hills behind; HUD on top, the glass tank in the middle, a chunky toolbar on the grass.
    Single bright cartoon theme on purpose: every colour is set explicitly, so it looks the same on any host background. */
@@ -269,15 +269,124 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
   .banner { animation-duration: 1.4s; animation-name: fadeonly; }
   @keyframes fadeonly { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
 }
+
+/* =====================================================================
+   CAMPUS THEME (v2.1 test): school campus at night behind a notebook-doodle UI.
+   Cream lined paper, blue ballpoint ink, a red margin line, highlighter accents, sticky-note buttons.
+   ===================================================================== */
+:root {
+  --ink: #1F3A93; --muted: #5E6C9A; --card: #FFFBEF; --cream: #FFFBEF; --paper: #FFFBEF; --rule: #D3E1F4; --margin: #F4A7A1;
+  --sun: #FFF176; --pink: #FF8FC8; --pink-dark: #D81B78; --mint: #A5F2A0; --mint-dark: #2E7D32; --danger: #E53935;
+  --font-display: "Patrick Hand", "Comic Sans MS", system-ui, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --sketch: 255px 14px 225px 14px / 14px 225px 14px 255px;
+  color-scheme: light;
+}
+body { background: #0B1230; }
+.scenery canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.card { background: var(--paper) repeating-linear-gradient(180deg, transparent 0 21px, var(--rule) 21px 22px); border: 2px solid var(--ink); border-radius: var(--sketch);
+  box-shadow: 2px 3px 0 rgba(11, 18, 48, 0.45); }
+.scorecard, .strip { background: linear-gradient(90deg, transparent 0 16px, var(--margin) 16px 17.5px, transparent 17.5px), var(--paper) repeating-linear-gradient(180deg, transparent 0 21px, var(--rule) 21px 22px); padding-left: 24px; }
+.label { font-family: var(--font-display); font-size: 13px; letter-spacing: 0.04em; color: var(--muted); }
+.score { font-family: var(--font-display); font-weight: 400; font-size: 38px; color: var(--ink); }
+.score::after { content: ""; }
+@keyframes bump { 40% { transform: scale(1.12) rotate(-2deg); background: var(--sun); } }
+.best { font-family: var(--font-display); font-size: 15px; }
+.best b { color: var(--ink); } .best.newbest b { background: var(--pink); }
+.iconbtn, .tb { font-family: var(--font-display); font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.tb small { font-family: var(--font-display); font-weight: 400; font-size: 12.5px; }
+.mission-text { font-family: var(--font-display); font-weight: 400; font-size: 18px; }
+.mission-hint { font-size: 12px; }
+.chip { background: var(--sun); border: 1.5px solid var(--ink); font-family: var(--font-display); font-weight: 400; font-size: 15px; transform: rotate(-3deg); border-radius: 3px; }
+.mini { background: #fff; font-family: var(--font-display); font-weight: 400; font-size: 14px; border: 1.5px solid var(--ink); border-radius: var(--sketch); }
+@keyframes flash { 30% { background: var(--mint); transform: scale(1.02) rotate(-1deg); } }
+.btn { font-family: var(--font-display); font-weight: 400; font-size: 19px; background: #fff; border: 2px solid var(--ink); border-radius: var(--sketch); color: var(--ink); box-shadow: 2px 3px 0 rgba(31, 58, 147, 0.35); }
+.btn.primary { background: var(--sun); color: var(--ink); border-radius: 2px; transform: rotate(-1.5deg); box-shadow: 3px 5px 0 rgba(11, 18, 48, 0.35); }
+.btn.go { background: var(--mint); color: var(--ink); border-radius: 2px; transform: rotate(1deg); box-shadow: 3px 5px 0 rgba(11, 18, 48, 0.35); }
+.btn.big { font-size: 28px; padding: 8px 30px; }
+.btn:active, .card.press:active, .tb:active, .iconbtn:active { transform: translateY(2px); box-shadow: 1px 1px 0 rgba(31, 58, 147, 0.35); }
+button:focus-visible, select:focus-visible, input:focus-visible, label.btn:focus-within { outline: 3px solid var(--pink); outline-offset: 3px; }
+.seg { border: 2px solid var(--ink); border-radius: var(--sketch); background: #fff; }
+.seg button { font-family: var(--font-display); font-weight: 400; font-size: 15px; color: var(--ink); }
+.seg button + button { border-left: 1.5px dashed var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--sun); color: var(--ink); }
+select, input[type="number"], input[type="text"] { border: 1.5px solid var(--ink); color: var(--ink); }
+/* title: a notebook page over the campus */
+.title-screen { background: rgba(11, 18, 48, 0.45); }
+.title-inner { background: linear-gradient(90deg, transparent 0 26px, var(--margin) 26px 28px, transparent 28px), var(--paper) repeating-linear-gradient(180deg, transparent 0 27px, var(--rule) 27px 28px);
+  padding: 18px 16px 16px 34px; border-radius: 4px; box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.35); transform: rotate(-0.6deg); position: relative; }
+.title-inner::before { content: ""; position: absolute; left: 50%; top: -12px; width: 110px; height: 26px; transform: translateX(-50%) rotate(2deg); background: rgba(255, 241, 118, 0.75); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.logo { font-family: var(--font-display); font-weight: 400; color: var(--ink); text-shadow: none; letter-spacing: 0.01em; }
+.logo .l1 { font-size: clamp(54px, 16vw, 80px); }
+.logo .l2 { font-size: clamp(44px, 13vw, 68px); color: var(--ink); background: linear-gradient(180deg, transparent 0 45%, var(--pink) 45% 88%, transparent 88%); padding: 0 6px; }
+.logo .l1 span span:nth-child(odd) { color: #D81B78; }
+.tagline { color: var(--ink); font-family: var(--font-body); }
+.step { font-family: var(--font-display); font-weight: 400; font-size: 16px; line-height: 1.15; }
+.step b { background: transparent; border: 2px solid var(--ink); font-weight: 400; font-size: 19px; }
+.lvl { color: var(--ink); }
+.lvl .n { font-family: var(--font-display); font-weight: 400; font-size: 24px; }
+.lvl .d { font-size: 12px; }
+.lvl .b { font-family: var(--font-display); font-weight: 400; font-size: 15px; }
+.lvl[aria-pressed="true"] { background: var(--sun); }
+.credit { color: var(--muted); font-family: var(--font-display); font-size: 15px; }
+/* overlays */
+.modal-screen { background: rgba(11, 18, 48, 0.55); }
+.modal { background: linear-gradient(90deg, transparent 0 22px, var(--margin) 22px 23.5px, transparent 23.5px), var(--paper) repeating-linear-gradient(180deg, transparent 0 25px, var(--rule) 25px 26px); border-radius: 4px; padding-left: 30px; }
+.modal h2 { font-family: var(--font-display); font-weight: 400; font-size: 36px; color: var(--ink); }
+.modal .big-score { font-family: var(--font-display); font-weight: 400; font-size: 64px; color: var(--ink); background: linear-gradient(180deg, transparent 0 50%, var(--sun) 50% 90%, transparent 90%); padding: 0 10px; }
+.newbest-chip { background: var(--pink); color: var(--ink); border: 1.5px solid var(--ink); font-family: var(--font-display); font-weight: 400; font-size: 17px; border-radius: 3px; }
+.stat { background: #fff; border: 1.5px solid var(--ink); border-radius: var(--sketch); }
+.stat b { font-family: var(--font-display); font-weight: 400; font-size: 24px; }
+.lab { background: var(--paper) repeating-linear-gradient(180deg, transparent 0 25px, var(--rule) 25px 26px); }
+.lab-head h2, .pane h3 { font-family: var(--font-display); font-weight: 400; }
+.lab-head h2 { font-size: 30px; } .pane h3 { font-size: 22px; }
+.panel { background: #fff; border: 1.5px solid var(--ink); border-radius: var(--sketch); }
+.formula { background: #FFFDE7; color: var(--ink); }
+.pill { font-family: var(--font-display); font-weight: 400; font-size: 14px; border: 1.5px solid var(--ink); }
+.pill.c1 { background: var(--sun); } .pill.c2 { background: var(--mint); }
+.btns .btn { font-size: 16px; box-shadow: 2px 2px 0 rgba(31, 58, 147, 0.3); }
+table.data th { background: #FFFBEF; color: var(--ink); }
+table.data tr.c1 td:nth-child(3) { color: var(--pink-dark); }
+.face-slot { border-radius: var(--sketch); }
+.face-slot .t { font-family: var(--font-display); font-weight: 400; font-size: 15px; }
+.face-slot .btn { font-size: 15px; box-shadow: none; }
+.secret-slot { border-color: #C9A227 !important; background: #FFF9C4 !important; box-shadow: none; }
+.tip { border: 1.5px solid var(--ink); border-radius: var(--sketch); color: var(--ink); }
+.tip-n { font-family: var(--font-display); font-weight: 400; font-size: 17px; background: var(--sun); border: 1.5px solid var(--ink); border-radius: 3px; }
+.tip.rock .tip-n { background: #90CAF9; } .tip.hard .tip-n { background: var(--pink); color: var(--ink); }
+.sp { font-family: var(--font-display); font-weight: 400; font-size: 16px; background: #FFFDE7; }
+.toast { background: var(--sun); color: var(--ink); border: 1.5px solid var(--ink); font-family: var(--font-display); font-size: 17px; border-radius: 3px; }
+.ver { color: rgba(31, 58, 147, 0.45); font-family: var(--font-display); font-size: 13px; }
+/* banners: words on a strip of highlighter */
+.banner { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 9vw, 44px); color: var(--ink); text-shadow: none;
+  background: linear-gradient(180deg, transparent 0 12%, rgba(255, 241, 118, 0.95) 12% 92%, transparent 92%); padding: 0 12px; transform-origin: center; border-radius: 3px; }
+.banner small { font-size: 0.5em; }
+.banner.b-pink { color: var(--ink); background: linear-gradient(180deg, transparent 0 12%, rgba(255, 143, 200, 0.95) 12% 92%, transparent 92%); }
+.banner.b-mint { color: var(--ink); background: linear-gradient(180deg, transparent 0 12%, rgba(165, 242, 160, 0.95) 12% 92%, transparent 92%); }
+.banner.b-sun { color: var(--ink); }
+@keyframes pop { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 18% { transform: scale(1.12) rotate(-3deg); opacity: 1; }
+  35% { transform: scale(1) rotate(-2deg); } 80% { opacity: 1; transform: rotate(-2deg); } 100% { opacity: 0; transform: translateY(-30px) rotate(-2deg); } }
+/* shake button and power-up tray: sticky notes */
+.shake-btn { background: var(--mint); border: 1.5px solid var(--ink); border-radius: 2px; color: var(--ink); font: 400 17px var(--font-display); box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); transform: rotate(-2deg); }
+.shake-btn b { background: var(--ink); }
+.shake-btn .sk-pips i { border: 1.5px solid var(--ink); }
+.shake-btn .sk-pips i.on { background: var(--ink); }
+.shake-btn[disabled] { background: #DDE3D8; opacity: 0.85; }
+.pu-tray { position: absolute; right: 6px; top: 8px; z-index: 3; display: flex; gap: 5px; }
+.pu { width: 54px; height: 44px; display: grid; place-items: center; align-content: center; border: 1.5px solid var(--ink); border-radius: 2px; font-family: var(--font-display); color: var(--ink);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); cursor: pointer; padding: 0; touch-action: manipulation; line-height: 1; }
+.pu b { font-weight: 400; font-size: 15px; } .pu small { font-size: 11.5px; }
+.pu:nth-child(1) { transform: rotate(2deg); } .pu:nth-child(2) { transform: rotate(-2deg); } .pu:nth-child(3) { transform: rotate(1.5deg); }
+.pu-anvil { background: #CFD8E6; } .pu-bouncy { background: var(--pink); } .pu-blast { background: #FFB38A; }
+.pu.empty { background: rgba(255, 251, 239, 0.18); border: 1.5px dashed rgba(255, 251, 239, 0.6); color: rgba(255, 251, 239, 0.7); box-shadow: none; font-size: 20px; cursor: default; }
+.pu:active { transform: translateY(2px); }
+.pu-loaded { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%) rotate(-1deg); z-index: 3; background: var(--sun); border: 1.5px solid var(--ink); border-radius: 2px;
+  font: 400 16px var(--font-display); color: var(--ink); padding: 3px 12px; box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); cursor: pointer; white-space: nowrap; }
 </style>
 </head>
 <body>
 
-<div class="scenery" aria-hidden="true">
-  <div class="sun"></div>
-  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
-  <div class="hills"></div>
-</div>
+<div class="scenery" aria-hidden="true"><canvas id="space"></canvas></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -342,8 +451,10 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
 
   <div class="stage-wrap" id="stageWrap">
     <div class="stage" id="stage">
-      <canvas id="board" aria-label="Game scene: a slingshot on a cliff and an open box. Drag back anywhere and let go to fire the face into the box."></canvas>
+      <canvas id="board" aria-label="Game scene: a catapult on the bleachers and an open trophy case on a school field at night. Drag back anywhere and let go to fling the face into the case."></canvas>
       <div class="banner-layer" id="bannerLayer" aria-live="polite"></div>
+      <div class="pu-tray" id="puTray" hidden></div>
+      <button class="pu-loaded" id="puLoaded" hidden></button>
       <button class="shake-btn" id="shakeBtn" hidden><span class="sk-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l3-3M4 16l3 3M20 8l-3-3M20 16l-3 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><rect x="8" y="6" width="8" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>Shake <b id="shakeCount">1</b></span><span class="sk-pips" id="shakePips"></span></button>
     </div>
   </div>
@@ -361,16 +472,16 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
   <div class="title-inner">
     <div class="hero" id="hero" aria-hidden="true"></div>
     <h1 class="logo" id="logo" aria-label="SuiCalculate"></h1>
-    <p class="tagline">Fire faces from the slingshot into the box. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
+    <p class="tagline">Fling faces from the catapult into the trophy case. Matching faces merge, but only if they crash together hard. More momentum means more points.</p>
     <div class="steps">
       <div class="card step"><b>1</b>Drag back, then let go</div>
       <div class="card step"><b>2</b>Smash matching faces to merge</div>
       <div class="card step"><b>3</b>Don't let a face fall out</div>
     </div>
     <div class="levels" role="group" aria-label="Level">
-      <button class="card press lvl" data-level="easy"><span class="n">Easy</span><span class="d">Aim guide, few rocks</span><span class="b">Best <span data-best="easy">0</span></span></button>
-      <button class="card press lvl" data-level="normal"><span class="n">Normal</span><span class="d">Aim guide, more rocks</span><span class="b">Best <span data-best="normal">0</span></span></button>
-      <button class="card press lvl" data-level="hard"><span class="n">Hard</span><span class="d">Lots of rocks, no preview</span><span class="b">Best <span data-best="hard">0</span></span></button>
+      <button class="card press lvl" data-level="easy"><span class="n">Easy</span><span class="d">Aim guide, few books</span><span class="b">Best <span data-best="easy">0</span></span></button>
+      <button class="card press lvl" data-level="normal"><span class="n">Normal</span><span class="d">Aim guide, more books</span><span class="b">Best <span data-best="normal">0</span></span></button>
+      <button class="card press lvl" data-level="hard"><span class="n">Hard</span><span class="d">Lots of books, no preview</span><span class="b">Best <span data-best="hard">0</span></span></button>
     </div>
     <button class="btn primary big" id="playBtn"><svg width="20" height="20" style="vertical-align:-3px;margin-right:6px"><use href="#i-play"/></svg>Play</button>
     <div class="title-row">
@@ -479,9 +590,11 @@ label.chk input { width: 20px; height: 20px; accent-color: var(--pink); }
         <h3>Scoring</h3>
         <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
         <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
-        <p>Rocks (12 kg) never merge. A rock breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
-        <p><b style="color:var(--ink)">The box:</b> faces are fired from a slingshot on a 2.55 m cliff into an open box (walls 5.0 m high, 4.5 m on Hard). Walls and the ground take away half the speed of a hit. A face that falls out of the box ends the game; a shot that misses the box just rolls away.</p>
-        <p><b style="color:var(--ink)">Box shake:</b> the box jolts, giving every face in it the same change in velocity, Δv of about 5 m/s up plus a sideways part toward the middle (up to 4 m/s, so faces are not thrown out). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
+        <p>Textbooks (12 kg) never merge. A textbook breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
+        <p><b style="color:var(--ink)">The campus:</b> faces are flung from a catapult on 2.55 m high bleachers into an open trophy case (walls 5.0 m high, 4.5 m on Hard). Gravity is Earth's, g = 10 m/s². Walls and the ground take away half the speed of a hit. A face that falls out of the case ends the game; a shot that misses the case just rolls away.</p>
+        <p><b style="color:var(--ink)">Power-ups:</b> a ×3 combo earns one (hold up to 3, tap to load). <b>Anvil</b>: same size as the loaded face but 4× the mass, so 4× the momentum at the same speed; it never merges and disappears 4 s after it lands. <b>Bouncy</b>: walls and ground give back all its speed (e = 1, no kinetic energy lost) for 6 s, instead of half (e = 0.5). <b>Blast</b>: when it lands in the case, every face within 1.4 m gets an outward impulse J of up to 6 N·s (less farther away). Δv = J ÷ m, so a 1 kg face gets up to 6 m/s but a 16 kg face only 0.375 m/s.</p>
+        <p><b style="color:var(--ink)">Challenges:</b> as your score grows, the catapult starts moving closer and farther (every 12 shots at first, down to every 4), and later wind gusts blow. Wind is a sideways force F of up to 5 N on faces in the open air, so a = F ÷ m: a 1 kg face drifts 4× more than a 4 kg one. The glass case blocks the wind, and the aim guide includes it.</p>
+        <p><b style="color:var(--ink)">Case shake:</b> the case jolts, giving every face in it the same change in velocity, Δv of about 5 m/s up plus a sideways part toward the middle (up to 4 m/s, so faces are not thrown out). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
         <p>Not logged: hits on walls and the floor (outside forces), and faces resting in the pile slower than 0.6 m/s.</p>
       </div>
       <div class="panel">
@@ -517,7 +630,7 @@ const Phys = (() => {
   const H = 9.5;          // default view height (m); the game may show more sky on tall screens
   const BOX = { l: 2.3, r: 6.1, t: 0.12 };  // inner left and right edges of the box (3.8 m wide) and wall thickness (m)
   const LINE = 5.0;       // default wall height (m)
-  const CLIFF = { x2: 1.45, y2: 2.55 };      // the cliff the slingshot stands on: right edge and top (m)
+  const CLIFF = { x2: 1.75, y2: 2.55 };      // the bleachers the catapult stands on: right edge and top (m)
   const LAUNCH = { x: 0.8, y: 3.2 }; // slingshot fork position (m)
   const G = 10;           // gravity (m/s^2), as chosen by the group
   const VMAX = 12;        // fastest launch the slingshot allows (m/s)
@@ -540,6 +653,8 @@ const Phys = (() => {
       logLimit: opts.logLimit || Infinity,
       mergeEnergy: opts.mergeEnergy || 0, // J: a merge must release at least this much kinetic energy (0 = any touch)
       walls: boxWalls(opts.wallH || LINE),  // solid blocks faces bounce off (the box walls)
+      wallH: opts.wallH || LINE,
+      wind: 0,                            // N, sideways force on faces in the open air (+ = to the right)
       onEvent: null,
       onSoft: null,                      // called when matching faces touch too slowly to merge
     };
@@ -669,7 +784,9 @@ const Phys = (() => {
   // Ground and box walls. A fast hit bounces back at half speed (energy lost);
   // a slow push into a wall just stops, so a resting pile stays still.
   // These are outside forces, so these hits are not logged as collisions.
-  function wallBounce(v) { return v < -0.3 ? -v * E_WALL : 0; }
+  function wallBounce(v, e = E_WALL) { return e >= 1 ? -v : (v < -0.3 ? -v * e : 0); }
+  // Wind only pushes faces in the open air: the display case shelters faces inside it.
+  function sheltered(w, b) { return b.x > BOX.l && b.x < BOX.r && b.y < w.wallH; }
   // Closest point of a wall block to the face's centre, and the direction from it to the centre.
   function wallContact(b, k) {
     const cx = clamp(b.x, k.x1, k.x2), cy = clamp(b.y, k.y1, k.y2);
@@ -681,13 +798,14 @@ const Phys = (() => {
     return { nx: dx / d, ny: dy / d, cx, cy, d };
   }
   function wallVelocity(w, b) {
-    if (b.y - b.r <= 0.001) { b.touchNow = true; if (b.vy < 0) b.vy = wallBounce(b.vy); }
+    const e = b.bouncy ? 1 : E_WALL;   // super-bouncy faces lose no speed on walls and ground (e = 1)
+    if (b.y - b.r <= 0.001) { b.touchNow = true; if (b.vy < 0) b.vy = wallBounce(b.vy, e); }
     for (const k of w.walls) {
       const c = wallContact(b, k);
       if (c.d > b.r + 0.001) continue;
       if (c.ny > 0.5) b.touchNow = true;            // resting on top of a wall
       const vn = b.vx * c.nx + b.vy * c.ny;
-      if (vn < 0) { const nv = wallBounce(vn); b.vx += (nv - vn) * c.nx; b.vy += (nv - vn) * c.ny; }
+      if (vn < 0) { const nv = wallBounce(vn, e); b.vx += (nv - vn) * c.nx; b.vy += (nv - vn) * c.ny; }
     }
   }
   function wallPosition(w, b) {
@@ -707,6 +825,7 @@ const Phys = (() => {
     let bs = w.bodies;
     for (const b of bs) { b.touching = !!b.touchNow; b.touchNow = false; }
     if (w.gravity) for (const b of bs) b.vy -= G * dt;
+    if (w.wind) for (const b of bs) if (!sheltered(w, b)) b.vx += w.wind / b.m * dt;   // a = F / m: light faces drift more
     for (let it = 0; it < 8; it++) {
       const n = bs.length;
       for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) collidePair(w, bs[i], bs[j]);
@@ -722,6 +841,7 @@ const Phys = (() => {
   // For the aim guide: move one pretend face through the same ground and walls (no other faces).
   function ghostStep(w, b, dt) {
     if (w.gravity) b.vy -= G * dt;
+    if (w.wind && !sheltered(w, b)) b.vx += w.wind / b.m * dt;
     wallVelocity(w, b); b.x += b.vx * dt; b.y += b.vy * dt; wallPosition(w, b);
   }
 
@@ -737,12 +857,13 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // Game version: change these every time a new version is published.
 // v1.0 (17 Nov 2026) SuiCalculate arcade + app. v1.1 (19 Nov 2026) secret ball, version label. v1.2 (19 Nov 2026) tank shake.
 // v2.0 (22 Nov 2026) Angry Birds launcher on a cliff outside an open box; a face falling out of the box ends the game.
-const GAME_VERSION = '2.0', GAME_DATE = '22 Nov 2026';
+// v2.1 (22 Nov 2026) school campus at night, notebook UI, catapult, trophy case, power-ups, wind gusts, moving catapult.
+const GAME_VERSION = '2.1', GAME_DATE = '22 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
 const TIER_COLORS = ['#FF5A5F', '#FF9F1C', '#FFD23F', '#A3E048', '#3DD68C', '#2EC4E6', '#4D8DFF', '#8A6CFF', '#D667FF', '#FF6FB5'];
-const INK = '#2E2445', PINK = '#FF5C9A', SUN = '#FFC93C', MINT = '#2FCFA6', DANGER = '#FF4D5E', MUTED = '#6E668A';
+const INK = '#2E2445', PINK = '#FF6FB5', SUN = '#FFE45C', MINT = '#7EE08A', DANGER = '#FF5252', MUTED = '#6E668A';
 const $ = id => document.getElementById(id);
 const canvas = $('board'), ctx = canvas.getContext('2d');
 let reduceMotion = false;
@@ -790,36 +911,64 @@ const Sound = (() => {
     s.connect(fl); fl.connect(g); g.connect(dest); s.start(t); s.stop(t + d + 0.02);
   }
   const now = () => ac.currentTime;
-  const PENTA = [72, 74, 76, 79, 81, 84, 86, 88, 91, 93]; // C major pentatonic, one note per tier
+  const PENTA = [72, 74, 76, 79, 81, 84, 86, 88, 91, 93]; // C major pentatonic, one note per tier (glockenspiel)
+  // a brass-band voice: two detuned saws through a filter that opens quickly (a bit like a trumpet "blat")
+  function brassAt(t, f, d, v, dest) {
+    const o = ac.createOscillator(), o2 = ac.createOscillator(), fl = ac.createBiquadFilter(), g = ac.createGain();
+    o.type = o2.type = 'sawtooth'; o.frequency.value = f; o2.frequency.value = f * 1.004;
+    fl.type = 'lowpass'; fl.Q.value = 2; fl.frequency.setValueAtTime(500, t); fl.frequency.linearRampToValueAtTime(2600, t + 0.05); fl.frequency.exponentialRampToValueAtTime(1100, t + d);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.03); g.gain.setValueAtTime(v, t + d * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(fl); o2.connect(fl); fl.connect(g); g.connect(dest); o.start(t); o2.start(t); o.stop(t + d + 0.05); o2.stop(t + d + 0.05);
+  }
+  function glockAt(t, f, v, dest) { toneAt(t, f, 0.6, 'sine', v, null, dest); toneAt(t, f * 2.76, 0.18, 'sine', v * 0.35, null, dest); }
+  function clapAt(t, v, dest) { for (let i = 0; i < 3; i++) noiseAt(t + i * 0.012, 0.06, v, 1300, null, dest, 'bandpass'); }
+  function whistleAt(t, d, dest, v = 0.12) { const o = ac.createOscillator(), lfo = ac.createOscillator(), lg = ac.createGain(), g = ac.createGain();
+    o.type = 'sine'; o.frequency.value = 2900; lfo.frequency.value = 38; lg.gain.value = 180; lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.02); g.gain.setValueAtTime(v, t + d - 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(dest); o.start(t); lfo.start(t); o.stop(t + d + 0.05); lfo.stop(t + d + 0.05); }
+  function cheerAt(t, d, v, dest) { const s = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf; s.loop = true; fl.type = 'bandpass'; fl.frequency.value = 1100; fl.Q.value = 0.6;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + d * 0.25); g.gain.linearRampToValueAtTime(0.0001, t + d);
+    s.connect(fl); fl.connect(g); g.connect(dest); s.start(t); s.stop(t + d + 0.05); }
   const api = {
     unlock,
     get mode() { return mode; },
     setMode(m) { mode = m; store.set('sound', m); if (m !== 'all') api.musicStop(); },
-    click() { if (ok()) toneAt(now(), 660, 0.06, 'square', 0.08, 990, sfx, 3000); },
-    launch(power) { if (!ok()) return; const t = now(); noiseAt(t, 0.22, 0.25 + power * 0.35, 600, 3200, sfx); toneAt(t, 300, 0.18, 'triangle', 0.15, 600 + power * 500, sfx); },
+    click() { if (ok()) { const t = now(); noiseAt(t, 0.03, 0.12, 3000, null, sfx, 'bandpass'); toneAt(t, 900, 0.04, 'triangle', 0.06, null, sfx); } },
+    // catapult: a wooden creak-thwump plus a whoosh
+    launch(power) { if (!ok()) return; const t = now(); toneAt(t, 140, 0.12, 'triangle', 0.3, 70, sfx); noiseAt(t, 0.05, 0.2, 700, null, sfx, 'lowpass');
+      noiseAt(t + 0.02, 0.28, 0.12 + power * 0.25, 800, 3500, sfx); },
     bounce(speed, mass) {
       if (!ok()) return; const t = now(); if (t - lastBounce < 0.04) return; lastBounce = t;
-      const f = 620 / Math.pow(mass, 0.22), v = Math.min(0.35, 0.06 + speed * 0.04);
-      toneAt(t, f * 1.6, 0.16, 'sine', v, f * 0.7, sfx); toneAt(t, f * 3.1, 0.05, 'triangle', v * 0.4, null, sfx);
+      const f = 520 / Math.pow(mass, 0.22), v = Math.min(0.32, 0.06 + speed * 0.04);
+      toneAt(t, f * 1.8, 0.14, 'sine', v, f * 0.8, sfx); noiseAt(t, 0.02, v * 0.4, 2500, null, sfx);
     },
+    boing() { if (!ok()) return; const t = now(); toneAt(t, 220, 0.35, 'sine', 0.25, 660, sfx); toneAt(t + 0.1, 660, 0.2, 'sine', 0.1, 330, sfx); },
     merge(tier) {
       if (!ok()) return; const t = now(), n = PENTA[Math.min(tier, TIERS) - 1];
-      toneAt(t, 240, 0.09, 'sine', 0.35, 900, sfx);
-      toneAt(t + 0.05, midi(n), 0.22, 'triangle', 0.22, null, sfx);
-      toneAt(t + 0.05, midi(n + 12), 0.18, 'sine', 0.1, null, sfx);
-      if (tier >= 6) noiseAt(t, 0.35, 0.18, 200, 80, sfx, 'lowpass');
+      glockAt(t, midi(n), 0.22, sfx); glockAt(t + 0.07, midi(n + 7), 0.12, sfx);
+      if (tier >= 6) { brassAt(t, midi(n - 24), 0.35, 0.12, sfx); toneAt(t, 90, 0.3, 'sine', 0.3, 45, sfx); }
     },
-    combo(k) { if (!ok()) return; const t = now(); for (let i = 0; i <= Math.min(k, 5); i++) toneAt(t + i * 0.06, midi(76 + [0, 3, 5, 7, 10, 12][i]), 0.14, 'square', 0.07, null, sfx, 3500); },
-    fanfare() { if (!ok()) return; const t = now(); [72, 76, 79, 84].forEach((n, i) => toneAt(t + i * 0.09, midi(n), i === 3 ? 0.4 : 0.14, 'square', 0.08, null, sfx, 3200)); },
-    newTier() { if (!ok()) return; const t = now(); [84, 88, 91, 96].forEach((n, i) => toneAt(t + i * 0.05, midi(n), 0.12, 'sine', 0.12, null, sfx)); },
-    tick() { if (ok()) toneAt(now(), 1046, 0.07, 'square', 0.06, null, sfx, 2500); },
-    thunk() { if (!ok()) return; const t = now(); toneAt(t, 180, 0.12, 'sine', 0.22, 90, sfx); noiseAt(t, 0.06, 0.08, 400, null, sfx, 'lowpass'); },
-    rock() { if (!ok()) return; const t = now(); noiseAt(t, 0.5, 0.25, 300, 60, sfx, 'lowpass'); toneAt(t, 90, 0.4, 'sawtooth', 0.06, 50, sfx, 400); },
-    crack() { if (!ok()) return; const t = now(); noiseAt(t, 0.09, 0.3, 2400, 900, sfx); toneAt(t, 220, 0.08, 'square', 0.05, 120, sfx, 1200); },
-    smash() { if (!ok()) return; const t = now(); noiseAt(t, 0.45, 0.5, 1800, 120, sfx, 'lowpass'); noiseAt(t, 0.15, 0.3, 4000, 1500, sfx); toneAt(t, 140, 0.3, 'sine', 0.35, 40, sfx); },
-    gameOver() { if (!ok()) return; const t = now(); [67, 64, 60, 55].forEach((n, i) => toneAt(t + i * 0.16, midi(n), 0.3, 'triangle', 0.2, null, sfx)); },
-    win() { if (!ok()) return; const t = now(); [72, 76, 79, 84, 79, 84, 88].forEach((n, i) => toneAt(t + i * 0.11, midi(n), 0.25, 'square', 0.08, null, sfx, 3500)); },
-    // ---- background music: a small looping chiptune, scheduled ahead of time ----
+    combo(k) { if (!ok()) return; const t = now(); [0, 4, 7, 12, 16, 19].slice(0, Math.min(k, 5) + 1).forEach((iv, i) => brassAt(t + i * 0.07, midi(60 + iv), 0.12, 0.07, sfx)); clapAt(t + 0.3, 0.2, sfx); },
+    fanfare() { if (!ok()) return; const t = now(); [[60, 0.12], [64, 0.12], [67, 0.12], [72, 0.45]].forEach(([n, d], i) => { brassAt(t + i * 0.11, midi(n), d, 0.08, sfx); brassAt(t + i * 0.11, midi(n + 7), d, 0.04, sfx); }); cheerAt(t + 0.3, 1.2, 0.05, sfx); },
+    newTier() { if (!ok()) return; const t = now(); [84, 88, 91, 96].forEach((n, i) => glockAt(t + i * 0.06, midi(n), 0.12, sfx)); },
+    tick() { if (ok()) whistleAt(now(), 0.12, sfx, 0.07); },
+    whistle() { if (ok()) { const t = now(); whistleAt(t, 0.18, sfx); whistleAt(t + 0.24, 0.45, sfx); } },
+    thunk() { if (!ok()) return; const t = now(); toneAt(t, 160, 0.12, 'sine', 0.24, 80, sfx); noiseAt(t, 0.05, 0.08, 500, null, sfx, 'lowpass'); },
+    // textbook incoming: referee whistle
+    rock() { if (ok()) whistleAt(now(), 0.6, sfx); },
+    crack() { if (!ok()) return; const t = now(); noiseAt(t, 0.12, 0.25, 4000, 1500, sfx, 'highpass'); toneAt(t, 180, 0.08, 'square', 0.04, 90, sfx, 900); },
+    // book slam + crowd "ooh"
+    smash() { if (!ok()) return; const t = now(); toneAt(t, 120, 0.25, 'sine', 0.45, 40, sfx); noiseAt(t, 0.3, 0.45, 900, 120, sfx, 'lowpass'); noiseAt(t, 0.2, 0.2, 5000, 2000, sfx, 'highpass'); cheerAt(t + 0.1, 0.9, 0.06, sfx); },
+    // sad trombone
+    gameOver() { if (!ok()) return; const t = now(); [[67, 0.35], [66, 0.35], [65, 0.35], [64, 0.9]].forEach(([n, d], i) => {
+      const o = ac.createOscillator(), fl = ac.createBiquadFilter(), g2 = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain(), st = t + i * 0.38;
+      o.type = 'sawtooth'; o.frequency.value = midi(n - 12); fl.type = 'lowpass'; fl.frequency.value = 900;
+      if (i === 3) { lfo.frequency.value = 6; lg.gain.value = 6; lfo.connect(lg); lg.connect(o.frequency); lfo.start(st); lfo.stop(st + d); }
+      g2.gain.setValueAtTime(0.0001, st); g2.gain.exponentialRampToValueAtTime(0.13, st + 0.05); g2.gain.exponentialRampToValueAtTime(0.0001, st + d);
+      o.connect(fl); fl.connect(g2); g2.connect(sfx); o.start(st); o.stop(st + d + 0.05); }); },
+    win() { if (!ok()) return; const t = now(); [60, 64, 67, 72, 67, 72, 76].forEach((n, i) => brassAt(t + i * 0.12, midi(n), 0.2, 0.08, sfx)); cheerAt(t, 2.5, 0.08, sfx); },
+    // ---- background music, scheduled ahead of time ----
     musicStart() {
       if (!ac || mode !== 'all' || musicOn) return;
       musicOn = true; nextT = ac.currentTime + 0.08;
@@ -831,20 +980,24 @@ const Sound = (() => {
       music.gain.cancelScheduledValues(ac.currentTime); music.gain.setTargetAtTime(0, ac.currentTime, 0.08);
     },
   };
-  const BEAT = 60 / 112 / 4;           // one 16th note at 112 bpm
-  const CHORDS = [[48, 0], [45, 1], [41, 0], [43, 0]]; // C, Am, F, G (root, minor?)
-  const MEL = [72, null, 76, 79, 76, null, 72, 74,  76, null, 72, 69, 72, null, null, 74,
-               77, null, 76, 72, 69, null, 72, 74,  74, 76, 79, null, 77, 76, 74, null];
+  // ---- background music: a bouncy school fight-song loop (C, F, G, C) with tuba oom-pah, snare, brass and claps ----
+  const BEAT = 60 / 132 / 4;            // one 16th note at 132 bpm
+  const CHORDS = [[48, [0, 4, 7]], [53, [0, 4, 7]], [55, [0, 4, 7]], [48, [0, 4, 7]]];
+  const MEL = [72, null, 72, 74, 76, null, 72, null, 77, null, 76, null, 74, null, null, null,
+               77, null, 77, 79, 81, null, 77, null, 79, null, 77, 76, 74, null, 72, null];
   function schedule() {
     while (nextT < ac.currentTime + 0.12) { playStep(step, nextT); nextT += BEAT; step = (step + 1) % 64; }
   }
   function playStep(s, t) {
-    const bar = Math.floor(s / 16), [root, minor] = CHORDS[bar], b = s % 16;
-    if (b % 4 === 0) toneAt(t, midi(root + (b % 8 === 4 ? 7 : 0)), 0.2, 'triangle', 0.3, null, music);
-    if (b % 4 === 2) [12, minor ? 15 : 16, 19].forEach(iv => toneAt(t, midi(root + iv), 0.09, 'square', 0.025, null, music, 1800));
-    if (s % 2 === 0) { const n = MEL[(s / 2) % 32]; if (n) toneAt(t, midi(n), 0.2, 'square', 0.045, null, music, 2400); }
-    if (b % 8 === 0) toneAt(t, 130, 0.12, 'sine', 0.4, 45, music);
-    if (b % 4 === 2) noiseAt(t, 0.04, 0.05, 8000, null, music, 'highpass');
+    const bar = Math.floor(s / 16), [root] = CHORDS[bar], b = s % 16;
+    if (b % 8 === 0) toneAt(t, midi(root - 12), BEAT * 3, 'triangle', 0.32, null, music);          // tuba "oom"
+    if (b % 8 === 4) toneAt(t, midi(root - 5), BEAT * 3, 'triangle', 0.26, null, music);           // tuba "pah" (the fifth)
+    if (b % 8 === 0) toneAt(t, 110, 0.14, 'sine', 0.3, 45, music);                                  // bass drum
+    if (b % 4 === 2) noiseAt(t, 0.1, 0.09, 2200, null, music, 'bandpass');                          // snare
+    if (b === 14) for (let i = 0; i < 4; i++) noiseAt(t + i * BEAT / 2, 0.05, 0.05, 2400, null, music, 'bandpass'); // snare roll
+    if (b % 8 === 4 && bar % 2 === 1) clapAt(t, 0.08, music);                                       // claps
+    if (s % 2 === 0) { const n = MEL[(s / 2) % 32]; if (n) brassAt(t, midi(n), BEAT * 1.7, 0.045, music); }
+    if (b === 0) noiseAt(t, 0.5, 0.025, 7000, null, music, 'highpass');                             // cymbal
   }
   return api;
 })();
@@ -862,6 +1015,20 @@ let curSecret = false, nextSecret = false;
 const SHAKE_UP = 5, SHAKE_SIDE = 4, SHAKE_EVERY = 5, SHAKE_MAX = 3;
 let shakes = 1, shakeProgress = 0, shakeGrace = 0, shakeUIState = '', shakeAt = -99;
 const rollSecret = () => Math.random() < SECRET_CHANCE;
+// ---- power-ups: earned from a ×3 combo, stored in a tray (max 3), tapped to load into the catapult ----
+// anvil: same size as the loaded face but 4× the mass, never merges.  bouncy: walls and ground keep all its speed (e = 1) for 6 s.
+// blast: when it lands in the case it pushes nearby faces outward with an impulse (J up to BLAST_J), then disappears.
+const POWERS = {
+  anvil:  { name: 'Anvil',  sub: '4× mass', col: '#8C93A8' },
+  bouncy: { name: 'Bouncy', sub: 'e = 1',   col: '#FF6FB5' },
+  blast:  { name: 'Blast',  sub: 'J push',  col: '#FF7A45' },
+};
+const POWER_MAX = 3, BLAST_J = 6, BLAST_R = 1.4, BOUNCY_T = 6, ANVIL_T = 4;
+let powers = [], curPower = null;
+// ---- challenges that ramp up with score: the catapult moves, and wind gusts blow ----
+const RAMP = { easy: { move: 1500, wind: 2500 }, normal: { move: 1000, wind: 1600 }, hard: { move: 400, wind: 700 } };
+const CAT_SPOTS = [0.5, 0.75, 0.95, 1.15];   // catapult positions on the bleachers (m)
+let moveOn = false, nextMoveShot = 0, catTarget = 0.8, windOn = false, windTarget = 0, gustT = 0;
 const escapeHtml = t => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 let cooldown = 0, drag = null, rimT = 0, tickT = 0, fallen = null, popups = [], pending = [], wonShown = false;
 let logRows = [], logDirty = true, filter = 'all', trial = null, testType = 'elastic';
@@ -872,11 +1039,11 @@ const trialCounts = { elastic: 0, inelastic: 0 };
 // rockEvery: a rock drops in after this many shots. rockBreak: Δp (kg·m/s) needed to smash a rock.
 const DIFF = {
   easy:   { name: 'Easy',   preview: true,  maxTier: 3, wall: 5.0, reward: 100, dp: 15, launchP: 25, mergeEnergy: 4, v1: 4, rockEvery: 25, rockBreak: 20, showNext: true,
-            info: 'Aim guide on. Crash energy 4 J to merge. A rock every 25 shots.' },
+            info: 'Aim guide on. Crash energy 4 J to merge. A textbook every 25 shots.' },
   normal: { name: 'Normal', preview: true,  maxTier: 3, wall: 5.0, reward: 150, dp: 25, launchP: 30, mergeEnergy: 9, v1: 6, rockEvery: 15, rockBreak: 30, showNext: true,
-            info: 'Aim guide on. Crash energy 9 J to merge. A rock every 15 shots.' },
+            info: 'Aim guide on. Crash energy 9 J to merge. A textbook every 15 shots.' },
   hard:   { name: 'Hard',   preview: true,  maxTier: 4, wall: 4.5, reward: 200, dp: 40, launchP: 50, mergeEnergy: 16, v1: 8, rockEvery: 7, rockBreak: 45, showNext: false,
-            info: 'Aim guide on, no Next preview. Crash energy 16 J to merge. A rock every 7 shots. Lower box walls (4.5 m).' },
+            info: 'Aim guide on, no Next preview. Crash energy 16 J to merge. A textbook every 7 shots. Lower case walls (4.5 m).' },
 };
 const ROCK_M = 12, ROCK_R = 0.32;   // rocks: 12 kg, never merge
 let shots = 0, rockDue = -1, rocksSmashed = 0, lastSoftT = -9, softHinted = false;
@@ -1035,7 +1202,7 @@ function drawFace(c, x, y, r, tier, m, alpha = 1, badge = true, isSecret = false
   if (isSecret) drawSparkle(c, x, y, r, lw);
   if (badge && r > 13) {
     const tag = `${+m.toFixed(2)} kg`, fs = Math.max(8, Math.min(13, r * 0.24));
-    c.font = `600 ${fs}px Fredoka, sans-serif`;
+    c.font = `800 ${fs}px Nunito, sans-serif`;
     const tw = c.measureText(tag).width + fs * 0.8, by = y + r * 0.56;
     c.fillStyle = 'rgba(46, 36, 69, 0.82)'; c.beginPath(); c.roundRect(x - tw / 2, by, tw, fs * 1.35, fs * 0.7); c.fill();
     c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, x, by + fs * 0.7);
@@ -1054,7 +1221,7 @@ function draw() {
   }
   drawScene(c, wpx, hpx);
   if (state === 'test') {
-    c.font = `600 ${Math.max(12, ppm * 0.22)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = INK; c.globalAlpha = 0.7;
+    c.font = `600 ${Math.max(12, ppm * 0.22)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = INK; c.globalAlpha = 0.7;
     c.fillText('TEST MODE · no gravity', sx(BOX_MID), sy(wallH) - 8); c.globalAlpha = 1;
     c.save(); c.setLineDash([6, 6]); c.strokeStyle = 'rgba(46,36,69,0.25)'; c.lineWidth = 2; c.beginPath(); c.moveTo(sx(BOX.l), sy(2.5)); c.lineTo(sx(BOX.r), sy(2.5)); c.stroke(); c.restore();
   }
@@ -1074,6 +1241,8 @@ function draw() {
     if (pt !== undefined && !reduceMotion) { const u = Math.min(1, pt / 0.28); k = 0.6 + 0.4 * u + 0.22 * Math.sin(u * Math.PI); }
     const q = squash.get(b.id), X = sx(b.x), Y = sy(b.y);
     if (b.tier === -1) { drawRock(c, X, Y, b.r * ppm, b); continue; }
+    if (b.power === 'anvil' || b.power === 'blast') { drawPower(c, X, Y, b.r * ppm * k, b.power, b.baseTier, b.m); continue; }
+    if (b.power === 'bouncy' && b.bouncy) { drawPower(c, X, Y, b.r * ppm * k, 'bouncy', b.tier, b.m); continue; }
     if (q && !reduceMotion) {
       const u = q.t / 0.35, a = q.amt * Math.exp(-u * 4) * Math.cos(u * 11);
       c.save(); c.translate(X, Y); c.rotate(q.ang); c.scale(1 - a, 1 + a * 0.7); c.rotate(-q.ang);
@@ -1081,6 +1250,7 @@ function draw() {
     } else drawFace(c, X, Y, b.r * ppm * k, b.tier, b.m, 1, true, b.secret);
   }
   drawBoxFront(c);
+  drawWind(c);
   // faces above the top of the screen: a small marker at the top edge
   for (const b of world.bodies) if (b.y - b.r > H) {
     const X = Math.max(10, Math.min(wpx - 10, sx(b.x)));
@@ -1108,88 +1278,124 @@ function draw() {
     const u = p.t / p.life, rise = (1 - Math.pow(1 - Math.min(1, u * 1.4), 3)) * 46, sc = u < 0.15 ? 0.6 + u / 0.15 * 0.5 : 1.1 - Math.min(0.1, (u - 0.15));
     c.save(); c.globalAlpha = u > 0.7 ? (1 - u) / 0.3 : 1; c.translate(sx(p.x), sy(p.y) - rise); c.scale(sc, sc);
     c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
-    c.font = `700 ${p.size}px Fredoka, sans-serif`; c.lineWidth = 5; c.strokeStyle = INK; c.strokeText(p.text, 0, 0); c.fillStyle = p.color; c.fillText(p.text, 0, 0);
-    if (p.sub) { c.font = `600 ${Math.round(p.size * 0.5)}px Fredoka, sans-serif`; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(p.sub, 0, p.size * 0.75); c.fillStyle = INK; c.fillText(p.sub, 0, p.size * 0.75); }
+    c.font = `700 ${p.size}px "Patrick Hand", sans-serif`; c.lineWidth = 5; c.strokeStyle = INK; c.strokeText(p.text, 0, 0); c.fillStyle = p.color; c.fillText(p.text, 0, 0);
+    if (p.sub) { c.font = `600 ${Math.round(p.size * 0.5)}px "Patrick Hand", sans-serif`; c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(p.sub, 0, p.size * 0.75); c.fillStyle = INK; c.fillText(p.sub, 0, p.size * 0.75); }
     c.restore();
   }
 }
-// Ground, the cliff with the slingshot, and the open box. Drawn behind the faces.
+// ---------- school campus at night (game canvas) ----------
+// The field itself is painted by the campus background so it runs the full width of the screen.
+const WOOD = '#B9733A', WOOD_DK = '#7A4A22', METAL = '#8E97B5', METAL_DK = '#4E5677', CASE_GLASS = 'rgba(200,235,255,0.14)';
+function flick(period, phase = 0) { return reduceMotion ? 1 : 0.55 + 0.45 * (0.5 + 0.5 * Math.sin((performance.now() / 1000 + phase) * Math.PI * 2 / period)); }
 function drawScene(c, wpx, hpx) {
-  const gy = sy(0);
-  // ground
-  const gg = c.createLinearGradient(0, gy, 0, hpx); gg.addColorStop(0, '#7ED957'); gg.addColorStop(1, '#4FB33A');
-  c.fillStyle = gg; c.fillRect(-20, gy, wpx + 40, hpx - gy + 20);
-  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(-20, gy); c.lineTo(wpx + 20, gy); c.stroke();
-  // cliff
-  const cx2 = sx(CLIFF.x2), cy2 = sy(CLIFF.y2);
-  const cg = c.createLinearGradient(0, cy2, 0, gy); cg.addColorStop(0, '#C98A55'); cg.addColorStop(1, '#9A6339');
-  c.fillStyle = cg; c.beginPath(); c.moveTo(-20, gy); c.lineTo(-20, cy2); c.lineTo(cx2 - 6, cy2); c.quadraticCurveTo(cx2, cy2, cx2, cy2 + 6); c.lineTo(cx2, gy); c.closePath(); c.fill();
-  c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
-  c.fillStyle = '#7ED957'; c.beginPath(); c.roundRect(-20, cy2 - 4, cx2 + 22, 10, 5); c.fill(); c.stroke();
-  c.save(); c.globalAlpha = 0.18; c.fillStyle = INK;
-  for (let i = 0; i < 7; i++) { const yy = cy2 + 22 + i * (gy - cy2 - 30) / 7, xx = 8 + ((i * 37) % Math.max(10, cx2 - 26)); c.beginPath(); c.ellipse(xx, yy, 9, 4, 0, 0, Math.PI * 2); c.fill(); }
-  c.restore();
-  // box: back glass and inside
+  const gy = sy(0), bx2 = sx(CLIFF.x2), by = sy(CLIFF.y2), left = -20;
+  // ---- bleachers: stepped metal stands (solid block the catapult stands on) ----
+  c.fillStyle = METAL_DK; c.fillRect(left, by, bx2 - left, gy - by);
+  const steps = 5, sh = (gy - by) / steps;
+  for (let i = 0; i < steps; i++) {
+    const y = by + i * sh, x2 = bx2 - 0; c.fillStyle = i % 2 ? '#5A6385' : '#646E92'; c.fillRect(left, y, x2 - left, sh);
+    c.fillStyle = METAL; c.fillRect(left, y, x2 - left, Math.max(3, sh * 0.18));   // seat plank
+    c.fillStyle = '#2E3552'; for (let x = left + 14; x < x2 - 6; x += Math.max(16, ppm * 0.4)) c.fillRect(x, y + sh * 0.18, 3, sh * 0.82);  // risers
+  }
+  c.strokeStyle = '#1E2440'; c.lineWidth = 2; c.strokeRect(left, by, bx2 - left, gy - by);
+  // railing on top
+  c.strokeStyle = '#C9D0E8'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(left, by - ppm * 0.35); c.lineTo(bx2 - 4, by - ppm * 0.35);
+  for (let x = left + 10; x < bx2; x += Math.max(18, ppm * 0.45)) { c.moveTo(x, by - ppm * 0.35); c.lineTo(x, by); } c.moveTo(bx2 - 4, by - ppm * 0.35); c.lineTo(bx2 - 4, by); c.stroke();
+  // ---- display case: dark back, wooden base cabinet, plaque ----
   const l = sx(BOX.l), r = sx(BOX.r), top = sy(wallH);
-  const bg = c.createLinearGradient(0, top, 0, gy); bg.addColorStop(0, 'rgba(244,251,255,0.55)'); bg.addColorStop(1, 'rgba(214,238,255,0.85)');
+  const bg = c.createLinearGradient(0, top, 0, gy); bg.addColorStop(0, 'rgba(20,24,58,0.35)'); bg.addColorStop(1, 'rgba(20,24,58,0.6)');
   c.fillStyle = bg; c.fillRect(l, top, r - l, gy - top);
-  // rim warning: a face sitting above the top of the walls may roll out
+  // shelf light glow from the top
+  const lg = c.createRadialGradient((l + r) / 2, top, 4, (l + r) / 2, top, (r - l) * 0.8); lg.addColorStop(0, 'rgba(255,240,190,0.25)'); lg.addColorStop(1, 'rgba(255,240,190,0)');
+  c.fillStyle = lg; c.fillRect(l, top, r - l, gy - top);
+  // rim warning
   const warn = rimT > 0 && state === 'playing', pulse = warn ? 0.5 + 0.5 * Math.sin(performance.now() / 80) : 0;
   if (state !== 'test') {
-    c.save(); c.setLineDash([10, 8]); c.lineWidth = 2.5; c.strokeStyle = warn ? DANGER : 'rgba(46,36,69,0.25)'; c.globalAlpha = warn ? 0.6 + 0.4 * pulse : 1;
+    c.save(); c.setLineDash([8, 7]); c.lineWidth = 2; c.strokeStyle = warn ? DANGER : 'rgba(255,240,190,0.5)'; c.globalAlpha = warn ? 0.6 + 0.4 * pulse : 1;
     c.beginPath(); c.moveTo(l, top); c.lineTo(r, top); c.stroke(); c.restore();
-    if (warn) { c.font = `700 ${Math.max(11, ppm * 0.2)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = DANGER; c.fillText('CAREFUL!', (l + r) / 2, top - 6); }
+    if (warn) { c.font = `700 ${Math.max(14, ppm * 0.28)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = '#FF8A80'; c.fillText('Careful!', (l + r) / 2, top - 6); }
   }
 }
-// Box walls in front of the faces, so faces look like they are inside a glass box.
 function drawBoxFront(c) {
-  const gy = sy(0), top = sy(wallH), t = BOX.t * ppm;
-  for (const x of [sx(BOX.l) - t, sx(BOX.r)]) {
-    c.fillStyle = '#B9733A'; c.strokeStyle = INK; c.lineWidth = 3;
-    c.beginPath(); c.roundRect(x, top - 3, t, gy - top + 3, [4, 4, 0, 0]); c.fill(); c.stroke();
-  }
-  c.save(); c.globalAlpha = 0.35; c.fillStyle = '#fff';
-  const l = sx(BOX.l), w = sx(BOX.r) - l;
-  c.beginPath(); c.moveTo(l + w * 0.06, gy); c.lineTo(l + w * 0.12, gy); c.lineTo(l + w * 0.24, top); c.lineTo(l + w * 0.18, top); c.fill();
+  const gy = sy(0), top = sy(wallH), t = BOX.t * ppm, l = sx(BOX.l), r = sx(BOX.r);
+  // glass front: tint + two diagonal reflections
+  c.fillStyle = CASE_GLASS; c.fillRect(l, top, r - l, gy - top);
+  c.save(); c.globalAlpha = 0.22; c.fillStyle = '#fff';
+  c.beginPath(); c.moveTo(l + (r - l) * 0.06, gy); c.lineTo(l + (r - l) * 0.11, gy); c.lineTo(l + (r - l) * 0.25, top); c.lineTo(l + (r - l) * 0.2, top); c.fill();
+  c.beginPath(); c.moveTo(l + (r - l) * 0.15, gy); c.lineTo(l + (r - l) * 0.17, gy); c.lineTo(l + (r - l) * 0.31, top); c.lineTo(l + (r - l) * 0.29, top); c.fill();
   c.restore();
-  c.fillStyle = '#9A6339'; c.strokeStyle = INK; c.lineWidth = 3;
-  c.beginPath(); c.roundRect(sx(BOX.l) - t - 4, gy, sx(BOX.r) - sx(BOX.l) + 2 * t + 8, 9, 4); c.fill(); c.stroke();
+  // wooden frame posts (the walls) with brass trim
+  for (const x of [l - t, r]) {
+    const pg = c.createLinearGradient(x, 0, x + t, 0); pg.addColorStop(0, WOOD_DK); pg.addColorStop(0.5, WOOD); pg.addColorStop(1, WOOD_DK);
+    c.fillStyle = pg; c.fillRect(x, top, t, gy - top); c.strokeStyle = '#3A220E'; c.lineWidth = 1.5; c.strokeRect(x, top, t, gy - top);
+    c.fillStyle = '#E8C468'; c.fillRect(x - 2, top - 5, t + 4, 6);   // brass cap
+  }
+  // base cabinet + plaque
+  const bh = Math.max(10, ppm * 0.2), bxl = l - t - 5, bw = r - l + 2 * t + 10;
+  c.fillStyle = WOOD; c.fillRect(bxl, gy, bw, bh); c.strokeStyle = '#3A220E'; c.lineWidth = 1.5; c.strokeRect(bxl, gy, bw, bh);
+  const pw = Math.min(bw * 0.45, 140), ph = Math.max(8, bh * 0.7);
+  c.fillStyle = '#E8C468'; c.fillRect(bxl + bw / 2 - pw / 2, gy + (bh - ph) / 2, pw, ph);
+  if (ph > 9) { c.fillStyle = '#5A3A10'; c.font = `700 ${Math.max(8, ph * 0.75)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PHYSICS DEPT.', bxl + bw / 2, gy + bh / 2 + 1); }
 }
-// A grumpy cartoon rock: lumpy outline, speckles, cracks after strong hits, and a mass tag.
+// Heavy textbook (12 kg): a thick book with a coloured cover, page edges, a title, cracks after strong hits, and a mass tag.
 function drawRock(c, x, y, r, b) {
-  const seed = b.seed || 1, n = 10;
-  c.save(); c.beginPath();
-  for (let i = 0; i <= n; i++) {
-    const a = i / n * Math.PI * 2, k = 0.86 + 0.14 * Math.abs(Math.sin(seed + i * 2.3));
-    const px = x + Math.cos(a) * r * k, py = y + Math.sin(a) * r * k;
-    i ? c.lineTo(px, py) : c.moveTo(px, py);
-  }
-  c.closePath();
-  const g = c.createRadialGradient(x - r * 0.3, y - r * 0.4, r * 0.1, x, y, r);
-  g.addColorStop(0, '#C9C4D6'); g.addColorStop(1, '#7C768C');
-  c.fillStyle = g; c.fill(); c.lineWidth = Math.max(2.5, r * 0.1); c.lineJoin = 'round'; c.strokeStyle = INK; c.stroke();
-  c.save(); c.clip();
-  c.fillStyle = 'rgba(46,36,69,0.25)';
-  for (let i = 0; i < 6; i++) { const a = seed + i * 1.7, d = r * (0.25 + 0.5 * Math.abs(Math.sin(seed * 3 + i))); c.beginPath(); c.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, r * 0.06, 0, Math.PI * 2); c.fill(); }
+  const seed = b.seed || 1, ang = ((seed % 1) - 0.5) * 0.9, cols = ['#E53935', '#1E88E5', '#43A047', '#8E24AA'], col = cols[Math.floor(seed) % cols.length];
+  c.save(); c.translate(x, y); c.rotate(ang);
+  const w2 = r * 1.5, h2 = r * 1.05;
+  c.fillStyle = '#FFF6DC'; c.fillRect(-w2 / 2 + r * 0.1, -h2 / 2 + r * 0.12, w2 - r * 0.12, h2 - r * 0.24);   // pages
+  c.strokeStyle = 'rgba(120,100,60,0.5)'; c.lineWidth = 1; for (let i = 1; i < 5; i++) { const yy = -h2 / 2 + r * 0.12 + i * (h2 - r * 0.24) / 5; c.beginPath(); c.moveTo(-w2 / 2 + r * 0.15, yy); c.lineTo(w2 / 2 - r * 0.05, yy); c.stroke(); }
+  c.fillStyle = col; c.strokeStyle = INK; c.lineWidth = Math.max(1.5, r * 0.07);
+  c.beginPath(); c.roundRect(-w2 / 2, -h2 / 2, w2, r * 0.2, r * 0.06); c.fill(); c.stroke();                // top cover
+  c.beginPath(); c.roundRect(-w2 / 2, h2 / 2 - r * 0.2, w2, r * 0.2, r * 0.06); c.fill(); c.stroke();       // bottom cover
+  c.beginPath(); c.roundRect(-w2 / 2 - r * 0.05, -h2 / 2, r * 0.25, h2, r * 0.08); c.fill(); c.stroke();     // spine
+  c.strokeRect(-w2 / 2, -h2 / 2, w2, h2);
+  if (r > 10) { c.fillStyle = '#fff'; c.font = `700 ${Math.max(7, r * 0.22)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PHYSICS', r * 0.12, 0); }
   c.strokeStyle = INK; c.lineWidth = Math.max(1.5, r * 0.06); c.lineCap = 'round';
-  for (let i = 0; i < (b.cracks || 0); i++) {
-    const a = seed + i * 2.1; c.beginPath(); c.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
-    c.lineTo(x + Math.cos(a + 0.3) * r * 0.5, y + Math.sin(a + 0.3) * r * 0.5); c.lineTo(x + Math.cos(a - 0.2) * r * 0.15, y + Math.sin(a - 0.2) * r * 0.15); c.stroke();
+  for (let i = 0; i < (b.cracks || 0); i++) { const k = (i - 1) * 0.28; c.beginPath(); c.moveTo(w2 / 2, k * r); c.lineTo(w2 / 4, k * r + r * 0.12); c.lineTo(0, k * r - r * 0.1); c.stroke(); }
+  c.restore();
+  if (r > 13) {
+    const fs = Math.max(8, Math.min(13, r * 0.26)), tag = `${b.m} kg`; c.font = `800 ${fs}px Nunito, sans-serif`;
+    const tw = c.measureText(tag).width + fs * 0.8, by2 = y + r * 0.6;
+    c.fillStyle = 'rgba(46, 36, 69, 0.85)'; c.beginPath(); c.roundRect(x - tw / 2, by2, tw, fs * 1.35, fs * 0.7); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, x, by2 + fs * 0.7);
+  }
+}
+// Power-up faces: anvil (steel, ×4), blast (fuse + sparks), bouncy (normal face with a pink spring ring).
+function drawPower(c, x, y, r, kind, tier, m, alpha = 1) {
+  c.save(); c.globalAlpha = alpha;
+  if (kind === 'anvil') {
+    const g = c.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r); g.addColorStop(0, '#E3E7F2'); g.addColorStop(1, '#5D6582');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.lineWidth = Math.max(2, r * 0.09); c.strokeStyle = INK; c.stroke();
+    c.fillStyle = '#3A4060'; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + 0.5; c.beginPath(); c.arc(x + Math.cos(a) * r * 0.72, y + Math.sin(a) * r * 0.72, Math.max(1.2, r * 0.07), 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = INK; c.font = `700 ${Math.max(9, r * 0.75)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('×4', x, y + r * 0.05);
+  } else if (kind === 'blast') {
+    const g = c.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r); g.addColorStop(0, '#FFB38A'); g.addColorStop(1, '#D84315');
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.lineWidth = Math.max(2, r * 0.09); c.strokeStyle = INK; c.stroke();
+    c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(1.5, r * 0.1); c.beginPath(); c.moveTo(x + r * 0.4, y - r * 0.8); c.quadraticCurveTo(x + r * 0.7, y - r * 1.3, x + r * 1.0, y - r * 1.15); c.stroke();
+    const s = 0.6 + 0.4 * Math.sin(performance.now() / 60); c.fillStyle = '#FFE45C'; star(c, x + r * 1.0, y - r * 1.15, Math.max(3, r * 0.3) * s, performance.now() / 200);
+    c.fillStyle = '#fff'; c.font = `700 ${Math.max(9, r * 0.7)}px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('J!', x, y + r * 0.05);
+  } else {
+    drawFace(c, x, y, r, tier, m, alpha, true);
+    c.strokeStyle = '#FF6FB5'; c.lineWidth = Math.max(2, r * 0.12); c.setLineDash([Math.max(3, r * 0.25), Math.max(2, r * 0.15)]);
+    c.beginPath(); c.arc(x, y, r + c.lineWidth, performance.now() / 300, performance.now() / 300 + Math.PI * 2); c.stroke(); c.setLineDash([]);
+  }
+  if (kind !== 'bouncy' && r > 13) {
+    const tag = `${+m.toFixed(2)} kg`, fs = Math.max(8, Math.min(13, r * 0.24)); c.font = `800 ${fs}px Nunito, sans-serif`;
+    const tw = c.measureText(tag).width + fs * 0.8, by2 = y + r * 0.56;
+    c.fillStyle = 'rgba(46, 36, 69, 0.82)'; c.beginPath(); c.roundRect(x - tw / 2, by2, tw, fs * 1.35, fs * 0.7); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, x, by2 + fs * 0.7);
   }
   c.restore();
-  // grumpy face
-  c.strokeStyle = INK; c.fillStyle = INK; c.lineWidth = Math.max(1.5, r * 0.08); c.lineCap = 'round';
-  for (const s of [-1, 1]) {
-    c.beginPath(); c.moveTo(x + s * r * 0.45, y - r * 0.32); c.lineTo(x + s * r * 0.12, y - r * 0.2); c.stroke();
-    c.beginPath(); c.arc(x + s * r * 0.27, y - r * 0.05, r * 0.08, 0, Math.PI * 2); c.fill();
-  }
-  c.beginPath(); c.arc(x, y + r * 0.32, r * 0.16, Math.PI * 1.15, Math.PI * 1.85); c.stroke();
-  if (r > 13) {
-    const fs = Math.max(8, Math.min(13, r * 0.26)), tag = `${b.m} kg`; c.font = `600 ${fs}px Fredoka, sans-serif`;
-    const tw = c.measureText(tag).width + fs * 0.8, by = y + r * 0.5;
-    c.fillStyle = 'rgba(46, 36, 69, 0.85)'; c.beginPath(); c.roundRect(x - tw / 2, by, tw, fs * 1.35, fs * 0.7); c.fill();
-    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(tag, x, by + fs * 0.7);
-  }
+}
+// Wind sign: drawn near the top of the scene when there is wind.
+function drawWind(c) {
+  if (!world || !world.wind || Math.abs(world.wind) < 0.05 || state === 'test') return;
+  const F = world.wind, cx = sx(BOX_MID), cy = Math.max(60, sy(wallH) - 34), len = Math.min(70, 18 + Math.abs(F) * 12), dir = Math.sign(F);
+  c.save(); c.lineCap = 'round'; c.strokeStyle = '#BFF6FF'; c.fillStyle = '#BFF6FF'; c.lineWidth = 3; c.globalAlpha = 0.9;
+  for (const dy of [-6, 6]) { c.beginPath(); c.moveTo(cx - dir * len / 2, cy + dy); c.lineTo(cx + dir * len / 2, cy + dy); c.stroke(); }
+  c.beginPath(); c.moveTo(cx + dir * (len / 2 + 9), cy); c.lineTo(cx + dir * len / 2 - dir * 2, cy - 11); c.lineTo(cx + dir * len / 2 - dir * 2, cy + 11); c.closePath(); c.fill();
+  c.font = `700 15px "Patrick Hand", sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom';
+  c.fillText(`wind ${Math.abs(F).toFixed(1)} N`, cx, cy - 12);
   c.restore();
 }
 function star(c, x, y, r, rot) {
@@ -1214,7 +1420,7 @@ function launchVel() {
 // and stops where the face would first touch another face or the ground. It ignores what happens after that hit.
 function drawAimGuide(c, v) {
   const rr = Phys.radiusOf(current), dt = 1 / 240, dots = [], bounces = [];  // same time step as the game
-  const g = { x: LAUNCH.x, y: LAUNCH.y, vx: v.vx, vy: v.vy, r: rr };
+  const g = { x: LAUNCH.x, y: LAUNCH.y, vx: v.vx, vy: v.vy, r: rr, m: (curPower === 'anvil' ? 4 : 1) * massOf(current), bouncy: curPower === 'bouncy' };
   let t = 0, nextDot = 0.03, hit = null;
   for (let i = 0; i < 900 && !hit; i++) {
     const bvx = g.vx, bvy = g.vy;
@@ -1247,40 +1453,50 @@ function drawAimGuide(c, v) {
   }
   c.restore();
 }
+// The physics-lab catapult on the bleachers. The arm pulls back as you charge, and swings forward when it fires.
+// The face sits in the bucket at LAUNCH (that is exactly where it starts in the physics).
+let armSwing = 0;
 function drawSlingshot(c) {
-  const fx = sx(LAUNCH.x), fy = sy(LAUNCH.y), r = Phys.radiusOf(current) * ppm;
-  const spread = Math.max(r + 12, 0.32 * ppm), v = launchVel(), power = v.sp / VMAX;
-  let ox = 0, oy = 0;
-  if (drag && v.sp > 0) { const k = power * 0.5 * ppm; ox = -v.vx / v.sp * k; oy = v.vy / v.sp * k; }
+  const fx = sx(LAUNCH.x), fy = sy(LAUNCH.y), r = Phys.radiusOf(current) * ppm, u = ppm;
+  const v = launchVel(), power = v.sp / VMAX, deck = sy(CLIFF.y2);
+  const px = fx + 0.42 * u, py = deck - 0.24 * u;                 // pivot of the arm
+  const restAng = Math.atan2(-(fy - py), fx - px);                 // arm angle at rest (pointing up and back to the bucket)
+  const ang = restAng + (drag ? power * 0.45 : 0) - armSwing * 1.6;
+  const armLen = Math.hypot(fx - px, fy - py);
   c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
-  // wooden Y-shaped slingshot standing on the cliff
-  const base = sy(CLIFF.y2), fork = fy + 14;
-  for (const [w, col] of [[11, INK], [6, '#B9733A']]) {
-    c.strokeStyle = col; c.lineWidth = w;
-    c.beginPath(); c.moveTo(fx, base); c.lineTo(fx, fork); c.stroke();
-    for (const s of [-1, 1]) { c.beginPath(); c.moveTo(fx, fork); c.lineTo(fx + s * spread, fy - 4); c.lineTo(fx + s * spread, fy - 16); c.stroke(); }
-  }
+  // base frame with wheels
+  c.fillStyle = WOOD; c.strokeStyle = '#3A220E'; c.lineWidth = 1.5;
+  c.beginPath(); c.roundRect(fx - 0.05 * u, deck - 0.12 * u, 0.68 * u, 0.08 * u, 3); c.fill(); c.stroke();
+  for (const wx of [fx + 0.03 * u, fx + 0.55 * u]) { c.fillStyle = '#4A2E14'; c.beginPath(); c.arc(wx, deck - 0.05 * u, 0.06 * u, 0, Math.PI * 2); c.fill(); c.fillStyle = '#E8C468'; c.beginPath(); c.arc(wx, deck - 0.05 * u, 0.02 * u, 0, Math.PI * 2); c.fill(); }
+  // A-frame uprights to the pivot
+  c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(5, 0.07 * u); c.beginPath(); c.moveTo(px - 0.16 * u, deck - 0.1 * u); c.lineTo(px, py); c.lineTo(px + 0.16 * u, deck - 0.1 * u); c.stroke();
+  c.strokeStyle = WOOD; c.lineWidth = Math.max(3, 0.045 * u); c.beginPath(); c.moveTo(px - 0.16 * u, deck - 0.1 * u); c.lineTo(px, py); c.lineTo(px + 0.16 * u, deck - 0.1 * u); c.stroke();
+  // arm: bucket end and a short end with a counterweight
+  const ex = px + Math.cos(ang) * armLen, ey = py - Math.sin(ang) * armLen, cx2 = px - Math.cos(ang) * 0.24 * u, cy2 = py + Math.sin(ang) * 0.24 * u;
+  c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(6, 0.08 * u); c.beginPath(); c.moveTo(cx2, cy2); c.lineTo(ex, ey); c.stroke();
+  c.strokeStyle = WOOD; c.lineWidth = Math.max(4, 0.055 * u); c.beginPath(); c.moveTo(cx2, cy2); c.lineTo(ex, ey); c.stroke();
+  c.fillStyle = '#5D6582'; c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.roundRect(cx2 - 0.08 * u, cy2 - 0.06 * u, 0.16 * u, 0.14 * u, 3); c.fill(); c.stroke();
+  c.fillStyle = '#E8C468'; c.beginPath(); c.arc(px, py, Math.max(3, 0.04 * u), 0, Math.PI * 2); c.fill();
+  // bucket
+  c.strokeStyle = '#3A220E'; c.lineWidth = Math.max(3, 0.05 * u); c.beginPath(); c.arc(ex, ey, r + 3, -ang + Math.PI * 0.35, -ang + Math.PI * 1.65, true); c.stroke();
   const ready = cooldown <= 0 && state !== 'title';
+  const mass = (curPower === 'anvil' ? 4 : 1) * massOf(current);
   if (ready || state === 'title') {
-    // band
-    c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(fx - spread, fy - 12); c.lineTo(fx + ox, fy + oy); c.lineTo(fx + spread, fy - 12); c.stroke();
-    c.strokeStyle = PINK; c.lineWidth = 3; c.beginPath(); c.moveTo(fx - spread, fy - 12); c.lineTo(fx + ox, fy + oy); c.lineTo(fx + spread, fy - 12); c.stroke();
     if (drag && v.sp > 0 && DIFF[difficulty].preview) drawAimGuide(c, v);
-    // power ring
     if (drag && v.sp > 0) {
-      c.lineWidth = 6; c.strokeStyle = 'rgba(46,36,69,0.18)'; c.beginPath(); c.arc(fx + ox, fy + oy, r + 9, 0, Math.PI * 2); c.stroke();
+      c.lineWidth = 5; c.strokeStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.arc(ex, ey, r + 9, 0, Math.PI * 2); c.stroke();
       c.strokeStyle = power < 0.5 ? MINT : power < 0.85 ? SUN : DANGER;
-      c.beginPath(); c.arc(fx + ox, fy + oy, r + 9, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
+      c.beginPath(); c.arc(ex, ey, r + 9, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
     }
-    drawFace(c, fx + ox, fy + oy, r, current, massOf(current), 1, true, curSecret);
+    if (curPower) drawPower(c, ex, ey, r, curPower, current, mass); else drawFace(c, ex, ey, r, current, massOf(current), 1, true, curSecret);
     if (drag && v.sp > 0 && $('showNums').checked) {
-      const txt = `${v.sp.toFixed(1)} m/s · p ${(massOf(current) * v.sp).toFixed(1)}`;
-      c.font = '600 13px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 16;
-      let bx = fx + ox - tw / 2; bx = Math.max(4, Math.min(cw - tw - 4, bx)); const by = Math.min(ch - 30, fy + oy + r + 18);
-      c.fillStyle = '#fff'; c.strokeStyle = INK; c.lineWidth = 2.5; c.beginPath(); c.roundRect(bx, by, tw, 22, 11); c.fill(); c.stroke();
-      c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 8, by + 11.5);
+      const txt = `${v.sp.toFixed(1)} m/s · p ${(mass * v.sp).toFixed(1)}`;
+      c.font = '700 16px "Patrick Hand", sans-serif'; const tw = c.measureText(txt).width + 16;
+      let bx = ex - tw / 2; bx = Math.max(4, Math.min(cw - tw - 4, bx)); const by = Math.min(ch - 30, deck + 8);
+      c.fillStyle = '#FFF59D'; c.strokeStyle = '#1F3A93'; c.lineWidth = 1.5; c.beginPath(); c.roundRect(bx, by, tw, 24, 3); c.fill(); c.stroke();
+      c.fillStyle = '#1F3A93'; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(txt, bx + 8, by + 13);
     }
-  } else drawFace(c, fx, fy, r, current, massOf(current), 0.3, true, curSecret);
+  } else if (!armSwing) drawFace(c, ex, ey, r, current, massOf(current), 0.3, true, curSecret);
   c.restore();
 }
 
@@ -1324,7 +1540,7 @@ function newGame() {
   state = 'playing'; score = 0; best = 0; merges = 0; rimT = 0; fallen = null; cooldown = 0; drag = null; wonShown = false; newBest = false;
   popups = []; pending = []; particles = []; squash.clear(); pops.clear();
   combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
-  shots = 0; rockDue = -1; shakes = 1; shakeProgress = 0; shakeGrace = 0; shakeAt = -99; updateShakeUI(); rocksSmashed = 0; lastSoftT = -9; softHinted = false;
+  shots = 0; rockDue = -1; powers = []; curPower = null; moveOn = false; windOn = false; windTarget = 0; gustT = 0; LAUNCH.x = catTarget = 0.8; updateTray(); shakes = 1; shakeProgress = 0; shakeGrace = 0; shakeAt = -99; updateShakeUI(); rocksSmashed = 0; lastSoftT = -9; softHinted = false;
   current = randTier(); next = randTier(); curSecret = false; nextSecret = rollSecret(); secretIds.clear();
   newMission();
   $('missionBar').hidden = false; $('testBar').hidden = true;
@@ -1344,32 +1560,127 @@ function showTips(then, firstTime) {
       <div class="tip"><span class="tip-n">${d.mergeEnergy} J</span><span>Crash energy needed. Light faces need a fast hit; heavy faces merge with a gentle bump.</span></div>
       <div class="speeds"><span class="label">Speed needed (m/s)</span><div>${row}</div></div>
       <div class="tip"><span class="tip-n">Too soft!</span><span>This pops up when two matching faces touch too slowly. They bounce or stack instead.</span></div>
-      <div class="tip"><span class="tip-n">Box</span><span>Fire faces from the cliff into the box. If a face falls <b>out</b> of the box, the game ends. Missed shots just roll away.</span></div>
-      <div class="tip"><span class="tip-n">Shake</span><span>Stuck at the bottom? Tap Shake (or S). The box jolts and every face gets the same Δv, so J = mΔv. Earn a shake every 5 merges (max 3).</span></div>
-      <div class="tip rock"><span class="tip-n">Rocks</span><span>Every ${d.rockEvery} shots a rock drops in. Rocks never merge. Smash one with a hit of Δp ${d.rockBreak} kg·m/s or more.</span></div>
-      ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and lower box walls (4.5&nbsp;m), so faces fall out more easily.</span></div>' : ''}
+      <div class="tip"><span class="tip-n">Case</span><span>Fling faces from the catapult into the display case. If a face falls <b>out</b> of the case, the game ends. Missed shots just roll away.</span></div>
+      <div class="tip"><span class="tip-n">Shake</span><span>Stuck at the bottom? Tap Shake (or S). The case jolts and every face gets the same Δv, so J = mΔv. Earn a shake every 5 merges (max 3).</span></div>
+      <div class="tip rock"><span class="tip-n">Books</span><span>Every ${d.rockEvery} shots a heavy textbook (12 kg) drops in. Books never merge. Smash one with a hit of Δp ${d.rockBreak} kg·m/s or more.</span></div>
+      <div class="tip"><span class="tip-n">Power-ups</span><span>A ×3 combo earns one (hold up to 3). Tap it to load: <b>Anvil</b> 4× mass, <b>Bouncy</b> walls keep all its speed (e = 1), <b>Blast</b> pushes faces away (Δv = J ÷ m).</span></div>
+      <div class="tip"><span class="tip-n">Later</span><span>As your score grows the catapult starts moving, and wind gusts push faces in the air (a = F ÷ m, so light faces drift more). The case blocks the wind.</span></div>
+      ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and lower case walls (4.5&nbsp;m), so faces fall out more easily.</span></div>' : ''}
     </div>
-    <p>Faster and heavier faces carry more momentum (p = mv) and energy, so they merge, smash and score better. But a hard hit can also knock faces out of the box.</p>`,
+    <p>Faster and heavier faces carry more momentum (p = mv) and energy, so they merge, smash and score better. But a hard hit can also knock faces out of the case.</p>`,
     [[firstTime ? "Got it, let's play!" : 'Got it', () => { closeModal(); if (then) then(); }, 'go']], () => { closeModal(); if (then) then(); });
 }
 function launch() {
   const v = launchVel();
   checkMission('launch', { m: massOf(current), v: v.sp, p: massOf(current) * v.sp });
   // a tiny random nudge in start position (not velocity) so straight drops don't balance in a perfect tower
-  const nb = Phys.addBody(world, { tier: current, x: LAUNCH.x + (Math.random() - 0.5) * 0.03, y: LAUNCH.y, vx: v.vx, vy: v.vy });
+  const x0 = LAUNCH.x + (Math.random() - 0.5) * 0.03;
+  if (curPower) {
+    // a power-up shot: the loaded face stays in the queue for the next shot
+    const p = curPower, rr = Phys.radiusOf(current);
+    const nb = p === 'anvil' ? Phys.addBody(world, { tier: -2, m: 4 * massOf(current), r: rr, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy })
+             : p === 'blast' ? Phys.addBody(world, { tier: -3, m: massOf(current), r: rr, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy })
+             : Phys.addBody(world, { tier: current, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy });
+    nb.power = p; nb.baseTier = current;
+    if (p === 'bouncy') { nb.bouncy = true; nb.bouncyUntil = world.time + BOUNCY_T; }
+    curPower = null; Sound.launch(v.sp / VMAX); armSwing = 1; if (p === 'bouncy') Sound.boing(); cooldown = 0.5; drag = null; canvas.classList.remove('aiming');
+    shots++; if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
+    afterShot(); updateTray(); updateHud(); return;
+  }
+  const nb = Phys.addBody(world, { tier: current, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy });
   if (curSecret) { nb.secret = true; secretIds.add(nb.id); }
-  Sound.launch(v.sp / VMAX);
+  Sound.launch(v.sp / VMAX); armSwing = 1;
   if (v.sp > 1) burst(sx(LAUNCH.x), sy(LAUNCH.y), '#fff', 6, 140, { stars: 0, size: 4 });
   current = next; next = randTier(); curSecret = nextSecret; nextSecret = rollSecret(); cooldown = 0.5;
   if (curSecret) { banner(`SECRET!<small>${secret.name ? escapeHtml(secret.name) + ' · ' : ''}+${SECRET_BONUS} when it merges</small>`, 'sun'); Sound.newTier(); } drag = null; canvas.classList.remove('aiming');
   shots++; if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
-  updateHud();
+  afterShot(); updateHud();
+}
+// After each shot: maybe move the catapult (once that challenge has started).
+function afterShot() {
+  if (!moveOn || shots < nextMoveShot) return;
+  const r = RAMP[difficulty], every = Math.max(4, 12 - Math.floor((score - r.move) / 600));
+  nextMoveShot = shots + every;
+  const spots = CAT_SPOTS.filter(x => Math.abs(x - catTarget) > 0.1);
+  catTarget = spots[Math.floor(Math.random() * spots.length)];
+  popups.push({ x: Math.min(catTarget, 1.2) + 0.3, y: LAUNCH.y + 0.9, text: catTarget < LAUNCH.x ? '← farther' : 'closer →', color: SUN, size: 18, t: 0, life: 1.4 });
+}
+// Score-based ramp: start the moving catapult and the wind, and change gusts.
+function updateChallenges(dt) {
+  const r = RAMP[difficulty];
+  if (!moveOn && score >= r.move) { moveOn = true; nextMoveShot = shots + 1; banner('Catapult on the move!', 'sun'); }
+  if (!windOn && score >= r.wind) { windOn = true; gustT = 0; banner('Wind picked up!<small>a = F ÷ m</small>', 'mint'); Sound.whistle(); }
+  // slide the catapult toward its target spot (no shooting while it moves)
+  const d = catTarget - LAUNCH.x;
+  if (Math.abs(d) > 0.005) { LAUNCH.x += d * Math.min(1, dt * 3.5); cooldown = Math.max(cooldown, 0.15); } else LAUNCH.x = catTarget;
+  if (windOn) {
+    gustT -= dt;
+    if (gustT <= 0) {
+      const fmax = Math.min(5, 1 + (score - r.wind) / 800);
+      windTarget = (Math.random() < 0.5 ? -1 : 1) * fmax * (0.4 + 0.6 * Math.random());
+      gustT = 6 + Math.random() * 4;
+    }
+    world.wind += (windTarget - world.wind) * Math.min(1, dt * 0.8);
+  }
+}
+function grantPower() {
+  if (powers.length >= POWER_MAX) return;
+  const keys = Object.keys(POWERS), p = keys[Math.floor(Math.random() * keys.length)];
+  powers.push(p); updateTray();
+  banner(`Power-up!<small>${POWERS[p].name} (${POWERS[p].sub})</small>`, 'pink'); Sound.fanfare();
+}
+function updateTray() {
+  const tray = $('puTray'); if (!tray) return;
+  tray.hidden = !(state === 'playing' || state === 'paused');
+  const slots = [];
+  for (let i = 0; i < POWER_MAX; i++) {
+    const p = powers[i];
+    if (p) slots.push(`<button class="pu pu-${p}" data-i="${i}" aria-label="Load ${POWERS[p].name} power-up (${POWERS[p].sub})"><b>${POWERS[p].name}</b><small>${POWERS[p].sub}</small></button>`);
+  }
+  tray.innerHTML = slots.join('');
+  tray.querySelectorAll('button.pu').forEach(b => {
+    b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.onclick = e => { e.stopPropagation(); loadPower(+b.dataset.i); };
+  });
+  $('puLoaded').hidden = !curPower; if (curPower) $('puLoaded').textContent = `${POWERS[curPower].name} loaded · tap to cancel`;
+}
+function loadPower(i) {
+  if (state !== 'playing') return;
+  const p = powers[i]; if (!p) return;
+  powers.splice(i, 1); if (curPower) powers.push(curPower);
+  curPower = p; Sound.click(); updateTray();
+}
+// Power-up faces in the case: bouncy wears off, the anvil disappears after resting, the blast goes off when it lands.
+function powerTick() {
+  for (const b of world.bodies) {
+    if (!b.power) continue;
+    if (b.power === 'bouncy' && b.bouncy && world.time > b.bouncyUntil) b.bouncy = false;
+    if (b.power === 'anvil' && b.inBox && b.touching && b.restAt === undefined) b.restAt = world.time;
+    if (b.power === 'anvil' && b.restAt !== undefined && world.time - b.restAt > ANVIL_T) {
+      b.dead = true; burst(sx(b.x), sy(b.y), '#C9CEDD', 16, 160, { stars: 0.3 }); popups.push({ x: b.x, y: b.y + 0.4, text: 'Poof!', color: '#fff', size: 18, t: 0, life: 1 });
+    }
+    if (b.power === 'blast' && b.inBox && (b.touching || b.hit)) blast(b);
+  }
+  if (world.bodies.some(b => b.dead)) world.bodies = world.bodies.filter(b => !b.dead);
+}
+// Blast: every nearby face gets an outward impulse J (largest up close, zero at BLAST_R). Δv = J ÷ m, so light faces fly farthest.
+function blast(b) {
+  b.dead = true; let n = 0;
+  for (const f of world.bodies) {
+    if (f === b || f.dead) continue;
+    const dx = f.x - b.x, dy = f.y - b.y, d = Math.hypot(dx, dy); if (d > BLAST_R || d < 1e-6) continue;
+    const J = BLAST_J * (1 - d / BLAST_R), dv = J / f.m;
+    f.vx += dx / d * dv; f.vy += dy / d * dv; f.touching = false; n++;
+  }
+  burst(sx(b.x), sy(b.y), '#FF7A45', 40, 360, { up: 60, size: 6 }); burst(sx(b.x), sy(b.y), '#FFE45C', 20, 260, { stars: 0.8 });
+  popups.push({ x: b.x, y: b.y + 0.5, text: 'BLAST!', sub: `J up to ${BLAST_J} N·s · Δv = J ÷ m`, color: '#FF7A45', size: 28, t: 0, life: 1.6 });
+  doShake(10, 0.4); Sound.smash();
 }
 function spawnRock() {
   const x = BOX.l + ROCK_R + 0.2 + Math.random() * (BOX.r - BOX.l - 2 * ROCK_R - 0.4);
   const r = Phys.addBody(world, { tier: -1, m: ROCK_M, r: ROCK_R, x, y: Math.max(wallH + 2, H - ROCK_R - 0.3), vx: 0, vy: -1 });
   r.cracks = 0; r.seed = Math.random() * 1000;
-  banner('Rock incoming!', 'pink'); Sound.rock();
+  banner('Textbook incoming!', 'pink'); Sound.rock();
 }
 function rockHit(ev) {
   const rockId = ev.tier1 === -1 ? ev.id1 : ev.id2, rock = world.bodies.find(b => b.id === rockId);
@@ -1399,7 +1710,7 @@ function updateHud(bumpScore) {
   if (DIFF[difficulty].showNext || state === 'title') drawFace(hc, 48, 48, 22 + next * 6, next, massOf(next), 1, false, nextSecret);
   else {
     hc.beginPath(); hc.arc(48, 48, 34, 0, Math.PI * 2); hc.fillStyle = '#E6E1F0'; hc.fill(); hc.lineWidth = 5; hc.strokeStyle = INK; hc.stroke();
-    hc.fillStyle = INK; hc.font = '700 44px Fredoka, sans-serif'; hc.textAlign = 'center'; hc.textBaseline = 'middle'; hc.fillText('?', 48, 51);
+    hc.fillStyle = INK; hc.font = '700 44px "Patrick Hand", sans-serif'; hc.textAlign = 'center'; hc.textBaseline = 'middle'; hc.fillText('?', 48, 51);
   }
 }
 function setPauseUI(paused) {
@@ -1428,7 +1739,7 @@ function checkBox(dt) {
     if (!b.inBox && inside && (b.y < wallH || (b.touching && sp < 1.5))) b.inBox = true;
     const outside = b.x < BOX.l - BOX.t || b.x > BOX.r + BOX.t;
     if (b.inBox && outside) {   // past the outside of a wall: it has left the box (even if it is still flying)
-      if (b.tier === -1) { b.dead = true; popups.push({ x: b.x, y: b.y + 0.4, text: 'Rock out!', color: '#D9D4E6', size: 18, t: 0, life: 1.2 }); Sound.thunk(); continue; }
+      if (b.tier < 1) { b.dead = true; popups.push({ x: b.x, y: b.y + 0.4, text: b.tier === -1 ? 'Book out!' : 'Out!', color: '#fff', size: 18, t: 0, life: 1.2 }); Sound.thunk(); continue; }
       fallen = b; banner('Fell out!', 'pink'); gameOver(); return;
     }
     if (!b.inBox && (b.x < -0.6 || b.x > W + 0.6 || (b.y - b.r < 0.03 && outside))) {
@@ -1460,7 +1771,7 @@ function tankShake() {
   }
   doShake(16, 0.5); Sound.thunk(); Sound.crack();
   burst(sx(BOX_MID), sy(0) - 6, '#fff', 24, 260, { up: 160, size: 5 });
-  popups.push({ x: BOX_MID, y: Math.min(wallH + 0.8, H - 1.2), text: 'Box shake!', sub: `Δv ≈ ${(dvSum / n).toFixed(1)} m/s, so J = mΔv`, color: SUN, size: 26, t: 0, life: 2.2 });
+  popups.push({ x: BOX_MID, y: Math.min(wallH + 0.8, H - 1.2), text: 'Case shake!', sub: `Δv ≈ ${(dvSum / n).toFixed(1)} m/s, so J = mΔv`, color: SUN, size: 26, t: 0, life: 2.2 });
   updateShakeUI();
 }
 function updateShakeUI() {
@@ -1469,14 +1780,14 @@ function updateShakeUI() {
   btn.disabled = shakes <= 0 || state !== 'playing';
   $('shakeCount').textContent = shakes;
   $('shakePips').innerHTML = Array.from({ length: SHAKE_EVERY }, (_, i) => `<i class="${i < shakeProgress ? 'on' : ''}"></i>`).join('');
-  btn.setAttribute('aria-label', `Shake the box, ${shakes} left. Next shake in ${SHAKE_EVERY - shakeProgress} merges.`);
+  btn.setAttribute('aria-label', `Shake the case, ${shakes} left. Next shake in ${SHAKE_EVERY - shakeProgress} merges.`);
 }
 function gameOver() {
   state = 'over'; drag = null; Sound.musicStop(); Sound.gameOver(); setPauseUI(false);
   const isBest = score > bests[difficulty];
   if (isBest) { bests[difficulty] = score; store.set('bests', bests); }
   doShake(10, 0.5);
-  setTimeout(() => state === 'over' && openModal('Fell out of the box!', `
+  setTimeout(() => state === 'over' && openModal('Fell out of the case!', `
     ${isBest && score > 0 ? '<span class="newbest-chip">New best!</span>' : ''}
     <div class="big-score">${score.toLocaleString()}</div>
     <p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>
@@ -1485,12 +1796,12 @@ function gameOver() {
       <div class="stat"><span class="label">Merges</span><b>${merges}</b></div>
       <div class="stat"><span class="label">Best combo</span><b>${bestCombo > 1 ? '×' + bestCombo : 'none'}</b></div>
       <div class="stat"><span class="label">Missions</span><b>${missionsDone}</b></div>
-      <div class="stat"><span class="label">Rocks smashed</span><b>${rocksSmashed}</b></div>
+      <div class="stat"><span class="label">Books smashed</span><b>${rocksSmashed}</b></div>
       <div class="stat"><span class="label">Shots</span><b>${shots}</b></div>
     </div>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Physics lab', () => { closeModal(); openLab('log', gameOverBack); }]]), 450);
   updateHud();
 }
-function gameOverBack() { state = 'over'; openModal('Fell out of the box!', `<div class="big-score">${score.toLocaleString()}</div><p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Back to title', toTitle]]); }
+function gameOverBack() { state = 'over'; openModal('Fell out of the case!', `<div class="big-score">${score.toLocaleString()}</div><p>${DIFF[difficulty].name} · best ${bests[difficulty].toLocaleString()}</p>`, [['Play again', newGame, 'primary'], ['Change level', () => levelPicker(gameOverBack)], ['Back to title', toTitle]]); }
 function toTitle() {
   if (state === 'playing' || state === 'paused') { if (score > bests[difficulty]) { bests[difficulty] = score; store.set('bests', bests); } }
   closeModal(); state = 'title'; Sound.musicStop(); emptyWorld(); refreshTitle(); $('titleScreen').hidden = false;
@@ -1509,12 +1820,14 @@ function handleEvents() {
       const rel = Math.abs(ev.v1 - ev.v2), ang = Math.atan2(-ev.uy, ev.ux), amt = Math.min(0.28, 0.05 + rel * 0.03);
       for (const [id, t] of [[ev.id1, ev.tier1], [ev.id2, ev.tier2]]) if (t !== -1) squash.set(id, { t: 0, ang, amt });
       if (ev.mode === 'Game' && (ev.tier1 === -1 || ev.tier2 === -1)) rockHit(ev);
+      for (const id of [ev.id1, ev.id2]) { const f = world.bodies.find(b => b.id === id); if (f && f.power === 'blast') f.hit = true; }
       burst(X, Y, '#fff', 4 + Math.round(rel), 60 + rel * 25, { stars: 1, size: 4 });
       Sound.bounce(rel, Math.min(ev.m1, ev.m2));
     }
     if (ev.mode === 'Game' && ev.type === 'C1') {
       combo = ev.t - lastMergeT <= 1.0 ? combo + 1 : 1; lastMergeT = ev.t;
       ev.combo = Math.min(combo, 5); ev.awarded = ev.points * ev.combo;
+      if (combo === 3) grantPower();   // a ×3 combo earns a power-up
       bestCombo = Math.max(bestCombo, ev.combo);
       if (secretIds.has(ev.id1) || secretIds.has(ev.id2)) {
         secretIds.delete(ev.id1); secretIds.delete(ev.id2);
@@ -1824,17 +2137,135 @@ aimArea.addEventListener('pointerup', () => { if (drag && state === 'playing') l
 aimArea.addEventListener('pointercancel', () => { drag = null; canvas.classList.remove('aiming'); });
 
 // =====================================================================
+// CAMPUS BACKGROUND: a full-screen canvas behind everything, drawn every frame.
+// Parallax layers (far moves least): stars and moon, city skyline, school building, floodlights.
+// They drift slowly, lean away from your pull, and shake less than the game. The flag shows the wind.
+// =====================================================================
+const Campus = (() => {
+  const cv = $('space'), c = cv.getContext('2d');
+  let w = 0, h = 0, dp = 1, t = 0, px = 0, py = 0, shooting = [], nextShoot = 6, flagWind = 0;
+  let stars, skyline, school, clouds = [];
+  let seed = 4242; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const off = (W2, H2) => { const o = document.createElement('canvas'); o.width = Math.max(1, Math.round(W2 * dp)); o.height = Math.max(1, Math.round(H2 * dp)); const x = o.getContext('2d'); x.scale(dp, dp); return [o, x]; };
+  function build() {
+    w = window.innerWidth; h = window.innerHeight; dp = Math.min(window.devicePixelRatio || 1, 2); seed = 4242;
+    cv.width = Math.round(w * dp); cv.height = Math.round(h * dp);
+    let x;
+    [stars, x] = off(w, h);
+    for (let i = 0; i < 160 * Math.max(1, w * h / 400000); i++) { x.globalAlpha = 0.25 + 0.6 * rnd(); x.fillStyle = '#fff'; x.beginPath(); x.arc(rnd() * w, rnd() * h * 0.7, 0.5 + rnd() * 1.1, 0, Math.PI * 2); x.fill(); }
+    // city skyline (far)
+    const sh = Math.max(60, h * 0.16);
+    [skyline, x] = off(w + 160, sh);
+    x.fillStyle = '#232A5A';
+    for (let xx = 0; xx < w + 160;) { const bw = 18 + rnd() * 34, bh = sh * (0.3 + rnd() * 0.65); x.fillRect(xx, sh - bh, bw, bh);
+      x.fillStyle = 'rgba(255,214,120,0.55)'; for (let wy = sh - bh + 5; wy < sh - 4; wy += 7) for (let wx = xx + 3; wx < xx + bw - 3; wx += 6) if (rnd() < 0.28) x.fillRect(wx, wy, 2.5, 3);
+      x.fillStyle = '#232A5A'; xx += bw + 2 + rnd() * 6; }
+    // school building (mid): main block, entrance, clock tower, windows
+    const bw = Math.min(w * 0.75, 520), bh = Math.max(80, h * 0.2);
+    [school, x] = off(bw, bh * 1.6);
+    const top = bh * 0.6;
+    x.fillStyle = '#323A72'; x.fillRect(0, top, bw, bh);
+    x.fillStyle = '#3B4483'; x.fillRect(bw * 0.4, top - bh * 0.25, bw * 0.2, bh * 1.25);                       // tower
+    x.beginPath(); x.moveTo(bw * 0.38, top - bh * 0.25); x.lineTo(bw * 0.5, top - bh * 0.55); x.lineTo(bw * 0.62, top - bh * 0.25); x.closePath(); x.fill();
+    x.fillStyle = '#F5F0DC'; x.beginPath(); x.arc(bw * 0.5, top - bh * 0.07, bh * 0.08, 0, Math.PI * 2); x.fill();           // clock
+    x.strokeStyle = '#323A72'; x.lineWidth = 2; x.beginPath(); x.moveTo(bw * 0.5, top - bh * 0.07); x.lineTo(bw * 0.5, top - bh * 0.13); x.moveTo(bw * 0.5, top - bh * 0.07); x.lineTo(bw * 0.535, top - bh * 0.07); x.stroke();
+    for (let row = 0; row < 3; row++) for (let col = 0; col < 14; col++) {
+      const wx = bw * 0.04 + col * bw * 0.066, wy = top + bh * 0.12 + row * bh * 0.27;
+      if (wx > bw * 0.38 && wx < bw * 0.6) continue;
+      x.fillStyle = rnd() < 0.35 ? 'rgba(255,220,130,0.85)' : 'rgba(20,24,58,0.8)'; x.fillRect(wx, wy, bw * 0.04, bh * 0.15);
+    }
+    x.fillStyle = 'rgba(255,220,130,0.9)'; x.fillRect(bw * 0.46, top + bh * 0.62, bw * 0.08, bh * 0.38);   // lit doorway
+    clouds = Array.from({ length: 4 }, () => ({ x: rnd() * w, y: h * (0.08 + rnd() * 0.3), s: 0.6 + rnd() * 0.8 }));
+  }
+  function groundY() { if (!ch || state === 'title') return h * 0.86; const r = canvas.getBoundingClientRect(); return r.top + sy(0); }
+  function floodlight(x0, gy, height, lean) {
+    c.strokeStyle = '#1A1F42'; c.lineWidth = 5; c.beginPath(); c.moveTo(x0, gy); c.lineTo(x0, gy - height); c.stroke();
+    c.lineWidth = 2; for (let k = 1; k < 6; k++) { c.beginPath(); c.moveTo(x0 - 4, gy - height * k / 6); c.lineTo(x0 + 4, gy - height * (k - 0.5) / 6); c.stroke(); }
+    const hx = x0 - 16, hy = gy - height - 12;
+    const g = c.createRadialGradient(x0, hy + 8, 4, x0 + lean * 60, gy, height * 1.1); g.addColorStop(0, 'rgba(255,246,200,0.22)'); g.addColorStop(1, 'rgba(255,246,200,0)');
+    c.fillStyle = g; c.beginPath(); c.moveTo(hx, hy + 14); c.lineTo(hx + 32, hy + 14); c.lineTo(x0 + lean * 140 + 120, gy); c.lineTo(x0 + lean * 140 - 120, gy); c.closePath(); c.fill();
+    c.fillStyle = '#1A1F42'; c.fillRect(hx - 2, hy - 2, 36, 18);
+    c.fillStyle = '#FFF6C8'; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(hx + 5 + i * 8, hy + 7, 3.2, 0, Math.PI * 2); c.fill(); }
+  }
+  function flag(x0, gy, height, wind) {
+    c.strokeStyle = '#C9CEDD'; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, gy); c.lineTo(x0, gy - height); c.stroke();
+    c.fillStyle = '#E8C468'; c.beginPath(); c.arc(x0, gy - height - 3, 3.5, 0, Math.PI * 2); c.fill();
+    const fw = 46, fh = 28, k = Math.max(-1, Math.min(1, wind / 4)), dir = k >= 0 ? 1 : -1, stiff = Math.abs(k);
+    const droop = (1 - stiff) * 0.9;     // no wind: the flag hangs down
+    c.fillStyle = '#FF6FB5'; c.beginPath(); c.moveTo(x0, gy - height + 2);
+    for (let i = 0; i <= 10; i++) { const u = i / 10, wave = Math.sin(t * (3 + stiff * 6) - u * 6) * 4 * (0.3 + stiff) * u;
+      c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75), gy - height + 2 + fh * droop * u * 0.9 + wave); }
+    for (let i = 10; i >= 0; i--) { const u = i / 10, wave = Math.sin(t * (3 + stiff * 6) - u * 6) * 4 * (0.3 + stiff) * u;
+      c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75) - droop * 6 * u, gy - height + 2 + fh + fh * droop * u * 0.9 + wave - droop * fh * 0.6 * u); }
+    c.closePath(); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.25)'; c.lineWidth = 1; c.stroke();
+  }
+  function draw(dt, aim, shk, wind) {
+    if (cv.width !== Math.round(window.innerWidth * Math.min(window.devicePixelRatio || 1, 2))) build();
+    if (!reduceMotion) t += dt;
+    const tx = aim ? -aim.px * 14 : 0, ty = aim ? aim.py * 10 : 0;
+    px += (tx - px) * Math.min(1, dt * 4); py += (ty - py) * Math.min(1, dt * 4);
+    if (!isFinite(px) || !isFinite(py)) { px = 0; py = 0; }
+    flagWind += ((wind || 0) - flagWind) * Math.min(1, dt * 2);
+    c.setTransform(dp, 0, 0, dp, 0, 0);
+    const gy = groundY();
+    const bg = c.createLinearGradient(0, 0, 0, gy); bg.addColorStop(0, '#0B1230'); bg.addColorStop(0.6, '#1E2A5E'); bg.addColorStop(1, '#3B3F7A');
+    c.fillStyle = bg; c.fillRect(0, 0, w, h);
+    const L = d => [px * d + shk.x * d * 0.5, py * d + shk.y * d * 0.5];
+    let [ox, oy] = L(0.15);
+    const drift = (t * 2) % w; c.drawImage(stars, ox - drift, oy, w, h); c.drawImage(stars, ox - drift + w, oy, w, h);
+    if (!reduceMotion) for (let i = 0; i < 6; i++) { const sx2 = (i * 0.17 + 0.07) * w + ox, sy2 = (0.08 + (i * 0.13) % 0.4) * h + oy, a = 0.3 + 0.7 * Math.abs(Math.sin(t * 1.4 + i)); c.globalAlpha = a; c.fillStyle = '#fff'; c.beginPath(); c.arc(sx2, sy2, 1.6, 0, Math.PI * 2); c.fill(); }
+    c.globalAlpha = 1;
+    // moon
+    [ox, oy] = L(0.25); const mx = w * 0.82 + ox, my = h * 0.12 + oy, mr = Math.max(18, Math.min(w, h) * 0.05);
+    let g = c.createRadialGradient(mx, my, mr * 0.8, mx, my, mr * 3); g.addColorStop(0, 'rgba(255,248,220,0.25)'); g.addColorStop(1, 'rgba(255,248,220,0)'); c.fillStyle = g; c.beginPath(); c.arc(mx, my, mr * 3, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FFF8DC'; c.beginPath(); c.arc(mx, my, mr, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(200,190,160,0.5)'; for (const [a, b, rr] of [[-0.3, -0.2, 0.2], [0.25, 0.15, 0.15], [-0.05, 0.4, 0.1]]) { c.beginPath(); c.arc(mx + a * mr, my + b * mr, rr * mr, 0, Math.PI * 2); c.fill(); }
+    // shooting stars
+    if (!reduceMotion) {
+      nextShoot -= dt;
+      if (nextShoot <= 0) { nextShoot = 6 + Math.random() * 8; shooting.push({ x: Math.random() * w * 0.6 + w * 0.3, y: Math.random() * h * 0.25, vx: -(380 + Math.random() * 200), vy: 140 + Math.random() * 80, t: 0, life: 0.8 }); }
+      for (const s of shooting) { s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; const a = Math.max(0, 1 - s.t / s.life);
+        const gg = c.createLinearGradient(s.x, s.y, s.x - s.vx * 0.15, s.y - s.vy * 0.15); gg.addColorStop(0, `rgba(255,255,255,${a})`); gg.addColorStop(1, 'rgba(255,255,255,0)');
+        c.strokeStyle = gg; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(s.x - s.vx * 0.15, s.y - s.vy * 0.15); c.stroke(); }
+      shooting = shooting.filter(s => s.t < s.life);
+    }
+    // night clouds drift with the wind
+    for (const cl of clouds) { if (!reduceMotion) cl.x += (4 + flagWind * 6) * dt; if (cl.x > w + 100) cl.x = -100; if (cl.x < -100) cl.x = w + 100;
+      c.fillStyle = 'rgba(120,130,190,0.18)'; for (const [dx, dy, rr] of [[0, 0, 26], [22, -10, 20], [44, 0, 24], [22, 6, 22]]) { c.beginPath(); c.arc(cl.x + dx * cl.s + ox, cl.y + dy * cl.s + oy, rr * cl.s, 0, Math.PI * 2); c.fill(); } }
+    // city skyline
+    [ox, oy] = L(0.35); c.drawImage(skyline, -80 + ox, gy - skyline.height / dp + 4 + oy * 0.3, skyline.width / dp, skyline.height / dp);
+    // school building
+    [ox, oy] = L(0.55); const sw = school.width / dp, shh = school.height / dp; c.drawImage(school, w * 0.5 - sw * 0.35 + ox, gy - shh + 2 + oy * 0.3, sw, shh);
+    // trees
+    c.fillStyle = '#18204A'; for (let i = 0; i < 7; i++) { const tx2 = (i / 7) * w + ((i * 53) % 40) + ox * 1.2, th = 26 + (i % 3) * 10; c.beginPath(); c.arc(tx2, gy - th, th * 0.55, 0, Math.PI * 2); c.fill(); c.fillRect(tx2 - 2, gy - th, 4, th); }
+    // floodlights and flag (near)
+    [ox, oy] = L(0.8);
+    floodlight(w * 0.06 + ox, gy, Math.max(120, h * 0.33), 0.6); floodlight(w * 0.95 + ox, gy, Math.max(120, h * 0.33), -0.6);
+    { const r = canvas.getBoundingClientRect(), fxp = state === 'title' || !ch ? w * 0.85 : r.left + sx(BOX.r + BOX.t + 0.1);
+      flag(fxp, gy, state === 'title' || !ch ? h * 0.3 : (wallH + 1.3) * ppm, flagWind); }
+    // the field at exactly the game's ground line, with chalk lines
+    const fg = c.createLinearGradient(0, gy, 0, h); fg.addColorStop(0, '#2E7D32'); fg.addColorStop(1, '#174A1B');
+    c.fillStyle = fg; c.fillRect(0, gy, w, h - gy);
+    c.strokeStyle = 'rgba(255,255,255,0.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, gy + 0.5); c.lineTo(w, gy + 0.5); c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,0.22)'; c.lineWidth = 3; for (let i = 0; i < 6; i++) { const yy = gy + 10 + i * 14; if (yy > h) break; c.beginPath(); c.moveTo(0, yy); c.lineTo(w, yy); c.stroke(); }
+  }
+  window.addEventListener('resize', build);
+  build();
+  return { draw };
+})();
+
+// =====================================================================
 // MAIN LOOP
 // =====================================================================
 let last = performance.now(), acc = 0;
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (state !== shakeUIState) { shakeUIState = state; updateShakeUI(); }
+  let dt = Math.min(0.05, (now - last) / 1000); last = now; if (!(dt >= 0)) dt = 0;
+  if (state !== shakeUIState) { shakeUIState = state; updateShakeUI(); updateTray(); }
   const running = state === 'playing' || (state === 'test' && trial && trial.running);
   if (running) {
     acc += dt;
     while (acc >= DT) { Phys.step(world, DT); acc -= DT; }
-    if (state === 'playing') { cooldown = Math.max(0, cooldown - dt); checkBox(dt); if (rockDue > 0) { rockDue -= dt; if (rockDue <= 0) spawnRock(); } }
+    if (state === 'playing') { cooldown = Math.max(0, cooldown - dt); updateChallenges(dt); powerTick(); checkBox(dt); if (rockDue > 0) { rockDue -= dt; if (rockDue <= 0) spawnRock(); } }
     if (state === 'test') testTick();
     handleEvents();
     for (const b of world.bodies) {   // trails behind fast faces
@@ -1849,8 +2280,11 @@ function frame(now) {
   particles = particles.filter(p => p.t < p.life);
   for (const [id, q] of squash) { q.t += dt; if (q.t > 0.35) squash.delete(id); }
   for (const [id, a] of pops) { if (a > 0.35) pops.delete(id); else pops.set(id, a + dt); }
-  shake.t += dt;
+  shake.t += dt; armSwing = Math.max(0, armSwing - dt * 2.5);
   if (logDirty && !$('lab').hidden) renderLog();
+  { let sxk = 0, syk = 0; if (shake.t < shake.dur && !reduceMotion) { const k = shake.amp * (1 - shake.t / shake.dur); sxk = (Math.random() - 0.5) * 2 * k; syk = (Math.random() - 0.5) * 2 * k; }
+    if (!isFinite(sxk) || !isFinite(syk)) { sxk = 0; syk = 0; }
+    try { Campus.draw(dt, drag && state === 'playing' ? drag : null, { x: sxk, y: syk }, world ? world.wind : 0); } catch (e) { /* a bad frame must never stop the game */ } }
   if (ppm > 0 && world) draw();
   requestAnimationFrame(frame);
 }
@@ -1858,6 +2292,8 @@ function frame(now) {
 $('verLabel').textContent = `SuiCalculate v${GAME_VERSION} · ${GAME_DATE}`;
 console.log(`SuiCalculate v${GAME_VERSION} (${GAME_DATE})`);
 $('shakeBtn').addEventListener('pointerdown', e => e.stopPropagation());
+$('puLoaded').addEventListener('pointerdown', e => e.stopPropagation());
+$('puLoaded').onclick = e => { e.stopPropagation(); if (curPower && powers.length < POWER_MAX) { powers.push(curPower); curPower = null; Sound.click(); updateTray(); } };
 $('shakeBtn').onclick = e => { e.stopPropagation(); tankShake(); };
 rebuildImgs(); rebuildSecret(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
 requestAnimationFrame(frame);
