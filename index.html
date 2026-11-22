@@ -3,8 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="SuiCalculate: launch faces, crash matching ones together and transfer momentum.">
-<meta name="theme-color" content="#6CCBFF">
+<meta name="description" content="SuiCalculate: a papercraft physics game. Fling faces into the box and crash matching ones together to merge them. Learn momentum, impulse and collisions.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SuiCalculate">
+<meta property="og:description" content="A momentum and collisions arcade game. Play free in your browser.">
+<meta property="og:url" content="https://acs-rll.github.io/suicalculate/">
+<meta property="og:image" content="https://acs-rll.github.io/suicalculate/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="SuiCalculate: two sticker faces crashing together on a papercraft sunset">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://acs-rll.github.io/suicalculate/assets/og-image.jpg">
+<meta name="theme-color" content="#F28C38">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SuiCalculate">
@@ -388,9 +398,46 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
 .pu:active { transform: translateY(2px); }
 .pu-loaded { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); rotate: -1deg; z-index: 3; background: var(--grain), var(--sun); border: 0; border-radius: 3px;
   font: 600 14px var(--font-display); color: var(--ink); padding: 4px 12px; box-shadow: var(--lift); cursor: pointer; white-space: nowrap; }
+
+/* splash / loading screen: papercraft sunset, cut-out logo, two faces bumping, a physics tip */
+.splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px;
+  background: var(--grain), linear-gradient(180deg, #6D3B6B 0 14%, #9C4A6E 14% 28%, #D85A5A 28% 42%, #F2675A 42% 56%, #F28C38 56% 70%, #F6A54A 70% 84%, #F2B33D 84%);
+  transition: opacity 0.45s ease, visibility 0.45s; cursor: pointer; }
+.splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-card { display: grid; justify-items: center; gap: 14px; background: var(--grain), var(--paper); border-radius: 6px; padding: 26px 22px 18px; width: min(100%, 360px);
+  box-shadow: 0 12px 28px rgba(61, 35, 64, 0.4); rotate: -1deg; position: relative; text-align: center; }
+.splash-card::before { content: ""; position: absolute; top: -11px; left: 50%; width: 90px; height: 22px; transform: translateX(-50%) rotate(-3deg);
+  background: repeating-linear-gradient(45deg, rgba(42, 157, 143, 0.85) 0 7px, rgba(255, 244, 222, 0.85) 7px 14px); }
+.splash-logo { font: 700 46px var(--font-display); line-height: 1.15; color: #fff; display: grid; gap: 4px; }
+.splash-logo .l2 { font-size: 30px; }
+.splash-logo i { font-style: normal; display: inline-block; padding: 0 0.08em; margin: 0 0.015em; border-radius: 0.08em; box-shadow: 0 3px 5px rgba(61, 35, 64, 0.3); background: var(--orange); }
+.splash-logo i:nth-child(4n+1) { background: var(--coral); rotate: -5deg; } .splash-logo i:nth-child(4n+2) { background: var(--teal); rotate: 3deg; }
+.splash-logo i:nth-child(4n+3) { background: var(--sun); color: var(--ink); rotate: -2deg; } .splash-logo i:nth-child(4n) { background: var(--plum); rotate: 4deg; }
+.splash-faces { display: flex; align-items: center; gap: 0; height: 86px; }
+.splash-faces canvas { width: 76px; height: 76px; }
+#spA { animation: spLeft 1.2s ease-in-out infinite; } #spB { animation: spRight 1.2s ease-in-out infinite; }
+@keyframes spLeft { 0%, 100% { transform: translateX(-26px); } 45% { transform: translateX(6px); } 50% { transform: translateX(4px) scale(1.04, 0.94); } }
+@keyframes spRight { 0%, 100% { transform: translateX(26px); } 45% { transform: translateX(-6px); } 50% { transform: translateX(-4px) scale(1.04, 0.94); } }
+.spark { width: 0; height: 0; position: relative; }
+.spark::after { content: ""; position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; background: var(--sun);
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: spark 1.2s ease-in-out infinite; opacity: 0; }
+@keyframes spark { 45% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1.2); } 70% { opacity: 0; transform: scale(1.4); } }
+.splash-tip { margin: 0; font: 600 15px var(--font-body); color: var(--ink); background: #fff; padding: 8px 12px; border-radius: 4px; box-shadow: 0 2px 6px rgba(61, 35, 64, 0.2); max-width: 30ch; }
+.splash-tip::before { content: "Physics tip: "; font-weight: 800; color: var(--coral); }
+.splash-load { margin: 0; font: 600 12px var(--font-display); color: var(--muted); letter-spacing: 0.06em; }
+@media (prefers-reduced-motion: reduce) { #spA, #spB, .spark::after { animation: none; } }
 </style>
 </head>
 <body>
+
+<div class="splash" id="splash" role="status" aria-label="Loading SuiCalculate">
+  <div class="splash-card">
+    <div class="splash-logo" aria-hidden="true"><div><i>S</i><i>u</i><i>i</i></div><div class="l2"><i>C</i><i>a</i><i>l</i><i>c</i><i>u</i><i>l</i><i>a</i><i>t</i><i>e</i><i>!</i></div></div>
+    <div class="splash-faces" aria-hidden="true"><canvas id="spA" width="200" height="200"></canvas><span class="spark"></span><canvas id="spB" width="200" height="200"></canvas></div>
+    <p class="splash-tip" id="splashTip">Heavier faces carry more momentum: p = mv.</p>
+    <p class="splash-load">Loading… tap to skip</p>
+  </div>
+</div>
 
 <div class="scenery" aria-hidden="true"><canvas id="space"></canvas></div>
 
@@ -866,7 +913,8 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.1 (22 Nov 2026) school campus at night, notebook UI, catapult, trophy case, power-ups, wind gusts, moving catapult.
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
 // v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
-const GAME_VERSION = '2.3', GAME_DATE = '23 Nov 2026';
+// v2.4 (23 Nov 2026) new papercraft app icon, splash screen with physics tips, link preview image.
+const GAME_VERSION = '2.4', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -2384,6 +2432,24 @@ $('puLoaded').addEventListener('pointerdown', e => e.stopPropagation());
 $('puLoaded').onclick = e => { e.stopPropagation(); if (curPower && powers.length < POWER_MAX) { powers.push(curPower); curPower = null; Sound.click(); updateTray(); } };
 $('shakeBtn').onclick = e => { e.stopPropagation(); tankShake(); };
 rebuildImgs(); rebuildSecret(); buildFaceSlots(); buildTitle(); showSoundUI(); emptyWorld(); fitStage(); refreshTitle(); renderLog();
+// ---- splash screen: draw the two faces, pick a physics tip, and fade out once the page has loaded (at least ~1.4 s) ----
+{
+  const TIPS = ['Heavier faces carry more momentum: p = mv.', 'Matching faces only merge if the crash releases enough energy: KE lost = ½μv².',
+    'Different faces bounce: momentum and kinetic energy are both kept.', 'Wind pushes light faces more: a = F ÷ m.', 'The glass box blocks the wind.',
+    'Every shot is a projectile: gravity pulls it down at 10 m/s².', 'Impulse J = Δp: a hard, quick push changes momentum a lot.',
+    'Two 1 kg faces need about 6 m/s of closing speed to merge on Normal.', 'A Tier 10 face weighs 512 kg.', 'Bouncy faces lose no speed on walls: e = 1.'];
+  const sp = $('splash'), t0 = performance.now();
+  if (sp) {
+    $('splashTip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
+    for (const [id, tier] of [['spA', 2], ['spB', 6]]) { const c = $(id).getContext('2d'); c.clearRect(0, 0, 200, 200); drawFace(c, 100, 100, 88, tier, massOf(tier), 1, false); }
+    let gone = false;
+    const hide = () => { if (gone) return; gone = true; sp.classList.add('hide'); setTimeout(() => sp.remove(), 600); };
+    const done = () => setTimeout(hide, Math.max(0, 1400 - (performance.now() - t0)));
+    if (document.readyState === 'complete') done(); else window.addEventListener('load', done);
+    sp.addEventListener('click', hide);
+    setTimeout(hide, 6000);   // never block the game, even if something is slow to load
+  }
+}
 requestAnimationFrame(frame);
 })();
 </script>

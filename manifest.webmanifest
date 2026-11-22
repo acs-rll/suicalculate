@@ -1,18 +1,36 @@
 {
   "name": "SuiCalculate",
   "short_name": "SuiCalculate",
-  "description": "Launch faces, crash matching ones together and transfer momentum. A physics game about elastic and perfectly inelastic collisions.",
+  "description": "Fling faces into the box and crash matching ones together. A papercraft physics game about momentum, elastic and perfectly inelastic collisions.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#CDEFFF",
-  "theme_color": "#6CCBFF",
-  "categories": ["games", "education"],
+  "background_color": "#F28C38",
+  "theme_color": "#F28C38",
+  "categories": [
+    "games",
+    "education"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
