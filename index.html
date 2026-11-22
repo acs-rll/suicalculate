@@ -645,7 +645,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
       </div>
       <div class="panel">
         <h3>Scoring</h3>
-        <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 1 second of each other multiply their points (×2, ×3, up to ×5). Missions give bonus points.</p>
+        <p>Each merge scores |Δp| × 10 points (rounded up), where Δp = m₂(v′ − v₂) is the momentum given to the target face. Merges within 2 seconds of each other multiply their points (×2, ×3, up to ×5). Each merge also gets a tier bonus of 25 × the new tier (a game rule, not physics). Missions give bonus points.</p>
         <p>Masses: Tier 1 to 10 = 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 kg. Gravity g = 10 m/s². Launch speed up to 12 m/s.</p>
         <p>Textbooks (12 kg) never merge. A textbook breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
         <p><b style="color:var(--ink)">The campus:</b> faces are flung from a popsicle-stick catapult on a 2.55 m stack of textbooks into an open paper display box (walls 5.0 m high, 4.5 m on Hard). Gravity is Earth's, g = 10 m/s². Walls and the ground take away half the speed of a hit. A face that falls out of the case ends the game; a shot that misses the case just rolls away.</p>
@@ -881,15 +881,22 @@ const Phys = (() => {
   function step(w, dt) {
     let bs = w.bodies;
     for (const b of bs) { b.touching = !!b.touchNow; b.touchNow = false; }
-    if (w.gravity) for (const b of bs) b.vy -= G * dt;
-    if (w.wind) for (const b of bs) if (!sheltered(w, b)) b.vx += w.wind / b.m * dt;   // a = F / m: light faces drift more
+    for (const b of bs) { b.ax = 0; b.ay = w.gravity ? -G : 0; }
+    if (w.wind) for (const b of bs) if (!sheltered(w, b)) b.ax = w.wind / b.m;      // a = F / m: light faces drift more
+    for (const b of bs) { b.vx += b.ax * dt; b.vy += b.ay * dt; b.v0x = b.vx; b.v0y = b.vy; }
     for (let it = 0; it < 8; it++) {
       const n = bs.length;
       for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) collidePair(w, bs[i], bs[j]);
       for (const b of bs) if (!b.dead) wallVelocity(w, b);
       if (bs.some(b => b.dead)) { w.bodies = bs = w.bodies.filter(b => !b.dead); }
     }
-    for (const b of bs) { b.x += b.vx * dt; b.y += b.vy * dt; }
+    // x = x + v·dt, plus the ½·a·dt² correction for faces in free flight, so a flying face follows
+    // x = x0 + vx·t + ½·a·t² exactly (faces that hit something this step skip it)
+    for (const b of bs) {
+      const free = b.v0x !== undefined && !b.touchNow && !b.touching && b.vx === b.v0x && b.vy === b.v0y, h = free ? 0.5 * dt * dt : 0;
+      b.x += b.vx * dt - (b.ax || 0) * h; b.y += b.vy * dt - (b.ay || 0) * h;
+      b.v0x = undefined;
+    }
     for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) separatePair(bs[i], bs[j]);
     for (const b of bs) wallPosition(w, b);
     w.time += dt;
@@ -897,9 +904,11 @@ const Phys = (() => {
 
   // For the aim guide: move one pretend face through the same ground and walls (no other faces).
   function ghostStep(w, b, dt) {
-    if (w.gravity) b.vy -= G * dt;
-    if (w.wind && !sheltered(w, b)) b.vx += w.wind / b.m * dt;
-    wallVelocity(w, b); b.x += b.vx * dt; b.y += b.vy * dt; wallPosition(w, b);
+    const ax = w.wind && !sheltered(w, b) ? w.wind / b.m : 0, ay = w.gravity ? -G : 0;
+    b.vx += ax * dt; b.vy += ay * dt;
+    const v0x = b.vx, v0y = b.vy; wallVelocity(w, b);
+    const h = b.vx === v0x && b.vy === v0y ? 0.5 * dt * dt : 0;
+    b.x += b.vx * dt - ax * h; b.y += b.vy * dt - ay * h; wallPosition(w, b);
   }
 
   return { W, H, BOX, CLIFF, LINE, LAUNCH, G, VMAX, MAX_TIER, RADII, E_THRESH, massOf, radiusOf, createWorld, addBody, step, ghostStep, boxWalls };
@@ -918,7 +927,7 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
 // v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
 // v2.4 (23 Nov 2026) new papercraft app icon, splash screen with physics tips, link preview image.
-const GAME_VERSION = '2.5', GAME_DATE = '23 Nov 2026';
+const GAME_VERSION = '2.6', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1094,6 +1103,10 @@ let powers = [], curPower = null;
 const RAMP = { easy: { move: 1500, wind: 2500 }, normal: { move: 1000, wind: 1600 }, hard: { move: 400, wind: 700 } };
 const CAT_SPOTS = [0.5, 0.75, 0.95, 1.15];   // catapult positions on the bleachers (m)
 let moveOn = false, nextMoveShot = 0, catTarget = 0.8, windOn = false, windTarget = 0, gustT = 0;
+// Wind holds steady while you aim. It only changes every WIND_EVERY shots, and only when no face is in the air,
+// so it never bends a shot that is already flying and you never have to wait for it to settle.
+const WIND_EVERY = 3, COMBO_WINDOW = 2.0, TIER_BONUS = 25, COOLDOWN = 0.3;
+let windShots = 0, windPending = false;
 const escapeHtml = t => String(t).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
 let cooldown = 0, drag = null, rimT = 0, tickT = 0, fallen = null, popups = [], pending = [], wonShown = false;
 let logRows = [], logDirty = true, filter = 'all', trial = null, testType = 'elastic';
@@ -1140,7 +1153,7 @@ function makeMission(prevId) {
     () => { const tt = Math.min(TIERS, Math.max(4, best + 1));
       return { id: 'tier', text: `Grow a Tier ${tt} face`, hint: `Two matching faces make the next tier, with double the mass (${massOf(tt)} kg).`, reward: R + 50 * (tt - 4),
         test: (k, e) => k === 'event' && e.type === 'C1' && e.newTier >= tt }; },
-    () => ({ id: 'combo', text: 'Chain a ×3 combo', hint: 'Three merges, each within 1 second of the last.', reward: R,
+    () => ({ id: 'combo', text: 'Chain a ×3 combo', hint: 'Three merges, each within 2 seconds of the last.', reward: R,
       test: (k, e) => k === 'combo' && e >= 3 }),
   ];
   let m; do { m = list[Math.floor(Math.random() * list.length)](); } while (m.id === prevId);
@@ -1691,7 +1704,7 @@ function newGame() {
   state = 'playing'; score = 0; best = 0; merges = 0; rimT = 0; fallen = null; cooldown = 0; drag = null; wonShown = false; newBest = false;
   popups = []; pending = []; particles = []; squash.clear(); pops.clear();
   combo = 0; lastMergeT = -9; bestCombo = 0; missionsDone = 0; mission = null;
-  shots = 0; rockDue = -1; powers = []; curPower = null; moveOn = false; windOn = false; windTarget = 0; gustT = 0; LAUNCH.x = catTarget = 0.8; updateTray(); shakes = 1; shakeProgress = 0; shakeGrace = 0; shakeAt = -99; updateShakeUI(); rocksSmashed = 0; lastSoftT = -9; softHinted = false; spares = 1; spareAt = 0; savedCount = 0;
+  shots = 0; rockDue = -1; powers = []; curPower = null; moveOn = false; windOn = false; windTarget = 0; gustT = 0; LAUNCH.x = catTarget = 0.8; updateTray(); shakes = 1; shakeProgress = 0; shakeGrace = 0; shakeAt = -99; updateShakeUI(); rocksSmashed = 0; lastSoftT = -9; softHinted = false; windShots = 0; windPending = false; world.wind = 0; spares = 1; spareAt = 0; savedCount = 0;
   current = randTier(); next = randTier(); curSecret = false; nextSecret = rollSecret(); secretIds.clear();
   newMission();
   $('missionBar').hidden = false; $('testBar').hidden = true;
@@ -1716,7 +1729,7 @@ function showTips(then, firstTime) {
       <div class="tip"><span class="tip-n">Shake</span><span>Stuck at the bottom? Tap Shake (or S). The case jolts and every face gets the same Δv, so J = mΔv. Earn a shake every 5 merges (max 3).</span></div>
       <div class="tip rock"><span class="tip-n">Books</span><span>Every ${d.rockEvery} shots a heavy textbook (12 kg) drops in. Books never merge. Smash one with a hit of Δp ${d.rockBreak} kg·m/s or more.</span></div>
       <div class="tip"><span class="tip-n">Power-ups</span><span>A ×3 combo earns one (hold up to 3). Tap it to load: <b>Anvil</b> 4× mass, <b>Bouncy</b> walls keep all its speed (e = 1), <b>Blast</b> pushes faces away (Δv = J ÷ m).</span></div>
-      <div class="tip"><span class="tip-n">Later</span><span>As your score grows the catapult starts moving, and wind gusts push faces in the air (a = F ÷ m, so light faces drift more). The case blocks the wind.</span></div>
+      <div class="tip"><span class="tip-n">Later</span><span>As your score grows the catapult starts moving, and wind pushes faces in the air (a = F ÷ m, so light faces drift more). The wind changes every ${WIND_EVERY} shots and stays steady while you aim. The case blocks the wind.</span></div>
       ${difficulty === 'hard' ? '<div class="tip hard"><span class="tip-n">Hard</span><span>No Next preview, and lower case walls (4.5&nbsp;m), so faces fall out more easily.</span></div>' : ''}
     </div>
     <p>Faster and heavier faces carry more momentum (p = mv) and energy, so they merge, smash and score better. But a hard hit can also knock faces out of the case.</p>`,
@@ -1735,17 +1748,17 @@ function launch() {
              : Phys.addBody(world, { tier: current, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy });
     nb.power = p; nb.baseTier = current;
     if (p === 'bouncy') { nb.bouncy = true; nb.bouncyUntil = world.time + BOUNCY_T; }
-    curPower = null; Sound.launch(v.sp / VMAX); armSwing = 1; if (p === 'bouncy') Sound.boing(); cooldown = 0.5; drag = null; canvas.classList.remove('aiming');
-    shots++; if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
+    curPower = null; Sound.launch(v.sp / VMAX); armSwing = 1; if (p === 'bouncy') Sound.boing(); cooldown = COOLDOWN; drag = null; canvas.classList.remove('aiming');
+    shots++; if (windOn && ++windShots >= WIND_EVERY) { windShots = 0; windPending = true; } if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
     afterShot(); updateTray(); updateHud(); return;
   }
   const nb = Phys.addBody(world, { tier: current, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy });
   if (curSecret) { nb.secret = true; secretIds.add(nb.id); }
   Sound.launch(v.sp / VMAX); armSwing = 1;
   if (v.sp > 1) burst(sx(LAUNCH.x), sy(LAUNCH.y), '#fff', 6, 140, { stars: 0, size: 4 });
-  current = next; next = randTier(); curSecret = nextSecret; nextSecret = rollSecret(); cooldown = 0.5;
+  current = next; next = randTier(); curSecret = nextSecret; nextSecret = rollSecret(); cooldown = COOLDOWN;
   if (curSecret) { banner(`SECRET!<small>${secret.name ? escapeHtml(secret.name) + ' · ' : ''}+${SECRET_BONUS} when it merges</small>`, 'sun'); Sound.newTier(); } drag = null; canvas.classList.remove('aiming');
-  shots++; if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
+  shots++; if (windOn && ++windShots >= WIND_EVERY) { windShots = 0; windPending = true; } if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
   afterShot(); updateHud();
 }
 // After each shot: maybe move the catapult (once that challenge has started).
@@ -1761,18 +1774,17 @@ function afterShot() {
 function updateChallenges(dt) {
   const r = RAMP[difficulty];
   if (!moveOn && score >= r.move) { moveOn = true; nextMoveShot = shots + 1; banner('Catapult on the move!', 'sun'); }
-  if (!windOn && score >= r.wind) { windOn = true; gustT = 0; banner('Wind picked up!<small>a = F ÷ m</small>', 'mint'); Sound.whistle(); }
+  if (!windOn && score >= r.wind) { windOn = true; windShots = 0; windPending = true; banner('Wind picked up!<small>a = F ÷ m</small>', 'mint'); Sound.whistle(); }
   // slide the catapult toward its target spot (no shooting while it moves)
   const d = catTarget - LAUNCH.x;
-  if (Math.abs(d) > 0.005) { LAUNCH.x += d * Math.min(1, dt * 3.5); cooldown = Math.max(cooldown, 0.15); } else LAUNCH.x = catTarget;
-  if (windOn) {
-    gustT -= dt;
-    if (gustT <= 0) {
-      const fmax = Math.min(5, 1 + (score - r.wind) / 800);
-      windTarget = (Math.random() < 0.5 ? -1 : 1) * fmax * (0.4 + 0.6 * Math.random());
-      gustT = 6 + Math.random() * 4;
-    }
-    world.wind += (windTarget - world.wind) * Math.min(1, dt * 0.8);
+  if (Math.abs(d) > 0.005) { LAUNCH.x += d * Math.min(1, dt * 7); cooldown = Math.max(cooldown, 0.15); } else LAUNCH.x = catTarget;
+  // new wind: instantly, between shots, only when nothing is flying outside the box and you are not aiming
+  if (windOn && windPending && !drag && !world.bodies.some(b => !b.inBox && b.tier > 0)) {
+    windPending = false;
+    const fmax = Math.min(5, 1 + (score - r.wind) / 800);
+    windTarget = world.wind = (Math.random() < 0.5 ? -1 : 1) * fmax * (0.4 + 0.6 * Math.random());
+    popups.push({ x: LAUNCH.x + 0.6, y: LAUNCH.y + 1.3, text: `Wind ${windTarget > 0 ? '→' : '←'} ${Math.abs(windTarget).toFixed(1)} N`, sub: `steady for ${WIND_EVERY} shots`, color: '#BDF0E6', size: 18, t: 0, life: 1.6 });
+    Sound.whistle();
   }
 }
 function grantPower() {
@@ -1988,8 +2000,9 @@ function handleEvents() {
       Sound.bounce(rel, Math.min(ev.m1, ev.m2));
     }
     if (ev.mode === 'Game' && ev.type === 'C1') {
-      combo = ev.t - lastMergeT <= 1.0 ? combo + 1 : 1; lastMergeT = ev.t;
-      ev.combo = Math.min(combo, 5); ev.awarded = ev.points * ev.combo;
+      combo = ev.t - lastMergeT <= COMBO_WINDOW ? combo + 1 : 1; lastMergeT = ev.t;
+      // points = momentum given to the target (×10) × combo, plus a bonus for the tier you made
+      ev.combo = Math.min(combo, 5); ev.tierBonus = TIER_BONUS * (ev.newTier || 1); ev.awarded = ev.points * ev.combo + ev.tierBonus;
       if (combo === 3) grantPower();   // a ×3 combo earns a power-up
       bestCombo = Math.max(bestCombo, ev.combo);
       if (secretIds.has(ev.id1) || secretIds.has(ev.id2)) {
@@ -2004,7 +2017,7 @@ function handleEvents() {
       const tier = ev.newTier || 1, col = TIER_COLORS[tier - 1];
       burst(X, Y, col, 14 + tier * 3, 160 + tier * 25, { size: 4 + tier * 0.6, up: 60 });
       Sound.merge(tier);
-      popups.push({ x: ev.x, y: ev.y + 0.2, text: `+${ev.awarded}`, sub: `Δp ${Math.abs(ev.dpTarget).toFixed(1)}`, color: ev.combo > 1 ? SUN : '#fff', size: 24 + Math.min(14, ev.awarded / 25), t: 0, life: 1.1 });
+      popups.push({ x: ev.x, y: ev.y + 0.2, text: `+${ev.awarded}`, sub: `Δp ${Math.abs(ev.dpTarget).toFixed(1)} + tier bonus`, color: ev.combo > 1 ? SUN : '#fff', size: 24 + Math.min(14, ev.awarded / 25), t: 0, life: 1.1 });
       if (tier >= 5) doShake(2 + tier * 0.9, 0.25 + tier * 0.03);
       if (ev.combo > 1) { banner(`Combo ×${ev.combo}!`, 'sun'); Sound.combo(ev.combo); doShake(3 + ev.combo * 1.5, 0.3); }
       if (tier > best && tier >= 4) { banner(`New face!<small>Tier ${tier} · ${massOf(tier)} kg</small>`, 'pink'); Sound.newTier(); }
@@ -2425,7 +2438,7 @@ const Campus = (() => {
 // =====================================================================
 let last = performance.now(), acc = 0;
 function frame(now) {
-  let dt = Math.min(0.05, (now - last) / 1000); last = now; if (!(dt >= 0)) dt = 0;
+  let dt = Math.min(0.1, (now - last) / 1000); last = now; if (!(dt >= 0)) dt = 0;
   if (state !== shakeUIState) { shakeUIState = state; updateShakeUI(); updateTray(); }
   const running = state === 'playing' || (state === 'test' && trial && trial.running);
   if (running) {
