@@ -599,7 +599,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
         <p>Textbooks (12 kg) never merge. A textbook breaks when a hit gives it a change in momentum Δp of at least 20 (Easy), 30 (Normal) or 45 (Hard) kg·m/s, scoring Δp × 10.</p>
         <p><b style="color:var(--ink)">The campus:</b> faces are flung from a popsicle-stick catapult on a 2.55 m stack of textbooks into an open paper display box (walls 5.0 m high, 4.5 m on Hard). Gravity is Earth's, g = 10 m/s². Walls and the ground take away half the speed of a hit. A face that falls out of the case ends the game; a shot that misses the case just rolls away.</p>
         <p><b style="color:var(--ink)">Power-ups:</b> a ×3 combo earns one (hold up to 3, tap to load). <b>Anvil</b>: same size as the loaded face but 4× the mass, so 4× the momentum at the same speed; it never merges and disappears 4 s after it lands. <b>Bouncy</b>: walls and ground give back all its speed (e = 1, no kinetic energy lost) for 6 s, instead of half (e = 0.5). <b>Blast</b>: when it lands in the case, every face within 1.4 m gets an outward impulse J of up to 6 N·s (less farther away). Δv = J ÷ m, so a 1 kg face gets up to 6 m/s but a 16 kg face only 0.375 m/s.</p>
-        <p><b style="color:var(--ink)">Challenges:</b> as your score grows, the catapult starts moving closer and farther (every 12 shots at first, down to every 4), and later wind gusts blow. Wind is a sideways force F of up to 5 N on faces in the open air, so a = F ÷ m: a 1 kg face drifts 4× more than a 4 kg one. The glass case blocks the wind, and the aim guide includes it.</p>
+        <p><b style="color:var(--ink)">Challenges:</b> as your score grows, the catapult starts moving closer and farther (every 12 shots at first, down to every 4), and later wind gusts blow. Wind is a sideways force F of up to 5 N on faces in the open air, so a = F ÷ m: a 1 kg face drifts 4× more than a 4 kg one. The glass case blocks the wind, and the aim guide includes it. The wind sock on the textbook stack shows the wind: it hangs down when there is none and stands straight out at about 4 N, and the flag by the box points the same way.</p>
         <p><b style="color:var(--ink)">Case shake:</b> the case jolts, giving every face in it the same change in velocity, Δv of about 5 m/s up plus a sideways part toward the middle (up to 4 m/s, so faces are not thrown out). The impulse on each face is J = mΔv, so heavy faces take a much bigger impulse than light ones. Faces fly at different angles and crash into each other, which can merge stuck small faces. You start with 1 shake, earn 1 every 5 merges, and can hold up to 3. Merges caused by a shake don't count toward the next one. The shake itself is an outside force (like the walls), so it is not logged, but the collisions it causes are.</p>
         <p>Not logged: hits on walls and the floor (outside forces), and faces resting in the pile slower than 0.6 m/s.</p>
       </div>
@@ -865,7 +865,8 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.0 (22 Nov 2026) Angry Birds launcher on a cliff outside an open box; a face falling out of the box ends the game.
 // v2.1 (22 Nov 2026) school campus at night, notebook UI, catapult, trophy case, power-ups, wind gusts, moving catapult.
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
-const GAME_VERSION = '2.2', GAME_DATE = '23 Nov 2026';
+// v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
+const GAME_VERSION = '2.3', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1341,6 +1342,7 @@ function drawScene(c, wpx, hpx) {
       c.fillStyle = 'rgba(255,244,222,0.9)'; c.fillRect(lx - 5, y + bh * 0.26, tw + 10, bh * 0.48);
       c.fillStyle = INK; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(title, lx, y + bh * 0.5 + 1); }
   }
+  drawWindSock(c);
   // ---- display box: the back is teal construction paper (inside of the box) ----
   const l = sx(BOX.l), r = sx(BOX.r), top = sy(wallH);
   c.fillStyle = BOX_PAPER; c.fillRect(l, top, r - l, gy - top);
@@ -1356,6 +1358,38 @@ function drawScene(c, wpx, hpx) {
       const tw = c.measureText('Careful!').width + 16; c.fillStyle = '#FFF4DE'; paperShadow(c, true, 4, 2); c.fillRect((l + r) / 2 - tw / 2, top - 30, tw, 24); paperShadow(c, false);
       c.fillStyle = DANGER; c.fillText('Careful!', (l + r) / 2, top - 9); }
   }
+}
+// Wind sock on the textbook stack, right where faces are launched (like a windsock beside a runway).
+// It hangs straight down with no wind and stands out further as the wind gets stronger (straight out at about 4 N).
+let sockWind = 0;
+function drawWindSock(c) {
+  const F = world && state !== 'test' ? world.wind || 0 : 0;
+  sockWind += (F - sockWind) * 0.05;
+  const t = performance.now() / 1000, bx = sx(0.34), base = sy(CLIFF.y2), top = sy(CLIFF.y2 + 1.4);
+  const e = Math.min(1, Math.abs(sockWind) / 4), dir = sockWind >= 0 ? 1 : -1;
+  let phi = e * Math.PI / 2 * 0.95 + (reduceMotion ? 0 : Math.sin(t * (3 + e * 6)) * 0.05 * (0.3 + e));
+  const L = 0.42 * ppm, r0 = 0.085 * ppm, r1 = 0.04 * ppm, segs = 5;
+  c.save();
+  // pole: a craft stick, with a small swivel ring at the top
+  paperShadow(c, true, 4, 2); c.fillStyle = STICK; c.beginPath(); c.roundRect(bx - 2.5, top - 4, 5, base - top + 4, 2.5); c.fill(); paperShadow(c, false);
+  c.fillStyle = '#E8C468'; c.beginPath(); c.arc(bx, top, 3.5, 0, Math.PI * 2); c.fill();
+  // the sock: five tapering paper bands, alternating orange and cream, pointing downwind
+  const ux = dir * Math.sin(phi), uy = Math.cos(phi), nx = -uy, ny = ux;   // along the sock, and across it
+  const mx = bx + dir * r0 * 0.15, my = top + r0;                          // mouth hangs just below the swivel
+  for (let i = 0; i < segs; i++) {
+    const s0 = i / segs, s1 = (i + 1) / segs, ra = r0 + (r1 - r0) * s0, rb = r0 + (r1 - r0) * s1;
+    // a slight droop that grows toward the tail when the wind is weak
+    const sag0 = (1 - e) * 0 + e * (1 - e) * s0 * s0 * L * 0.35, sag1 = e * (1 - e) * s1 * s1 * L * 0.35;
+    const ax = mx + ux * L * s0, ay = my + uy * L * s0 + sag0, bxp = mx + ux * L * s1, byp = my + uy * L * s1 + sag1;
+    paperShadow(c, true, 4, 2);
+    c.fillStyle = i % 2 ? '#FFF4DE' : '#F28C38';
+    c.beginPath(); c.moveTo(ax + nx * ra, ay + ny * ra); c.lineTo(bxp + nx * rb, byp + ny * rb); c.lineTo(bxp - nx * rb, byp - ny * rb); c.lineTo(ax - nx * ra, ay - ny * ra); c.closePath(); c.fill();
+    paperShadow(c, false);
+  }
+  // mouth ring
+  c.strokeStyle = '#B98A4E'; c.lineWidth = 2; c.beginPath(); c.moveTo(mx + nx * r0, my + ny * r0); c.lineTo(mx - nx * r0, my - ny * r0); c.stroke();
+  c.beginPath(); c.moveTo(bx, top); c.lineTo(mx, my); c.stroke();
+  c.restore();
 }
 function drawBoxFront(c) {
   const gy = sy(0), top = sy(wallH), t = BOX.t * ppm, l = sx(BOX.l), r = sx(BOX.r);
