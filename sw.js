@@ -1,7 +1,7 @@
 // SuiCalculate offline support.
 // The game page is fetched fresh when online (so updates show up) and served from the cache when offline.
 // Change VERSION whenever you upload new icons or other files, so phones pick them up.
-const VERSION = 'suicalculate-v2.9';
+const VERSION = 'suicalculate-v2.10';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
   './icons/maskable-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 
