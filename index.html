@@ -951,7 +951,7 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
 // v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
 // v2.4 (23 Nov 2026) new papercraft app icon, splash screen with physics tips, link preview image.
-const GAME_VERSION = '2.8.1', GAME_DATE = '23 Nov 2026';
+const GAME_VERSION = '2.9', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1238,7 +1238,30 @@ function fitStage() {
   canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
 }
 new ResizeObserver(fitStage).observe($('stageWrap'));
-const sx = x => x * ppm, sy = y => (H - y) * ppm;
+// Camera: camY (m) slides the view up to follow a high shot. It only moves what you see, never the physics.
+let camY = 0, camBody = null;
+const CAM_MARGIN = 0.8, CAM_MAX = 12;   // start following when the face's top is 0.8 m from the top edge; never more than 12 m
+const sx = x => x * ppm, sy = y => (H + camY - y) * ppm;
+// Follow the face you just launched while it is near or above the top edge, then ease back down.
+function updateCamera(dt) {
+  let target = 0;
+  if (camBody && (camBody.dead || !world.bodies.includes(camBody) || (camBody.vy < 0 && camBody.y + camBody.r < H - CAM_MARGIN))) camBody = null;   // falling back below the line: let go
+  if (!reduceMotion && camBody && state === 'playing' && !drag) target = Math.min(CAM_MAX, Math.max(0, camBody.y + camBody.r - (H - CAM_MARGIN)));
+  camY += (target - camY) * Math.min(1, dt * (target > camY ? 12 : 6));   // quick on the way up, gentler on the way back
+  if (camY < 0.002) camY = 0;
+  if (!isFinite(camY)) camY = 0;
+}
+// A face above the top of the view gets a paper arrow at the top edge with its height (used if the camera is off or maxed out).
+function drawOffscreenMarkers(c) {
+  for (const b of world.bodies) {
+    if (b.y - b.r <= H + camY || b.tier < 1) continue;   // only faces fully above the view (same rule as the triangle)
+    const x = Math.max(24, Math.min(cw - 24, sx(b.x))), txt = `↑ ${b.y.toFixed(1)} m`;
+    c.save(); c.font = '700 13px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 14;
+    const bx = Math.max(4, Math.min(cw - tw - 4, x - tw / 2));
+    paperShadow(c, true, 4, 2); c.fillStyle = '#FFF4DE'; cutRect(c, bx, 20, tw, 22, 6); c.fill(); paperShadow(c, false);
+    c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, bx + tw / 2, 32); c.restore();
+  }
+}
 
 function shade(hex, amt) {
   const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
@@ -1334,6 +1357,7 @@ function draw() {
     c.translate((Math.random() - 0.5) * 2 * k, (Math.random() - 0.5) * 2 * k);
   }
   drawScene(c, wpx, hpx);
+  if (world) drawOffscreenMarkers(c);
   if (state === 'test') {
     c.font = `600 ${Math.max(12, ppm * 0.22)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillStyle = INK; c.globalAlpha = 0.7;
     c.fillText('TEST MODE · no gravity', sx(BOX_MID), sy(wallH) - 8); c.globalAlpha = 1;
@@ -1366,7 +1390,7 @@ function draw() {
   drawBoxFront(c);
   drawWind(c);
   // faces above the top of the screen: a small marker at the top edge
-  for (const b of world.bodies) if (b.y - b.r > H) {
+  for (const b of world.bodies) if (b.y - b.r > H + camY) {
     const X = Math.max(10, Math.min(wpx - 10, sx(b.x)));
     c.save(); c.fillStyle = b.tier >= 1 ? TIER_COLORS[b.tier - 1] : '#B9B2CC'; c.strokeStyle = INK; c.lineWidth = 2.5;
     c.beginPath(); c.moveTo(X, 4); c.lineTo(X - 8, 16); c.lineTo(X + 8, 16); c.closePath(); c.fill(); c.stroke(); c.restore();
@@ -1727,6 +1751,7 @@ function nextBanner() {
 // GAME FLOW
 // =====================================================================
 function emptyWorld() {
+  camY = 0; camBody = null;
   wallH = DIFF[difficulty].wall;
   world = Phys.createWorld({ mergeEnergy: DIFF[difficulty].mergeEnergy, wallH });
   world.onEvent = ev => pending.push(ev);
@@ -1789,13 +1814,14 @@ function launch() {
     const nb = p === 'anvil' ? Phys.addBody(world, { tier: -2, m: 4 * massOf(current), r: rr, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy })
              : p === 'blast' ? Phys.addBody(world, { tier: -3, m: massOf(current), r: rr, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy })
              : Phys.addBody(world, { tier: current, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy });
-    nb.power = p; nb.baseTier = current;
+    nb.power = p; nb.baseTier = current; camBody = nb;
     if (p === 'bouncy') { nb.bouncy = true; nb.bouncyUntil = world.time + BOUNCY_T; }
     curPower = null; Sound.launch(v.sp / VMAX); armSwing = 1; if (p === 'bouncy') Sound.boing(); cooldown = COOLDOWN; drag = null; canvas.classList.remove('aiming');
     shots++; if (windOn && ++windShots >= WIND_EVERY) { windShots = 0; windPending = true; } if (shots % DIFF[difficulty].rockEvery === 0) rockDue = 0.9;
     afterShot(); updateTray(); updateHud(); return;
   }
   const nb = Phys.addBody(world, { tier: current, x: x0, y: LAUNCH.y, vx: v.vx, vy: v.vy });
+  camBody = nb;
   if (curSecret) { nb.secret = true; secretIds.add(nb.id); }
   Sound.launch(v.sp / VMAX); armSwing = 1;
   if (v.sp > 1) burst(sx(LAUNCH.x), sy(LAUNCH.y), '#fff', 6, 140, { stars: 0, size: 4 });
@@ -2342,7 +2368,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'playing') pauseGame(); Sound.musicStop(); } });
 
-function toWorld(e) { const r = canvas.getBoundingClientRect(); const k = r.width / W; return { x: (e.clientX - r.left) / k, y: H - (e.clientY - r.top) / k }; }
+function toWorld(e) { const r = canvas.getBoundingClientRect(); const k = r.width / W; return { x: (e.clientX - r.left) / k, y: H + camY - (e.clientY - r.top) / k }; }
 // Aiming: start a pull anywhere on the screen and keep pulling
 // past its edges; pointer capture keeps the drag going until you let go.
 const aimArea = $('stageWrap');
@@ -2460,7 +2486,7 @@ const Campus = (() => {
     for (let i = 10; i >= 0; i--) { const u = i / 10, wave = Math.sin(t * (2 + stiff * 5) - u * 5) * 3 * (0.3 + stiff) * u; c.lineTo(x0 + dir * fw * u * (1 - droop * 0.75) - droop * 6 * u, gy - height + 2 + fh + fh * droop * u * 0.9 + wave - droop * fh * 0.6 * u); }
     c.closePath(); c.fill(); c.restore();
   }
-  function draw(dt, aim, shk, wind) {
+  function draw(dt, aim, shk, wind, cam = 0) {
     if (cv.width !== Math.round(window.innerWidth * Math.min(window.devicePixelRatio || 1, 2))) build();
     if (!reduceMotion) t += dt;
     const tx = aim ? -aim.px * 12 : 0, ty = aim ? aim.py * 8 : 0;
@@ -2468,8 +2494,8 @@ const Campus = (() => {
     if (!isFinite(px) || !isFinite(py)) { px = 0; py = 0; }
     flagWind += ((wind || 0) - flagWind) * Math.min(1, dt * 2);
     c.setTransform(dp, 0, 0, dp, 0, 0);
-    const gy = groundY(), L = d => [px * d + shk.x * d * 0.5, py * d + shk.y * d * 0.5];
-    let [ox, oy] = L(0.12); c.drawImage(sky, ox - 12, oy - 12, w + 24, h + 24);
+    const gy = groundY(), L = d => [px * d + shk.x * d * 0.5, py * d + shk.y * d * 0.5 + cam * d];   // far layers slide less: depth
+    let [ox, oy] = L(0.12); oy = Math.min(oy, 12); c.drawImage(sky, ox - 12, oy - 12, w + 24, h + 24);
     // hanging clouds and birds: strings from the top, gentle swing (pendulum), lean with the wind
     [ox, oy] = L(0.3);
     for (const k of hangers) {
@@ -2533,7 +2559,8 @@ function frame(now) {
   if (logDirty && !$('lab').hidden) renderLog();
   { let sxk = 0, syk = 0; if (shake.t < shake.dur && !reduceMotion) { const k = shake.amp * (1 - shake.t / shake.dur); sxk = (Math.random() - 0.5) * 2 * k; syk = (Math.random() - 0.5) * 2 * k; }
     if (!isFinite(sxk) || !isFinite(syk)) { sxk = 0; syk = 0; }
-    try { Campus.draw(dt, drag && state === 'playing' ? drag : null, { x: sxk, y: syk }, world ? world.wind : 0); } catch (e) { /* a bad frame must never stop the game */ } }
+    try { Campus.draw(dt, drag && state === 'playing' ? drag : null, { x: sxk, y: syk }, world ? world.wind : 0, camY * ppm); } catch (e) { /* a bad frame must never stop the game */ } }
+  if (world) updateCamera(dt);
   if (ppm > 0 && world) draw();
   updateAimKnob();
   requestAnimationFrame(frame);
