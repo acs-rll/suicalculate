@@ -452,7 +452,7 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
   #testBar { grid-area: test; }
   .stage-wrap { grid-area: stage; }
   .toolbar { grid-area: tools; grid-template-columns: 1fr; grid-template-rows: repeat(4, minmax(0, 1fr)); align-self: center; height: 100%; max-height: 520px; padding-bottom: 6px; }
-  #missionBar::before { left: auto; right: 14px; transform: rotate(4deg); width: 52px; }  /* keep the tape off the mission text */
+  #missionBar::before { display: none; }  /* keep the tape off the mission text */
   .app { padding-bottom: 14px; }
   .tb { align-content: center; }
   .test-grid { grid-template-columns: auto minmax(0, 1fr) minmax(0, 0.8fr); }
@@ -484,6 +484,27 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
 .rotate-phone::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 14px; height: 4px; margin-left: -7px; border-radius: 2px; background: var(--ink); }
 @keyframes turnphone { 0%, 25% { transform: rotate(0); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
 @media (prefers-reduced-motion: reduce) { .rotate-phone { animation: none; transform: rotate(-90deg); } }
+
+/* =====================================================================
+   v2.8 AIM PAD: a thumb pad in the toolbar, so your hand stays off the scene
+   ===================================================================== */
+.toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+.aimpad { --pad: 96px; position: relative; width: var(--pad); height: auto; aspect-ratio: 1; border-radius: 50%; touch-action: none; cursor: grab;
+  background: var(--grain), var(--teal); border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); display: grid; place-items: center;
+  user-select: none; -webkit-user-select: none; align-self: center; }
+.aimpad-ring { position: absolute; inset: 14%; border-radius: 50%; border: 2.5px dashed rgba(255, 244, 222, 0.7); pointer-events: none; }
+.aimpad-knob { position: absolute; left: 50%; top: 50%; width: 40%; height: 40%; margin: -20% 0 0 -20%; border-radius: 50%; pointer-events: none;
+  background: #D62839; border: 3px solid var(--ink); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.2), 0 3px 0 rgba(46, 36, 69, 0.4); }
+.aimpad-label { position: absolute; bottom: 7%; font: 700 10px var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; color: #FFF4DE; pointer-events: none; }
+.aimpad:not(.ready) { filter: saturate(0.5) brightness(0.9); }
+.aimpad.active { cursor: grabbing; }
+.aimpad.active .aimpad-label { opacity: 0; }
+@media (max-height: 700px) { .aimpad { --pad: 84px; } .aimpad-label { font-size: 9px; } }
+@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  .app { grid-template-columns: clamp(170px, 23vw, 270px) minmax(0, 1fr) clamp(96px, 12vw, 124px); }
+  .toolbar { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); max-height: 560px; }
+  .aimpad { --pad: min(110px, 100%); justify-self: center; }
+}
 </style>
 </head>
 <body>
@@ -581,6 +602,11 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
   <nav class="toolbar" aria-label="Game controls">
     <button class="card tb" id="tbPause"><svg><use href="#i-pause" id="tbPauseIcon"/></svg><span id="tbPauseText">Pause</span><small>P key</small></button>
     <button class="card tb" id="tbRestart"><svg><use href="#i-restart"/></svg><span>Restart</span><small>New game</small></button>
+    <div class="aimpad" id="aimPad" role="application" aria-label="Aim pad: drag back and let go to launch">
+      <span class="aimpad-ring" aria-hidden="true"></span>
+      <span class="aimpad-knob" id="aimKnob" aria-hidden="true"></span>
+      <span class="aimpad-label" aria-hidden="true">Pull to aim</span>
+    </div>
     <button class="card tb" id="tbLevel"><svg><use href="#i-level"/></svg><span>Level</span><small id="tbLevelName">Easy</small></button>
     <button class="card tb" id="tbLab"><svg><use href="#i-lab"/></svg><span>Lab</span><small>Test · Data</small></button>
   </nav>
@@ -989,7 +1015,7 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
 // v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
 // v2.4 (23 Nov 2026) new papercraft app icon, splash screen with physics tips, link preview image.
-const GAME_VERSION = '2.7', GAME_DATE = '23 Nov 2026';
+const GAME_VERSION = '2.8', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1676,6 +1702,24 @@ function drawAimGuide(c, v) {
   }
   c.restore();
 }
+// Launch angle above the horizontal, in whole degrees (θ = tan⁻¹(vy ÷ vx)).
+function launchDeg(v) { return Math.round(Math.atan2(v.vy, v.vx) * 180 / Math.PI); }
+// Protractor at the catapult while aiming: a dashed horizontal, an arc from it to the launch direction, and the angle.
+function drawLaunchAngle(c, ex, ey, r, v) {
+  const a = Math.atan2(v.vy, v.vx), R = r + Math.max(26, 0.55 * ppm), deg = launchDeg(v);
+  c.save(); c.lineCap = 'round';
+  c.setLineDash([5, 5]); c.lineWidth = 2.5; c.strokeStyle = 'rgba(46,36,69,0.55)';
+  c.beginPath(); c.moveTo(ex + r + 4, ey); c.lineTo(ex + R + 14, ey); c.stroke(); c.setLineDash([]);
+  c.lineWidth = 3.5; c.strokeStyle = '#fff'; c.beginPath(); c.arc(ex, ey, R, 0, -a, a > 0); c.stroke();
+  c.lineWidth = 2.5; c.strokeStyle = INK; c.beginPath(); c.moveTo(ex + Math.cos(a) * (r + 4), ey - Math.sin(a) * (r + 4)); c.lineTo(ex + Math.cos(a) * (R + 14), ey - Math.sin(a) * (R + 14)); c.stroke();
+  // angle tag sits on the arc's middle, outside it
+  const m = a / 2, tx = ex + Math.cos(m) * (R + 22), ty = ey - Math.sin(m) * (R + 22);
+  const txt = deg + '°'; c.font = '700 16px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 14;
+  const bx = Math.max(4, Math.min(cw - tw - 4, tx - tw / 2)), by = Math.max(4, ty - 12);
+  paperShadow(c, true, 4, 2); c.fillStyle = SUN; cutRect(c, bx, by, tw, 24, 6); c.fill(); paperShadow(c, false);
+  c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, bx + tw / 2, by + 13);
+  c.restore();
+}
 // The popsicle-stick catapult on the stack of textbooks. The arm pulls back as you charge and swings forward when it fires.
 // The face sits in the bottle-cap bucket at LAUNCH (that is exactly where it starts in the physics).
 let armSwing = 0;
@@ -1708,9 +1752,10 @@ function drawSlingshot(c) {
       c.strokeStyle = power < 0.5 ? MINT : power < 0.85 ? SUN : DANGER;
       c.beginPath(); c.arc(ex, ey, r + 11, -Math.PI / 2, -Math.PI / 2 + power * Math.PI * 2); c.stroke();
     }
+    if (drag && v.sp > 0) drawLaunchAngle(c, ex, ey, r, v);
     if (curPower) drawPower(c, ex, ey, r, curPower, current, mass); else drawFace(c, ex, ey, r, current, massOf(current), 1, true, curSecret);
     if (drag && v.sp > 0 && $('showNums').checked) {
-      const txt = `${v.sp.toFixed(1)} m/s · p ${(mass * v.sp).toFixed(1)}`;
+      const txt = `${launchDeg(v)}° · ${v.sp.toFixed(1)} m/s · p ${(mass * v.sp).toFixed(1)}`;
       c.font = '600 14px Fredoka, sans-serif'; const tw = c.measureText(txt).width + 18;
       let bx = ex - tw / 2; bx = Math.max(4, Math.min(cw - tw - 4, bx)); const by = Math.min(ch - 30, deck + 8);
       paperShadow(c, true, 5, 3); c.fillStyle = '#FFF4DE'; cutRect(c, bx, by, tw, 24, 7); c.fill(); paperShadow(c, false);
@@ -2376,6 +2421,33 @@ aimArea.addEventListener('pointermove', e => { if (!drag) return; const p = toWo
 aimArea.addEventListener('pointerup', () => { if (drag && state === 'playing') launch(); drag = null; canvas.classList.remove('aiming'); });
 aimArea.addEventListener('pointercancel', () => { drag = null; canvas.classList.remove('aiming'); });
 
+// Aim pad: a thumb pad below (or beside) the scene, so your hand never covers the box.
+// Pull the knob back like the catapult band: the shot goes the opposite way. Full power at PAD_FULL pixels of pull.
+const aimPad = $('aimPad'), aimKnob = $('aimKnob'), PAD_FULL = 100;
+let padStart = null;
+aimPad.addEventListener('pointerdown', e => {
+  e.stopPropagation(); e.preventDefault();
+  if (state !== 'playing' || cooldown > 0) return;
+  try { aimPad.setPointerCapture(e.pointerId); } catch (err) {}
+  padStart = { x: e.clientX, y: e.clientY }; drag = { sx: 0, sy: 0, px: 0, py: 0, pad: true };
+  canvas.classList.add('aiming'); aimPad.classList.add('active');
+});
+aimPad.addEventListener('pointermove', e => {
+  if (!drag || !padStart) return;
+  const k = PULL_PX / PAD_FULL / ppm;                 // pad pixels -> the same pull the catapult would get
+  drag.px = -(e.clientX - padStart.x) * k; drag.py = (e.clientY - padStart.y) * k;
+});
+const padEnd = fire => { if (fire && drag && state === 'playing') launch(); drag = null; padStart = null; canvas.classList.remove('aiming'); aimPad.classList.remove('active'); };
+aimPad.addEventListener('pointerup', () => padEnd(true));
+aimPad.addEventListener('pointercancel', () => padEnd(false));
+// The knob shows the current pull (from the pad or from a drag on the scene).
+function updateAimKnob() {
+  let x = 0, y = 0;
+  if (drag) { const R = aimPad.clientWidth * 0.36, px = -drag.px * ppm / PULL_PX, py = drag.py * ppm / PULL_PX, l = Math.hypot(px, py), f = l > 1 ? 1 / l : 1; x = px * f * R; y = py * f * R; }
+  aimKnob.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  aimPad.classList.toggle('ready', state === 'playing' && cooldown <= 0);
+}
+
 // =====================================================================
 // PAPERCRAFT BACKGROUND (golden hour): a full-screen canvas behind everything, drawn every frame.
 // Layers of construction paper with soft shadows. Far layers move least (parallax): they lean away from your pull
@@ -2529,6 +2601,7 @@ function frame(now) {
     if (!isFinite(sxk) || !isFinite(syk)) { sxk = 0; syk = 0; }
     try { Campus.draw(dt, drag && state === 'playing' ? drag : null, { x: sxk, y: syk }, world ? world.wind : 0); } catch (e) { /* a bad frame must never stop the game */ } }
   if (ppm > 0 && world) draw();
+  updateAimKnob();
   requestAnimationFrame(frame);
 }
 
