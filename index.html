@@ -983,7 +983,7 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
 // v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
 // v2.4 (23 Nov 2026) new papercraft app icon, splash screen with physics tips, link preview image.
-const GAME_VERSION = '2.10', GAME_DATE = '23 Nov 2026';
+const GAME_VERSION = '2.10.1', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1003,7 +1003,7 @@ const store = {
 // SOUND: every sound is synthesised with the Web Audio API (no files).
 // =====================================================================
 const Sound = (() => {
-  let ac = null, master, sfx, music, noiseBuf, mode = store.get('sound', 'all');
+  let ac = null, master, sfx, music, noiseBuf, keepAlive = null, mode = store.get('sound', 'all');
   let musicOn = false, timer = null, nextT = 0, step = 0, lastBounce = 0;
   const midi = n => 440 * Math.pow(2, (n - 69) / 12);
   function unlock() {
@@ -1017,7 +1017,17 @@ const Sound = (() => {
         const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
       } catch (e) { ac = null; return; }
     }
-    if (ac.state === 'suspended') ac.resume().catch(() => {});
+    // iPhones: Web Audio is treated as "ambient" sound, which the ring/silent switch mutes.
+    // Asking for "playback" (newer iOS), plus a looping silent <audio> (older iOS), makes it play like a game or video.
+    try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) {}
+    if (!keepAlive) {
+      try {
+        keepAlive = new Audio('data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==');
+        keepAlive.loop = true; keepAlive.setAttribute('playsinline', ''); keepAlive.volume = 0.01;
+        const p = keepAlive.play(); if (p && p.catch) p.catch(() => { keepAlive = null; });
+      } catch (e) { keepAlive = null; }
+    }
+    if (ac.state !== 'running') ac.resume().catch(() => {});   // 'suspended', or 'interrupted' after a call or alarm on iOS
   }
   const ok = () => ac && mode !== 'off';
   function toneAt(t, f, d, type, v, f2, dest, lp) {
@@ -1131,7 +1141,10 @@ const Sound = (() => {
   }
   return api;
 })();
-['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => Sound.unlock(), { capture: true, passive: true }));
+// iOS only lets sound start inside a tap, and older versions only on touchend/click, so try them all.
+['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(ev => window.addEventListener(ev, () => Sound.unlock(), { capture: true, passive: true }));
+// coming back to the tab (or after a phone call) can leave the audio paused: wake it on the next tap
+document.addEventListener('visibilitychange', () => { if (!document.hidden) Sound.unlock(); });
 
 // =====================================================================
 // GAME STATE
