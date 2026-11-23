@@ -435,57 +435,6 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
 .spare{color:#E8505B;font-weight:700;transition:opacity .3s,transform .3s;display:inline-block}
 .spare.used{opacity:.25;filter:grayscale(1);transform:scale(.85)}
 /* =====================================================================
-   v2.7 LANDSCAPE: HUD and mission on the left, the scene in the middle,
-   the toolbar standing up on the right. The scene itself (sizes in metres) is unchanged.
-   ===================================================================== */
-@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
-  .app { max-width: none; grid-template-columns: clamp(176px, 24vw, 270px) minmax(0, 1fr) clamp(66px, 9vw, 96px);
-    grid-template-rows: auto auto auto minmax(0, 1fr);
-    grid-template-areas: "hud stage tools" "mission stage tools" "test stage tools" ". stage tools";
-    column-gap: 12px; row-gap: 8px;
-    padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); padding-block: 8px; }
-  .hud { grid-area: hud; grid-template-columns: minmax(0, 1fr) auto; }
-  .hud .scorecard { grid-column: 1 / -1; }
-  .hud .iconbtn { width: auto; }
-  #missionBar { grid-area: mission; grid-template-columns: auto minmax(0, 1fr); }
-  #missionBar .mission-side { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
-  #testBar { grid-area: test; }
-  .stage-wrap { grid-area: stage; }
-  .toolbar { grid-area: tools; grid-template-columns: 1fr; grid-template-rows: repeat(4, minmax(0, 1fr)); align-self: center; height: 100%; max-height: 520px; padding-bottom: 6px; }
-  #missionBar::before { display: none; }  /* keep the tape off the mission text */
-  .app { padding-bottom: 14px; }
-  .tb { align-content: center; }
-  .test-grid { grid-template-columns: auto minmax(0, 1fr) minmax(0, 0.8fr); }
-}
-@media (orientation: landscape) and (min-aspect-ratio: 5/4) and (max-height: 480px) {
-  .app { row-gap: 6px; padding-block: 6px; }
-  .score { font-size: 24px; }
-  .scorecard { padding: 4px 10px; }
-  .nextcard canvas { width: 34px; height: 34px; }
-  .mission-text { font-size: 13px; }
-  .strip { padding: 5px 8px; gap: 6px; }
-  .strip .ico { width: 24px; height: 24px; }
-  .tb { font-size: 12px; padding: 2px; }
-  .tb svg { width: 20px; height: 20px; }
-}
-
-/* phones held upright: suggest turning sideways (you can still play upright) */
-.rotate-hint { display: none; }
-@media (orientation: portrait) and (max-width: 600px) and (pointer: coarse) {
-  .rotate-hint:not([hidden]) { display: grid; position: fixed; inset: 0; z-index: 90; place-items: center; padding: 24px;
-    background: rgba(46, 36, 69, 0.55); }
-}
-.rotate-card { background: var(--grain), var(--cream); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 5px 0 var(--ink);
-  padding: 22px 20px 18px; max-width: 320px; text-align: center; display: grid; gap: 10px; justify-items: center; }
-.rotate-card h2 { margin: 0; font: 700 24px var(--font-display); }
-.rotate-card p { margin: 0; color: var(--muted); }
-.rotate-phone { width: 58px; height: 96px; border: 4px solid var(--ink); border-radius: 12px; background: var(--teal); position: relative;
-  animation: turnphone 2.2s ease-in-out infinite; }
-.rotate-phone::after { content: ""; position: absolute; left: 50%; bottom: 6px; width: 14px; height: 4px; margin-left: -7px; border-radius: 2px; background: var(--ink); }
-@keyframes turnphone { 0%, 25% { transform: rotate(0); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
-@media (prefers-reduced-motion: reduce) { .rotate-phone { animation: none; transform: rotate(-90deg); } }
-
-/* =====================================================================
    v2.8 AIM PAD: a thumb pad in the toolbar, so your hand stays off the scene
    ===================================================================== */
 .toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
@@ -500,11 +449,6 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
 .aimpad.active { cursor: grabbing; }
 .aimpad.active .aimpad-label { opacity: 0; }
 @media (max-height: 700px) { .aimpad { --pad: 84px; } .aimpad-label { font-size: 9px; } }
-@media (orientation: landscape) and (min-aspect-ratio: 5/4) {
-  .app { grid-template-columns: clamp(170px, 23vw, 270px) minmax(0, 1fr) clamp(96px, 12vw, 124px); }
-  .toolbar { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); max-height: 560px; }
-  .aimpad { --pad: min(110px, 100%); justify-self: center; }
-}
 </style>
 </head>
 <body>
@@ -535,14 +479,6 @@ table.data tr.c1 td:nth-child(3) { color: var(--coral); }
   </defs>
 </svg>
 
-<div class="rotate-hint" id="rotateHint" role="dialog" aria-label="Turn your phone sideways">
-  <div class="rotate-card">
-    <div class="rotate-phone" aria-hidden="true"></div>
-    <h2>Turn sideways</h2>
-    <p>SuiCalculate is made for landscape. Turn your phone for a bigger view.</p>
-    <button class="btn" id="rotateOk">Play upright anyway</button>
-  </div>
-</div>
 <main class="app" id="app">
   <div class="hud">
     <div class="card scorecard">
@@ -1015,7 +951,7 @@ let H = Phys.H;                     // top of the view (m); grows on tall screen
 // v2.2 (23 Nov 2026) papercraft campus at golden hour: construction-paper scene, sticker faces, torn-paper UI, paper sounds.
 // v2.3 (23 Nov 2026) wind sock on the textbook stack beside the catapult.
 // v2.4 (23 Nov 2026) new papercraft app icon, splash screen with physics tips, link preview image.
-const GAME_VERSION = '2.8', GAME_DATE = '23 Nov 2026';
+const GAME_VERSION = '2.8.1', GAME_DATE = '23 Nov 2026';
 const DT = 1 / 240;                 // physics time step (s)
 const PULL_PX = 120;                // pixels of pull for full power
 const TIERS = Phys.MAX_TIER;
@@ -1302,8 +1238,6 @@ function fitStage() {
   canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
 }
 new ResizeObserver(fitStage).observe($('stageWrap'));
-// Upright-phone hint: once dismissed, stay dismissed for this visit.
-$('rotateOk').addEventListener('click', () => { $('rotateHint').hidden = true; });
 const sx = x => x * ppm, sy = y => (H - y) * ppm;
 
 function shade(hex, amt) {
